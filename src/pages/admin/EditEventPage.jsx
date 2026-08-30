@@ -9,6 +9,7 @@ const initialForm = {
   eventDate: '',
   startTime: '',
   venue: '',
+  capacity: '',
   registrationStatus: 'OPEN',
 }
 
@@ -31,7 +32,7 @@ export default function EditEventPage() {
 
       const { data, error } = await supabase
         .from('events')
-        .select('id, title, description, event_date, start_time, venue, registration_status')
+        .select('id, title, description, event_date, start_time, venue, capacity, registration_status')
         .eq('id', id)
         .maybeSingle()
 
@@ -47,6 +48,7 @@ export default function EditEventPage() {
           eventDate: data.event_date,
           startTime: data.start_time.slice(0, 5),
           venue: data.venue,
+          capacity: data.capacity == null ? '' : String(data.capacity),
           registrationStatus: data.registration_status,
         })
       }
@@ -75,6 +77,12 @@ export default function EditEventPage() {
       return
     }
 
+    const capacity = getCapacityValue(form.capacity)
+    if (capacity === undefined) {
+      setErrorMessage('Capacity must be a whole number greater than zero, or left blank for unlimited capacity.')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -86,6 +94,7 @@ export default function EditEventPage() {
           event_date: form.eventDate,
           start_time: form.startTime,
           venue: form.venue.trim(),
+          capacity,
           registration_status: form.registrationStatus,
         })
         .eq('id', id)
@@ -186,6 +195,20 @@ export default function EditEventPage() {
             />
           </FormField>
 
+          <FormField label="Capacity (optional)" htmlFor="capacity">
+            <input
+              className={inputClassName}
+              id="capacity"
+              min="1"
+              name="capacity"
+              onChange={handleChange}
+              step="1"
+              type="number"
+              value={form.capacity}
+            />
+            <p className="mt-1.5 text-xs text-slate-500">Leave blank for unlimited capacity.</p>
+          </FormField>
+
           <FormField label="Registration status" htmlFor="registrationStatus">
             <select
               className={inputClassName}
@@ -210,6 +233,13 @@ export default function EditEventPage() {
       </div>
     </section>
   )
+}
+
+function getCapacityValue(value) {
+  if (!value.trim()) return null
+
+  const capacity = Number(value)
+  return Number.isInteger(capacity) && capacity > 0 ? capacity : undefined
 }
 
 function FormField({ children, htmlFor, label }) {

@@ -19,6 +19,7 @@ export default function EventRegistrationsPage() {
           .from('event_registrations')
           .select('id, registered_at, profiles(student_number, first_name, last_name, email, course, year_level)')
           .eq('event_id', id)
+          .eq('status', 'REGISTERED')
           .order('registered_at', { ascending: true }),
       ])
 

@@ -10,6 +10,7 @@ const initialForm = {
   eventDate: '',
   startTime: '',
   venue: '',
+  capacity: '',
   registrationStatus: 'OPEN',
 }
 
@@ -34,6 +35,12 @@ export default function CreateEventPage() {
       return
     }
 
+    const capacity = getCapacityValue(form.capacity)
+    if (capacity === undefined) {
+      setErrorMessage('Capacity must be a whole number greater than zero, or left blank for unlimited capacity.')
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -45,6 +52,7 @@ export default function CreateEventPage() {
           event_date: form.eventDate,
           start_time: form.startTime,
           venue: form.venue.trim(),
+          capacity,
           registration_status: form.registrationStatus,
           created_by: session.user.id,
         })
@@ -130,6 +138,20 @@ export default function CreateEventPage() {
             />
           </FormField>
 
+          <FormField label="Capacity (optional)" htmlFor="capacity">
+            <input
+              className={inputClassName}
+              id="capacity"
+              min="1"
+              name="capacity"
+              onChange={handleChange}
+              step="1"
+              type="number"
+              value={form.capacity}
+            />
+            <p className="mt-1.5 text-xs text-slate-500">Leave blank for unlimited capacity.</p>
+          </FormField>
+
           <FormField label="Registration status" htmlFor="registrationStatus">
             <select
               className={inputClassName}
@@ -154,6 +176,13 @@ export default function CreateEventPage() {
       </div>
     </section>
   )
+}
+
+function getCapacityValue(value) {
+  if (!value.trim()) return null
+
+  const capacity = Number(value)
+  return Number.isInteger(capacity) && capacity > 0 ? capacity : undefined
 }
 
 function FormField({ children, htmlFor, label }) {

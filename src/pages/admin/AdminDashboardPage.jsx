@@ -7,7 +7,7 @@ const cards = [
   ['Total members', 'members', '/admin/members'],
   ['Total events', 'events', '/admin/events'],
   ['Upcoming events', 'upcoming', '/admin/events'],
-  ['Event registrations', 'registrations', '/admin/events'],
+  ['Active RSVPs', 'registrations', '/admin/events'],
   ['Attendance records', 'attendance', '/admin/events'],
 ]
 
@@ -22,7 +22,7 @@ export default function AdminDashboardPage() {
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
         supabase.from('events').select('*', { count: 'exact', head: true }),
         supabase.from('events').select('*', { count: 'exact', head: true }).gte('event_date', today),
-        supabase.from('event_registrations').select('*', { count: 'exact', head: true }),
+        supabase.from('event_registrations').select('*', { count: 'exact', head: true }).eq('status', 'REGISTERED'),
         supabase.from('attendance').select('*', { count: 'exact', head: true }),
       ])
       const failed = results.find((result) => result.error)

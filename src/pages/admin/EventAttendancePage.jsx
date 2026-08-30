@@ -21,6 +21,7 @@ export default function EventAttendancePage() {
           .from('event_registrations')
           .select('id, user_id, registered_at, profiles(student_number, first_name, last_name, course)')
           .eq('event_id', id)
+          .eq('status', 'REGISTERED')
           .order('registered_at', { ascending: true }),
         supabase.from('attendance').select('id, user_id, status, check_in_time').eq('event_id', id),
       ])
