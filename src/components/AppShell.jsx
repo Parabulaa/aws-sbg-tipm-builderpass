@@ -1,17 +1,39 @@
-import { Menu, X } from 'lucide-react'
+import { LogOut, Menu, X } from 'lucide-react'
 import { useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
-
-const navItems = [
-  { to: '/', label: 'Home' },
-  { to: '/register', label: 'Register' },
-]
+import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext.jsx'
 
 export default function AppShell({ children }) {
+  const { profile, session, signOut } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [logoutError, setLogoutError] = useState('')
+  const navigate = useNavigate()
+
+  const navItems = session
+    ? [
+        { to: '/dashboard', label: 'Dashboard' },
+        ...(profile?.role === 'ADMIN' ? [{ to: '/admin', label: 'Admin' }] : []),
+      ]
+    : [
+        { to: '/', label: 'Home' },
+        { to: '/register', label: 'Register' },
+        { to: '/login', label: 'Login' },
+      ]
 
   function closeMenu() {
     setIsMenuOpen(false)
+  }
+
+  async function handleSignOut() {
+    setLogoutError('')
+
+    try {
+      await signOut()
+      closeMenu()
+      navigate('/login', { replace: true })
+    } catch (error) {
+      setLogoutError(error.message || 'We could not sign you out. Please try again.')
+    }
   }
 
   return (
@@ -31,34 +53,59 @@ export default function AppShell({ children }) {
           >
             {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
-          <nav className="hidden items-center gap-6 md:flex" aria-label="Main navigation">
-            {navItems.map((item) => (
-              <NavLink
-                className={({ isActive }) =>
-                  `text-sm font-medium ${isActive ? 'text-indigo-700' : 'text-slate-600 hover:text-slate-950'}`
-                }
-                key={item.to}
-                to={item.to}
+          <div className="hidden items-center gap-5 md:flex">
+            <nav className="flex items-center gap-6" aria-label="Main navigation">
+              {navItems.map((item) => (
+                <NavLink
+                  className={({ isActive }) =>
+                    `text-sm font-medium ${isActive ? 'text-indigo-700' : 'text-slate-600 hover:text-slate-950'}`
+                  }
+                  key={item.to}
+                  to={item.to}
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
+            {session && (
+              <button
+                className="inline-flex items-center gap-2 rounded-md text-sm font-medium text-slate-600 hover:text-slate-950"
+                onClick={handleSignOut}
+                type="button"
               >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
+                <LogOut size={17} />
+                Log out
+              </button>
+            )}
+          </div>
         </div>
         {isMenuOpen && (
-          <nav className="border-t border-slate-200 px-5 py-3 md:hidden" id="site-navigation" aria-label="Mobile navigation">
-            {navItems.map((item) => (
-              <NavLink
-                className="block rounded-md px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
-                key={item.to}
-                onClick={closeMenu}
-                to={item.to}
+          <div className="border-t border-slate-200 px-5 py-3 md:hidden">
+            <nav id="site-navigation" aria-label="Mobile navigation">
+              {navItems.map((item) => (
+                <NavLink
+                  className="block rounded-md px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                  key={item.to}
+                  onClick={closeMenu}
+                  to={item.to}
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
+            {session && (
+              <button
+                className="mt-2 inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+                onClick={handleSignOut}
+                type="button"
               >
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
+                <LogOut size={17} />
+                Log out
+              </button>
+            )}
+          </div>
         )}
+        {logoutError && <p className="mx-auto max-w-6xl px-5 py-2 text-sm text-red-700">{logoutError}</p>}
       </header>
       <main>{children}</main>
     </div>

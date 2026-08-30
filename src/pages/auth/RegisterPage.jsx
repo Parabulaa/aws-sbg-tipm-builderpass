@@ -221,7 +221,11 @@ export default function RegisterPage() {
         </form>
 
         <p className="mt-6 text-sm text-slate-600">
-          Already registered? <span className="text-slate-500">Sign-in will be available in the next stage.</span>
+          Already registered?{' '}
+          <Link className="font-medium text-indigo-700 hover:text-indigo-900" to="/login">
+            Sign in
+          </Link>
+          .
         </p>
         <Link className="mt-3 inline-block text-sm font-medium text-indigo-700 hover:text-indigo-900" to="/">
           Return home
