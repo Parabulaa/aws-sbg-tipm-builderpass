@@ -119,7 +119,7 @@ export default function RegisterPage() {
               Student info
             </p>
 
-            <Field label="Student number" error={errors.studentNumber}>
+            <Field label="AWS SBG Member ID" error={errors.studentNumber}>
               <input
                 autoComplete="off"
                 className={inputClassName(errors.studentNumber)}

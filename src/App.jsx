@@ -15,6 +15,7 @@ import RegisterPage from './pages/auth/RegisterPage.jsx'
 import EventDetailPage from './pages/member/EventDetailPage.jsx'
 import EventsPage from './pages/member/EventsPage.jsx'
 import MemberDashboardPage from './pages/member/MemberDashboardPage.jsx'
+import ProfilePage from './pages/member/ProfilePage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 
 export default function App() {
@@ -61,6 +62,14 @@ export default function App() {
           element={
             <RequireAuth>
               <EventDetailPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <RequireAuth>
+              <ProfilePage />
             </RequireAuth>
           }
         />

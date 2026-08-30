@@ -68,7 +68,7 @@ export default function EventRegistrationsPage() {
           <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
             <thead className="bg-slate-50 text-slate-600">
               <tr>
-                <th className="px-5 py-3 font-medium">Student number</th>
+                <th className="px-5 py-3 font-medium">AWS SBG Member ID</th>
                 <th className="px-5 py-3 font-medium">Name</th>
                 <th className="px-5 py-3 font-medium">Course</th>
                 <th className="px-5 py-3 font-medium">Year</th>

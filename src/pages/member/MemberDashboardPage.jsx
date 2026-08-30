@@ -36,7 +36,7 @@ export default function MemberDashboardPage() {
 
         <div className="border border-[var(--bp-border)] bg-[var(--bp-surface)] p-6">
           <p className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)]">
-            Student number
+            AWS SBG Member ID
           </p>
           <p className="mt-3 text-xl font-black text-[var(--bp-text)]">
             {profile?.student_number || 'Not set'}

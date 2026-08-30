@@ -34,6 +34,7 @@ export default function AppShell({ children }) {
     ? [
         { to: '/dashboard', label: 'Dashboard' },
         { to: '/events', label: 'Events' },
+        { to: '/profile', label: 'Profile' },
         ...(profile?.role === 'ADMIN' ? [{ to: '/admin', label: 'Admin' }] : []),
       ]
     : [
