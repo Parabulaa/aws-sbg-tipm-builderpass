@@ -1,5 +1,7 @@
+import { CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import Dialog from '../../components/Dialog.jsx'
 import { supabase } from '../../services/supabase/client.js'
 
 const initialForm = {
@@ -35,6 +37,7 @@ export default function RegisterPage() {
   const [submissionError, setSubmissionError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigate = useNavigate()
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -92,127 +95,143 @@ export default function RegisterPage() {
   }
 
   return (
-    <section className="mx-auto max-w-2xl px-5 py-12 sm:py-16">
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700">Member registration</p>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">Create your account</h1>
-        <p className="mt-3 text-slate-600">Use your own membership details to join BuilderPass.</p>
+    <section className="mx-auto max-w-2xl px-5 py-12 sm:py-20">
+      <div className="border border-[var(--bp-border)] bg-[var(--bp-surface)] p-6 sm:p-10">
+        <p className="mono text-xs font-bold uppercase tracking-[.18em] text-[var(--bp-amber)]">
+          Member registration
+        </p>
+        <h1 className="mt-4 text-3xl font-black tracking-tight text-[var(--bp-text)]">Create your account</h1>
+        <div className="mt-4 h-[1px] w-16 bg-[var(--bp-border-strong)]" />
+        <p className="mt-5 text-[var(--bp-text-dim)]">Use your own membership details to join BuilderPass.</p>
 
         {submissionError && (
-          <div className="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+          <div
+            className="mt-6 border border-[var(--bp-danger)]/30 bg-[var(--bp-danger)]/10 px-4 py-3 text-sm text-[var(--bp-danger)] animate-[bp-page-in_220ms_ease-out_both]"
+            role="alert"
+          >
             {submissionError}
           </div>
         )}
 
-        {successMessage && (
-          <div className="mt-6 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800" role="status">
-            {successMessage}
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
+          <div className="space-y-5">
+            <p className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-muted)]">
+              Student info
+            </p>
+
+            <Field label="Student number" error={errors.studentNumber}>
+              <input
+                autoComplete="off"
+                className={inputClassName(errors.studentNumber)}
+                id="studentNumber"
+                name="studentNumber"
+                onChange={handleChange}
+                value={form.studentNumber}
+              />
+            </Field>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="First name" error={errors.firstName}>
+                <input
+                  autoComplete="given-name"
+                  className={inputClassName(errors.firstName)}
+                  id="firstName"
+                  name="firstName"
+                  onChange={handleChange}
+                  value={form.firstName}
+                />
+              </Field>
+              <Field label="Last name" error={errors.lastName}>
+                <input
+                  autoComplete="family-name"
+                  className={inputClassName(errors.lastName)}
+                  id="lastName"
+                  name="lastName"
+                  onChange={handleChange}
+                  value={form.lastName}
+                />
+              </Field>
+            </div>
+
+            <Field label="Email" error={errors.email}>
+              <input
+                autoComplete="email"
+                className={inputClassName(errors.email)}
+                id="email"
+                name="email"
+                onChange={handleChange}
+                type="email"
+                value={form.email}
+              />
+            </Field>
           </div>
-        )}
 
-        <form className="mt-8 space-y-5" onSubmit={handleSubmit} noValidate>
-          <Field label="Student number" error={errors.studentNumber}>
-            <input
-              autoComplete="off"
-              className={inputClassName(errors.studentNumber)}
-              id="studentNumber"
-              name="studentNumber"
-              onChange={handleChange}
-              value={form.studentNumber}
-            />
-          </Field>
+          <div className="space-y-5 border-t border-[var(--bp-border)] pt-6">
+            <p className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-muted)]">
+              Academic details
+            </p>
 
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="First name" error={errors.firstName}>
+            <Field label="Course or program" error={errors.course}>
               <input
-                autoComplete="given-name"
-                className={inputClassName(errors.firstName)}
-                id="firstName"
-                name="firstName"
+                autoComplete="organization-title"
+                className={inputClassName(errors.course)}
+                id="course"
+                name="course"
                 onChange={handleChange}
-                value={form.firstName}
+                value={form.course}
               />
             </Field>
-            <Field label="Last name" error={errors.lastName}>
-              <input
-                autoComplete="family-name"
-                className={inputClassName(errors.lastName)}
-                id="lastName"
-                name="lastName"
+
+            <Field label="Year level" error={errors.yearLevel}>
+              <select
+                className={inputClassName(errors.yearLevel)}
+                id="yearLevel"
+                name="yearLevel"
                 onChange={handleChange}
-                value={form.lastName}
-              />
+                value={form.yearLevel}
+              >
+                <option value="">Select year level</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+              </select>
             </Field>
           </div>
 
-          <Field label="Email" error={errors.email}>
-            <input
-              autoComplete="email"
-              className={inputClassName(errors.email)}
-              id="email"
-              name="email"
-              onChange={handleChange}
-              type="email"
-              value={form.email}
-            />
-          </Field>
+          <div className="space-y-5 border-t border-[var(--bp-border)] pt-6">
+            <p className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-muted)]">Password</p>
 
-          <Field label="Course or program" error={errors.course}>
-            <input
-              autoComplete="organization-title"
-              className={inputClassName(errors.course)}
-              id="course"
-              name="course"
-              onChange={handleChange}
-              value={form.course}
-            />
-          </Field>
-
-          <Field label="Year level" error={errors.yearLevel}>
-            <select
-              className={inputClassName(errors.yearLevel)}
-              id="yearLevel"
-              name="yearLevel"
-              onChange={handleChange}
-              value={form.yearLevel}
-            >
-              <option value="">Select year level</option>
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-              <option value="6">6</option>
-            </select>
-          </Field>
-
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field label="Password" error={errors.password}>
-              <input
-                autoComplete="new-password"
-                className={inputClassName(errors.password)}
-                id="password"
-                name="password"
-                onChange={handleChange}
-                type="password"
-                value={form.password}
-              />
-            </Field>
-            <Field label="Confirm password" error={errors.confirmPassword}>
-              <input
-                autoComplete="new-password"
-                className={inputClassName(errors.confirmPassword)}
-                id="confirmPassword"
-                name="confirmPassword"
-                onChange={handleChange}
-                type="password"
-                value={form.confirmPassword}
-              />
-            </Field>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field label="Password" error={errors.password}>
+                <input
+                  autoComplete="new-password"
+                  className={inputClassName(errors.password)}
+                  id="password"
+                  name="password"
+                  onChange={handleChange}
+                  type="password"
+                  value={form.password}
+                />
+              </Field>
+              <Field label="Confirm password" error={errors.confirmPassword}>
+                <input
+                  autoComplete="new-password"
+                  className={inputClassName(errors.confirmPassword)}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  onChange={handleChange}
+                  type="password"
+                  value={form.confirmPassword}
+                />
+              </Field>
+            </div>
           </div>
 
           <button
-            className="w-full rounded-md bg-indigo-700 px-4 py-3 font-semibold text-white hover:bg-indigo-800 disabled:cursor-not-allowed disabled:bg-indigo-400"
+            className="w-full border-2 border-[var(--bp-amber)] bg-[var(--bp-amber)] px-4 py-3.5 font-bold uppercase tracking-wide text-black transition-colors duration-150 hover:bg-[var(--bp-amber-strong)] disabled:cursor-not-allowed disabled:opacity-60"
             disabled={isSubmitting}
             type="submit"
           >
@@ -220,17 +239,49 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-sm text-slate-600">
+        <p className="mt-6 text-sm text-[var(--bp-text-dim)]">
           Already registered?{' '}
-          <Link className="font-medium text-indigo-700 hover:text-indigo-900" to="/login">
+          <Link className="font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" to="/login">
             Sign in
           </Link>
           .
         </p>
-        <Link className="mt-3 inline-block text-sm font-medium text-indigo-700 hover:text-indigo-900" to="/">
-          Return home
+        <Link
+          className="mt-3 inline-block text-sm font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]"
+          to="/"
+        >
+          Return home →
         </Link>
       </div>
+
+      <Dialog
+        icon={CheckCircle2}
+        isOpen={Boolean(successMessage)}
+        onClose={() => setSuccessMessage('')}
+        titleId="register-success-title"
+        tone="success"
+      >
+        <h2 className="text-xl font-black tracking-tight text-[var(--bp-text)]" id="register-success-title">
+          Registration successful
+        </h2>
+        <p className="mt-3 text-sm leading-relaxed text-[var(--bp-text-dim)]">{successMessage}</p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            className="border-2 border-[var(--bp-amber)] bg-[var(--bp-amber)] px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-black transition-colors duration-150 hover:bg-[var(--bp-amber-strong)]"
+            onClick={() => navigate('/login')}
+            type="button"
+          >
+            Continue to Login
+          </button>
+          <button
+            className="border border-[var(--bp-border)] px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-[var(--bp-text-dim)] transition-colors duration-150 hover:border-[var(--bp-amber)] hover:text-[var(--bp-amber)]"
+            onClick={() => setSuccessMessage('')}
+            type="button"
+          >
+            Close
+          </button>
+        </div>
+      </Dialog>
     </section>
   )
 }
@@ -240,17 +291,17 @@ function Field({ children, error, label }) {
 
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-slate-800" htmlFor={inputId}>
+      <label className="mb-2 block text-sm font-semibold text-[var(--bp-text-muted)]" htmlFor={inputId}>
         {label}
       </label>
       {children}
-      {error && <p className="mt-1.5 text-sm text-red-700">{error}</p>}
+      {error && <p className="mt-2 text-sm text-[var(--bp-danger)]">{error}</p>}
     </div>
   )
 }
 
 function inputClassName(error) {
-  return `w-full rounded-md border bg-white px-3 py-2.5 text-slate-950 outline-none transition focus:ring-2 focus:ring-indigo-500 ${
-    error ? 'border-red-400' : 'border-slate-300'
+  return `w-full border bg-[var(--bp-bg-soft)] px-4 py-3 text-[var(--bp-text)] outline-none transition-colors focus:border-[var(--bp-amber)] focus:ring-1 focus:ring-[var(--bp-amber)] ${
+    error ? 'border-[var(--bp-danger)]' : 'border-[var(--bp-border)]'
   }`
 }

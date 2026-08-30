@@ -4,3 +4,6 @@ dist/
 .env.*
 !.env.example
 BuilderPass_MVP.md
+BUILDERPASS_*.md
+*_SPEC.md
+*_IMPLEMENTATION_PLAN*.md

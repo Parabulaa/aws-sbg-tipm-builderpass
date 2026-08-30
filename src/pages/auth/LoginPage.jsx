@@ -47,26 +47,32 @@ export default function LoginPage() {
   }
 
   return (
-    <section className="mx-auto max-w-md px-5 py-12 sm:py-16">
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700">Member login</p>
-        <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">Welcome back</h1>
-        <p className="mt-3 text-slate-600">Sign in with the email and password you used to register.</p>
+    <section className="mx-auto max-w-lg px-5 py-12 sm:py-20">
+      <div className="border border-[var(--bp-border)] bg-[var(--bp-surface)] p-6 sm:p-10">
+        <p className="mono text-xs font-bold uppercase tracking-[.18em] text-[var(--bp-amber)]">Member login</p>
+        <h1 className="mt-4 text-3xl font-black tracking-tight text-[var(--bp-text)]">Welcome back</h1>
+        <div className="mt-4 h-[1px] w-16 bg-[var(--bp-border-strong)]" />
+        <p className="mt-5 text-[var(--bp-text-dim)]">
+          Sign in with the email and password you used to register.
+        </p>
 
         {errorMessage && (
-          <div className="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
+          <div
+            className="mt-6 animate-[bp-page-in_220ms_ease-out_both] border border-[var(--bp-danger)]/30 bg-[var(--bp-danger)]/10 px-4 py-3 text-sm text-[var(--bp-danger)]"
+            role="alert"
+          >
             {errorMessage}
           </div>
         )}
 
         <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-800" htmlFor="email">
+            <label className="mb-2 block text-sm font-semibold text-[var(--bp-text-muted)]" htmlFor="email">
               Email
             </label>
             <input
               autoComplete="email"
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-slate-950 outline-none transition focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] px-4 py-3 text-[var(--bp-text)] outline-none transition-colors focus:border-[var(--bp-amber)] focus:ring-1 focus:ring-[var(--bp-amber)]"
               id="email"
               onChange={(event) => setEmail(event.target.value)}
               type="email"
@@ -75,12 +81,12 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-800" htmlFor="password">
+            <label className="mb-2 block text-sm font-semibold text-[var(--bp-text-muted)]" htmlFor="password">
               Password
             </label>
             <input
               autoComplete="current-password"
-              className="w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-slate-950 outline-none transition focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] px-4 py-3 text-[var(--bp-text)] outline-none transition-colors focus:border-[var(--bp-amber)] focus:ring-1 focus:ring-[var(--bp-amber)]"
               id="password"
               onChange={(event) => setPassword(event.target.value)}
               type="password"
@@ -89,7 +95,7 @@ export default function LoginPage() {
           </div>
 
           <button
-            className="w-full rounded-md bg-indigo-700 px-4 py-3 font-semibold text-white hover:bg-indigo-800 disabled:cursor-not-allowed disabled:bg-indigo-400"
+            className="w-full border-2 border-[var(--bp-amber)] bg-[var(--bp-amber)] px-4 py-3.5 font-bold uppercase tracking-wide text-black transition-colors duration-150 hover:bg-[var(--bp-amber-strong)] disabled:cursor-not-allowed disabled:opacity-60"
             disabled={isSubmitting}
             type="submit"
           >
@@ -97,9 +103,9 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-6 text-sm text-slate-600">
+        <p className="mt-6 text-sm text-[var(--bp-text-dim)]">
           Need an account?{' '}
-          <Link className="font-medium text-indigo-700 hover:text-indigo-900" to="/register">
+          <Link className="font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" to="/register">
             Register here
           </Link>
           .
