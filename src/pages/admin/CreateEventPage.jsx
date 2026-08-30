@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import BackLink from '../../components/BackLink.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 
@@ -62,9 +63,7 @@ export default function CreateEventPage() {
 
   return (
     <section className="mx-auto max-w-2xl px-5 py-12 sm:py-16">
-      <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to="/admin/events">
-        Back to events
-      </Link>
+      <BackLink to="/admin/events">Back to events</BackLink>
       <div className="mt-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700">Admin events</p>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">Create event</h1>

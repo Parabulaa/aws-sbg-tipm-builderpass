@@ -1,6 +1,7 @@
-import { ArrowLeft, CalendarDays, MapPin } from 'lucide-react'
+import { CalendarDays, MapPin } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import BackLink from '../../components/BackLink.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { eventStatusLabel, formatEventDate, formatEventTime } from '../../utils/events.js'
@@ -90,67 +91,90 @@ export default function EventDetailPage() {
   }
 
   if (isLoading) {
-    return <section className="mx-auto max-w-4xl px-5 py-12 text-slate-600">Loading event...</section>
+    return (
+      <section className="mx-auto max-w-4xl px-5 py-12 text-[var(--bp-text-dim)]">Loading event...</section>
+    )
   }
 
   if (!event) {
     return (
       <section className="mx-auto max-w-4xl px-5 py-12">
-        <p className="text-sm text-red-700">{errorMessage}</p>
-        <Link className="mt-5 inline-flex items-center gap-2 font-medium text-indigo-700 hover:text-indigo-900" to="/events">
-          <ArrowLeft size={17} /> Back to events
-        </Link>
+        <p className="text-sm text-[var(--bp-danger)]">{errorMessage}</p>
+        <div className="mt-5">
+          <BackLink to="/events">Back to events</BackLink>
+        </div>
       </section>
     )
   }
 
   return (
-    <section className="mx-auto max-w-4xl px-5 py-12 sm:py-16">
-      <Link className="inline-flex items-center gap-2 text-sm font-medium text-indigo-700 hover:text-indigo-900" to="/events">
-        <ArrowLeft size={17} /> Back to events
-      </Link>
-      <article className="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700">Event details</p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">{event.title}</h1>
+    <section className="mx-auto max-w-5xl px-6 py-12 sm:py-20 lg:px-10">
+      <BackLink to="/events">Back to events</BackLink>
+
+      <article className="mt-8 border border-[var(--bp-border)] bg-[var(--bp-surface)] p-6 sm:p-10">
+        <div className="flex flex-wrap items-start justify-between gap-6">
+          <div className="flex-1">
+            <p className="mono text-xs font-bold uppercase tracking-[.18em] text-[var(--bp-amber)]">
+              Event // {eventStatusLabel(event.registration_status)}
+            </p>
+            <h1 className="mt-4 text-3xl font-black tracking-tight text-[var(--bp-text)] sm:text-4xl">
+              {event.title}
+            </h1>
           </div>
           <span
-            className={`rounded-full px-3 py-1.5 text-sm font-semibold ${
-              event.registration_status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-700'
+            className={`mono shrink-0 px-3 py-2 text-xs font-bold uppercase tracking-wider ${
+              event.registration_status === 'OPEN'
+                ? 'border border-[var(--bp-success)] bg-[var(--bp-success)]/15 text-[var(--bp-success)]'
+                : 'border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] text-[var(--bp-text-dim)]'
             }`}
           >
-            {eventStatusLabel(event.registration_status)}
+            [ {eventStatusLabel(event.registration_status)} ]
           </span>
         </div>
 
-        {event.description && <p className="mt-6 whitespace-pre-wrap leading-7 text-slate-700">{event.description}</p>}
-
-        <dl className="mt-8 grid gap-5 border-t border-slate-200 pt-6 sm:grid-cols-2">
+        <div className="mt-8 grid gap-6 border-t border-[var(--bp-border)] pt-8 sm:grid-cols-2">
           <div>
-            <dt className="flex items-center gap-2 text-sm font-medium text-slate-500">
-              <CalendarDays size={16} /> Date and time
+            <dt className="mono flex items-center gap-2 text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)]">
+              <CalendarDays size={16} className="text-[var(--bp-amber)]" /> Date / Time
             </dt>
-            <dd className="mt-1 text-slate-900">
+            <dd className="mt-2 font-bold text-[var(--bp-text)]">
               {formatEventDate(event.event_date)} at {formatEventTime(event.start_time)}
             </dd>
           </div>
           <div>
-            <dt className="flex items-center gap-2 text-sm font-medium text-slate-500">
-              <MapPin size={16} /> Venue
+            <dt className="mono flex items-center gap-2 text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)]">
+              <MapPin size={16} className="text-[var(--bp-amber)]" /> Venue
             </dt>
-            <dd className="mt-1 text-slate-900">{event.venue}</dd>
+            <dd className="mt-2 font-bold text-[var(--bp-text)]">{event.venue}</dd>
           </div>
-        </dl>
+        </div>
 
-        <div className="mt-8 border-t border-slate-200 pt-6">
-          {errorMessage && <p className="mb-4 text-sm text-red-700">{errorMessage}</p>}
-          {confirmationMessage && <p className="mb-4 text-sm font-medium text-green-700">{confirmationMessage}</p>}
+        {event.description && (
+          <div className="mt-8 border-t border-[var(--bp-border)] pt-8">
+            <p className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)]">Description</p>
+            <p className="mt-4 whitespace-pre-wrap leading-relaxed text-[var(--bp-text-muted)]">
+              {event.description}
+            </p>
+          </div>
+        )}
+
+        <div className="mt-8 border-t border-[var(--bp-border)] pt-8">
+          <p className="mono mb-6 text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)]">
+            Registration
+          </p>
+
+          {errorMessage && (
+            <p className="mb-4 text-sm text-[var(--bp-danger)]">{errorMessage}</p>
+          )}
+          {confirmationMessage && (
+            <p className="mb-4 text-sm font-semibold text-[var(--bp-success)]">{confirmationMessage}</p>
+          )}
+
           {registration ? (
-            <p className="font-medium text-green-700">You are already registered for this event.</p>
+            <p className="font-bold text-[var(--bp-success)]">You are already registered for this event.</p>
           ) : event.registration_status === 'OPEN' ? (
             <button
-              className="rounded-md bg-indigo-700 px-4 py-2.5 font-semibold text-white hover:bg-indigo-800 disabled:cursor-not-allowed disabled:bg-indigo-400"
+              className="border-2 border-[var(--bp-amber)] bg-[var(--bp-amber)] px-6 py-3 font-bold uppercase tracking-wide text-black transition-colors hover:bg-[var(--bp-amber-strong)] disabled:cursor-not-allowed disabled:opacity-60"
               disabled={isSubmitting}
               onClick={handleRegistration}
               type="button"
@@ -158,12 +182,15 @@ export default function EventDetailPage() {
               {isSubmitting ? 'Registering...' : 'Register for this event'}
             </button>
           ) : (
-            <p className="font-medium text-slate-600">Registration is closed for this event.</p>
+            <p className="font-semibold text-[var(--bp-text-dim)]">Registration is closed for this event.</p>
           )}
 
           {profile?.role === 'ADMIN' && (
-            <Link className="ml-4 inline-block font-medium text-indigo-700 hover:text-indigo-900" to={`/admin/events/${event.id}/registrations`}>
-              View registrations
+            <Link
+              className="ml-6 inline-block font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]"
+              to={`/admin/events/${event.id}/registrations`}
+            >
+              View registrations →
             </Link>
           )}
         </div>

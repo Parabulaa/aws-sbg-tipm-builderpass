@@ -1,6 +1,6 @@
-import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import BackLink from '../../components/BackLink.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { formatEventDate, formatEventTime } from '../../utils/events.js'
 
@@ -45,18 +45,16 @@ export default function EventRegistrationsPage() {
     return (
       <section className="mx-auto max-w-6xl px-5 py-12">
         <p className="text-sm text-red-700">{errorMessage}</p>
-        <Link className="mt-5 inline-flex items-center gap-2 font-medium text-indigo-700 hover:text-indigo-900" to="/admin/events">
-          <ArrowLeft size={17} /> Back to events
-        </Link>
+        <div className="mt-5">
+          <BackLink to="/admin/events">Back to events</BackLink>
+        </div>
       </section>
     )
   }
 
   return (
     <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
-      <Link className="inline-flex items-center gap-2 text-sm font-medium text-indigo-700 hover:text-indigo-900" to="/admin/events">
-        <ArrowLeft size={17} /> Back to events
-      </Link>
+      <BackLink to="/admin/events">Back to events</BackLink>
       <p className="mt-6 text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700">Event registrations</p>
       <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">{event.title}</h1>
       <p className="mt-3 text-slate-600">
