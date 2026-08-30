@@ -2,31 +2,48 @@ import { CalendarDays, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../services/supabase/client.js'
+import { getEventPosterUrls } from '../../utils/eventPosters.js'
 import { eventStatusLabel, formatEventDate, formatEventTime } from '../../utils/events.js'
 
 export default function AdminEventsPage() {
   const [events, setEvents] = useState([])
+  const [posterUrlsByPath, setPosterUrlsByPath] = useState({})
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    let isActive = true
+
     async function loadEvents() {
       const { data, error } = await supabase
         .from('events')
-        .select('id, title, event_date, start_time, venue, registration_status')
+        .select('id, title, event_date, start_time, venue, registration_status, poster_path')
         .order('event_date', { ascending: true })
         .order('start_time', { ascending: true })
+
+      if (!isActive) return
 
       if (error) {
         setErrorMessage(error.message || 'We could not load events. Please try again.')
       } else {
         setEvents(data)
+
+        try {
+          const posterUrls = await getEventPosterUrls(data.map((event) => event.poster_path))
+          if (isActive) setPosterUrlsByPath(posterUrls)
+        } catch {
+          if (isActive) setPosterUrlsByPath({})
+        }
       }
 
-      setIsLoading(false)
+      if (isActive) setIsLoading(false)
     }
 
     loadEvents()
+
+    return () => {
+      isActive = false
+    }
   }, [])
 
   return (
@@ -54,44 +71,58 @@ export default function AdminEventsPage() {
       {!isLoading && !errorMessage && events.length > 0 && (
         <div className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white">
           <div className="divide-y divide-slate-200">
-            {events.map((event) => (
-              <article className="flex flex-wrap items-center justify-between gap-4 p-5" key={event.id}>
-                <div>
-                  <h2 className="font-semibold text-slate-950">{event.title}</h2>
-                  <p className="mt-1 flex items-center gap-2 text-sm text-slate-600">
-                    <CalendarDays size={16} /> {formatEventDate(event.event_date)} at {formatEventTime(event.start_time)}
-                  </p>
-                  <p className="mt-1 text-sm text-slate-600">{event.venue}</p>
-                </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                      event.registration_status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-700'
-                    }`}
-                  >
-                    {eventStatusLabel(event.registration_status)}
-                  </span>
-                  <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/events/${event.id}`}>
-                    Details
-                  </Link>
-                  <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/admin/events/${event.id}/edit`}>
-                    Edit
-                  </Link>
-                  <Link
-                    className="text-sm font-medium text-indigo-700 hover:text-indigo-900"
-                    to={`/admin/events/${event.id}/registrations`}
-                  >
-                    Registrations
-                  </Link>
-                  <Link
-                    className="text-sm font-medium text-indigo-700 hover:text-indigo-900"
-                    to={`/admin/events/${event.id}/attendance`}
-                  >
-                    Attendance
-                  </Link>
-                </div>
-              </article>
-            ))}
+            {events.map((event) => {
+              const posterUrl = posterUrlsByPath[event.poster_path]
+
+              return (
+                <article className="flex flex-wrap items-center justify-between gap-4 p-5" key={event.id}>
+                  <div className="flex min-w-0 items-center gap-4">
+                    {posterUrl && (
+                      <img
+                        alt={`${event.title} poster`}
+                        className="h-20 w-32 shrink-0 border border-slate-200 object-cover"
+                        loading="lazy"
+                        src={posterUrl}
+                      />
+                    )}
+                    <div>
+                      <h2 className="font-semibold text-slate-950">{event.title}</h2>
+                      <p className="mt-1 flex items-center gap-2 text-sm text-slate-600">
+                        <CalendarDays size={16} /> {formatEventDate(event.event_date)} at {formatEventTime(event.start_time)}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-600">{event.venue}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        event.registration_status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      {eventStatusLabel(event.registration_status)}
+                    </span>
+                    <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/events/${event.id}`}>
+                      Details
+                    </Link>
+                    <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/admin/events/${event.id}/edit`}>
+                      Edit
+                    </Link>
+                    <Link
+                      className="text-sm font-medium text-indigo-700 hover:text-indigo-900"
+                      to={`/admin/events/${event.id}/registrations`}
+                    >
+                      Registrations
+                    </Link>
+                    <Link
+                      className="text-sm font-medium text-indigo-700 hover:text-indigo-900"
+                      to={`/admin/events/${event.id}/attendance`}
+                    >
+                      Attendance
+                    </Link>
+                  </div>
+                </article>
+              )
+            })}
           </div>
         </div>
       )}

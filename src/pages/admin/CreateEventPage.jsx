@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import BackLink from '../../components/BackLink.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
+import { getEventPosterValidationMessage, removeEventPoster, uploadEventPoster } from '../../utils/eventPosters.js'
 
 const initialForm = {
   title: '',
@@ -17,6 +18,8 @@ const initialForm = {
 export default function CreateEventPage() {
   const { session } = useAuth()
   const [form, setForm] = useState(initialForm)
+  const [posterFile, setPosterFile] = useState(null)
+  const [createdEventId, setCreatedEventId] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
@@ -24,6 +27,23 @@ export default function CreateEventPage() {
   function handleChange(event) {
     const { name, value } = event.target
     setForm((current) => ({ ...current, [name]: value }))
+    setCreatedEventId(null)
+    setErrorMessage('')
+  }
+
+  function handlePosterChange(event) {
+    const file = event.target.files?.[0] ?? null
+    const validationMessage = getEventPosterValidationMessage(file)
+
+    if (validationMessage) {
+      event.target.value = ''
+      setPosterFile(null)
+      setErrorMessage(validationMessage)
+      return
+    }
+
+    setPosterFile(file)
+    setCreatedEventId(null)
     setErrorMessage('')
   }
 
@@ -41,6 +61,8 @@ export default function CreateEventPage() {
       return
     }
 
+    setCreatedEventId(null)
+    setErrorMessage('')
     setIsSubmitting(true)
 
     try {
@@ -61,6 +83,29 @@ export default function CreateEventPage() {
 
       if (error) throw error
 
+      if (posterFile) {
+        let uploadedPosterPath = null
+
+        try {
+          uploadedPosterPath = await uploadEventPoster(data.id, posterFile)
+
+          const { error: updateError } = await supabase
+            .from('events')
+            .update({ poster_path: uploadedPosterPath })
+            .eq('id', data.id)
+            .select('id')
+            .single()
+
+          if (updateError) throw updateError
+        } catch {
+          if (uploadedPosterPath) await removeEventPoster(uploadedPosterPath).catch(() => {})
+
+          setCreatedEventId(data.id)
+          setErrorMessage('The event was created, but its poster could not be uploaded. Open the event editor to try again.')
+          return
+        }
+      }
+
       navigate(`/events/${data.id}`)
     } catch (error) {
       setErrorMessage(error.message || 'We could not create the event. Please try again.')
@@ -79,7 +124,12 @@ export default function CreateEventPage() {
 
         {errorMessage && (
           <div className="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
-            {errorMessage}
+            <p>{errorMessage}</p>
+            {createdEventId && (
+              <Link className="mt-2 inline-block font-semibold text-indigo-700 hover:text-indigo-900" to={`/admin/events/${createdEventId}/edit`}>
+                Edit the created event
+              </Link>
+            )}
           </div>
         )}
 
@@ -103,6 +153,18 @@ export default function CreateEventPage() {
               rows="5"
               value={form.description}
             />
+          </FormField>
+
+          <FormField label="Event poster (optional)" htmlFor="poster">
+            <input
+              accept="image/jpeg,image/png,image/webp"
+              className={inputClassName}
+              id="poster"
+              onChange={handlePosterChange}
+              type="file"
+            />
+            <p className="mt-1.5 text-xs text-slate-500">JPEG, PNG, or WebP up to 5 MB. A 16:9 image works best.</p>
+            {posterFile && <p className="mt-2 text-sm text-slate-600">Selected: {posterFile.name}</p>}
           </FormField>
 
           <div className="grid gap-5 sm:grid-cols-2">
@@ -167,7 +229,7 @@ export default function CreateEventPage() {
 
           <button
             className="w-full rounded-md bg-indigo-700 px-4 py-3 font-semibold text-white hover:bg-indigo-800 disabled:cursor-not-allowed disabled:bg-indigo-400"
-            disabled={isSubmitting}
+            disabled={isSubmitting || Boolean(createdEventId)}
             type="submit"
           >
             {isSubmitting ? 'Creating event...' : 'Create event'}

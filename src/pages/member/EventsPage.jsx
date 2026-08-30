@@ -2,11 +2,13 @@ import { ArrowRight, CalendarDays, MapPin } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../services/supabase/client.js'
+import { getEventPosterUrls } from '../../utils/eventPosters.js'
 import { eventStatusLabel, formatEventDate, formatEventTime } from '../../utils/events.js'
 
 export default function EventsPage() {
   const [events, setEvents] = useState([])
   const [rsvpSummariesByEvent, setRsvpSummariesByEvent] = useState({})
+  const [posterUrlsByPath, setPosterUrlsByPath] = useState({})
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
@@ -17,7 +19,7 @@ export default function EventsPage() {
       const today = new Date().toISOString().slice(0, 10)
       const { data, error } = await supabase
         .from('events')
-        .select('id, title, description, event_date, start_time, venue, registration_status')
+        .select('id, title, description, event_date, start_time, venue, registration_status, poster_path')
         .gte('event_date', today)
         .order('event_date', { ascending: true })
         .order('start_time', { ascending: true })
@@ -32,6 +34,7 @@ export default function EventsPage() {
 
       setEvents(data)
 
+      const posterUrlsPromise = getEventPosterUrls(data.map((event) => event.poster_path)).catch(() => ({}))
       const summaryResults = await Promise.all(
         data.map(async (event) => {
           const { data: summaryData, error: summaryError } = await supabase.rpc('get_event_rsvp_summary', {
@@ -41,10 +44,12 @@ export default function EventsPage() {
           return [event.id, summaryError ? null : summaryData?.[0] ?? null]
         }),
       )
+      const posterUrls = await posterUrlsPromise
 
       if (!isActive) return
 
       setRsvpSummariesByEvent(Object.fromEntries(summaryResults.filter(([, summary]) => summary)))
+      setPosterUrlsByPath(posterUrls)
       setIsLoading(false)
     }
 
@@ -78,13 +83,23 @@ export default function EventsPage() {
         <div className="bp-scroll mt-10 grid max-h-[70vh] gap-6 overflow-y-auto pr-1 md:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => {
             const rsvpSummary = rsvpSummariesByEvent[event.id]
+            const posterUrl = posterUrlsByPath[event.poster_path]
 
             return (
               <article
                 className="border border-[var(--bp-border)] bg-[var(--bp-surface)] p-6 transition-all duration-150 ease-out hover:-translate-y-0.5 hover:border-[var(--bp-border-strong)]"
                 key={event.id}
               >
-                <div className="flex items-start justify-between gap-4">
+                {posterUrl && (
+                  <img
+                    alt={`${event.title} poster`}
+                    className="aspect-video w-full border border-[var(--bp-border)] object-cover"
+                    loading="lazy"
+                    src={posterUrl}
+                  />
+                )}
+
+                <div className="mt-4 flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <span
                       className={`mono inline-block px-3 py-1.5 text-xs font-bold uppercase tracking-wider ${

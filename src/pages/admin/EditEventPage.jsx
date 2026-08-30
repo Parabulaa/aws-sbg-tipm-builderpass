@@ -1,7 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import BackLink from '../../components/BackLink.jsx'
 import { supabase } from '../../services/supabase/client.js'
+import {
+  getEventPosterUrl,
+  getEventPosterValidationMessage,
+  removeEventPoster,
+  uploadEventPoster,
+} from '../../utils/eventPosters.js'
 
 const initialForm = {
   title: '',
@@ -16,7 +22,12 @@ const initialForm = {
 export default function EditEventPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const posterInputRef = useRef(null)
   const [form, setForm] = useState(initialForm)
+  const [posterPath, setPosterPath] = useState(null)
+  const [posterUrl, setPosterUrl] = useState(null)
+  const [posterFile, setPosterFile] = useState(null)
+  const [shouldRemovePoster, setShouldRemovePoster] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -29,10 +40,13 @@ export default function EditEventPage() {
       setIsLoading(true)
       setErrorMessage('')
       setIsUnavailable(false)
+      setPosterFile(null)
+      setShouldRemovePoster(false)
+      setPosterUrl(null)
 
       const { data, error } = await supabase
         .from('events')
-        .select('id, title, description, event_date, start_time, venue, capacity, registration_status')
+        .select('id, title, description, event_date, start_time, venue, capacity, registration_status, poster_path')
         .eq('id', id)
         .maybeSingle()
 
@@ -51,6 +65,15 @@ export default function EditEventPage() {
           capacity: data.capacity == null ? '' : String(data.capacity),
           registrationStatus: data.registration_status,
         })
+        setPosterPath(data.poster_path)
+
+        if (data.poster_path) {
+          getEventPosterUrl(data.poster_path)
+            .then((url) => {
+              if (isActive) setPosterUrl(url)
+            })
+            .catch(() => {})
+        }
       }
 
       setIsLoading(false)
@@ -69,6 +92,30 @@ export default function EditEventPage() {
     setErrorMessage('')
   }
 
+  function handlePosterChange(event) {
+    const file = event.target.files?.[0] ?? null
+    const validationMessage = getEventPosterValidationMessage(file)
+
+    if (validationMessage) {
+      event.target.value = ''
+      setPosterFile(null)
+      setErrorMessage(validationMessage)
+      return
+    }
+
+    setPosterFile(file)
+    setShouldRemovePoster(false)
+    setErrorMessage('')
+  }
+
+  function handleRemovePoster() {
+    setPosterFile(null)
+    setShouldRemovePoster(true)
+    setPosterUrl(null)
+    setErrorMessage('')
+    if (posterInputRef.current) posterInputRef.current.value = ''
+  }
+
   async function handleSubmit(event) {
     event.preventDefault()
 
@@ -83,28 +130,47 @@ export default function EditEventPage() {
       return
     }
 
+    setErrorMessage('')
     setIsSubmitting(true)
+    let uploadedPosterPath = null
 
     try {
+      let nextPosterPath = posterPath
+      if (posterFile) {
+        uploadedPosterPath = await uploadEventPoster(id, posterFile)
+        nextPosterPath = uploadedPosterPath
+      } else if (shouldRemovePoster) {
+        nextPosterPath = null
+      }
+
+      const update = {
+        title: form.title.trim(),
+        description: form.description.trim(),
+        event_date: form.eventDate,
+        start_time: form.startTime,
+        venue: form.venue.trim(),
+        capacity,
+        registration_status: form.registrationStatus,
+      }
+
+      if (nextPosterPath !== posterPath) update.poster_path = nextPosterPath
+
       const { error } = await supabase
         .from('events')
-        .update({
-          title: form.title.trim(),
-          description: form.description.trim(),
-          event_date: form.eventDate,
-          start_time: form.startTime,
-          venue: form.venue.trim(),
-          capacity,
-          registration_status: form.registrationStatus,
-        })
+        .update(update)
         .eq('id', id)
         .select('id')
         .single()
 
       if (error) throw error
 
+      if (posterPath && nextPosterPath !== posterPath) {
+        await removeEventPoster(posterPath).catch(() => {})
+      }
+
       navigate('/admin/events')
     } catch (error) {
+      if (uploadedPosterPath) await removeEventPoster(uploadedPosterPath).catch(() => {})
       setErrorMessage(error.message || 'We could not save this event. Please try again.')
     } finally {
       setIsSubmitting(false)
@@ -160,6 +226,36 @@ export default function EditEventPage() {
               rows="5"
               value={form.description}
             />
+          </FormField>
+
+          <FormField label="Event poster" htmlFor="poster">
+            {posterUrl && !posterFile && !shouldRemovePoster && (
+              <img
+                alt="Current event poster"
+                className="mb-3 aspect-video w-full border border-slate-200 object-cover"
+                src={posterUrl}
+              />
+            )}
+            <input
+              accept="image/jpeg,image/png,image/webp"
+              className={inputClassName}
+              id="poster"
+              onChange={handlePosterChange}
+              ref={posterInputRef}
+              type="file"
+            />
+            <p className="mt-1.5 text-xs text-slate-500">JPEG, PNG, or WebP up to 5 MB. A new image replaces the current poster.</p>
+            {posterFile && <p className="mt-2 text-sm text-slate-600">New poster: {posterFile.name}</p>}
+            {shouldRemovePoster && <p className="mt-2 text-sm text-slate-600">The current poster will be removed when you save.</p>}
+            {posterPath && !shouldRemovePoster && (
+              <button
+                className="mt-3 text-sm font-medium text-red-700 hover:text-red-900"
+                onClick={handleRemovePoster}
+                type="button"
+              >
+                Remove current poster
+              </button>
+            )}
           </FormField>
 
           <div className="grid gap-5 sm:grid-cols-2">

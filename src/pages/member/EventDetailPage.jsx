@@ -5,6 +5,7 @@ import BackLink from '../../components/BackLink.jsx'
 import Dialog from '../../components/Dialog.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
+import { getEventPosterUrl } from '../../utils/eventPosters.js'
 import { eventStatusLabel, formatEventDate, formatEventTime } from '../../utils/events.js'
 
 export default function EventDetailPage() {
@@ -12,6 +13,7 @@ export default function EventDetailPage() {
   const { id } = useParams()
   const isEventManager = ['OFFICER', 'ADMIN'].includes(profile?.role)
   const [event, setEvent] = useState(null)
+  const [posterUrl, setPosterUrl] = useState(null)
   const [registration, setRegistration] = useState(null)
   const [rsvpSummary, setRsvpSummary] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
@@ -26,13 +28,14 @@ export default function EventDetailPage() {
     async function loadEvent() {
       setIsLoading(true)
       setErrorMessage('')
+      setPosterUrl(null)
       setRegistration(null)
       setRsvpSummary(null)
 
       const [eventResult, summaryResult] = await Promise.all([
         supabase
           .from('events')
-          .select('id, title, description, event_date, start_time, venue, capacity, registration_status')
+          .select('id, title, description, event_date, start_time, venue, capacity, registration_status, poster_path')
           .eq('id', id)
           .maybeSingle(),
         supabase.rpc('get_event_rsvp_summary', { p_event_id: id }),
@@ -47,6 +50,14 @@ export default function EventDetailPage() {
       }
 
       setEvent(eventResult.data)
+
+      if (eventResult.data.poster_path) {
+        getEventPosterUrl(eventResult.data.poster_path)
+          .then((url) => {
+            if (isActive) setPosterUrl(url)
+          })
+          .catch(() => {})
+      }
 
       if (summaryResult.error) {
         setErrorMessage(summaryResult.error.message || 'We could not check RSVP availability.')
@@ -186,6 +197,14 @@ export default function EventDetailPage() {
             [ {eventStatusLabel(event.registration_status)} ]
           </span>
         </div>
+
+        {posterUrl && (
+          <img
+            alt={`${event.title} poster`}
+            className="mt-8 aspect-video w-full border border-[var(--bp-border)] object-cover"
+            src={posterUrl}
+          />
+        )}
 
         <div className="mt-8 grid gap-6 border-t border-[var(--bp-border)] pt-8 sm:grid-cols-2">
           <div>
