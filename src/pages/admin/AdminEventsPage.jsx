@@ -33,9 +33,9 @@ export default function AdminEventsPage() {
     <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700">Admin events</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700">Event management</p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">Events</h1>
-          <p className="mt-3 text-slate-600">Create and view real BuilderPass events.</p>
+          <p className="mt-3 text-slate-600">Create events and review registrations or attendance.</p>
         </div>
         <Link
           className="inline-flex items-center gap-2 rounded-md bg-indigo-700 px-4 py-2.5 font-semibold text-white hover:bg-indigo-800"

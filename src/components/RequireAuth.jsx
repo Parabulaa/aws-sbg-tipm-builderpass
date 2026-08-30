@@ -26,6 +26,20 @@ export function RequireAdmin({ children }) {
   return children
 }
 
+export function RequireOfficer({ children }) {
+  const { isLoading, profile, session } = useAuth()
+
+  if (isLoading) return <LoadingScreen />
+
+  if (!session) return <Navigate replace to="/login" />
+
+  if (!['OFFICER', 'ADMIN'].includes(profile?.role)) {
+    return <Navigate replace to="/dashboard" />
+  }
+
+  return children
+}
+
 function LoadingScreen() {
   return (
     <section className="mx-auto max-w-6xl px-5 py-16">

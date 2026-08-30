@@ -1,7 +1,7 @@
 import { Route, Routes, useLocation } from 'react-router-dom'
 import AppShell from './components/AppShell.jsx'
 import PageTransition from './components/PageTransition.jsx'
-import { RequireAdmin, RequireAuth } from './components/RequireAuth.jsx'
+import { RequireAdmin, RequireAuth, RequireOfficer } from './components/RequireAuth.jsx'
 import StartPage from './pages/StartPage.jsx'
 import AdminEventsPage from './pages/admin/AdminEventsPage.jsx'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage.jsx'
@@ -92,33 +92,33 @@ export default function App() {
         <Route
           path="/admin/events"
           element={
-            <RequireAdmin>
+            <RequireOfficer>
               <AdminEventsPage />
-            </RequireAdmin>
+            </RequireOfficer>
           }
         />
         <Route
           path="/admin/events/new"
           element={
-            <RequireAdmin>
+            <RequireOfficer>
               <CreateEventPage />
-            </RequireAdmin>
+            </RequireOfficer>
           }
         />
         <Route
           path="/admin/events/:id/attendance"
           element={
-            <RequireAdmin>
+            <RequireOfficer>
               <EventAttendancePage />
-            </RequireAdmin>
+            </RequireOfficer>
           }
         />
         <Route
           path="/admin/events/:id/registrations"
           element={
-            <RequireAdmin>
+            <RequireOfficer>
               <EventRegistrationsPage />
-            </RequireAdmin>
+            </RequireOfficer>
           }
         />
         <Route path="*" element={<NotFoundPage />} />

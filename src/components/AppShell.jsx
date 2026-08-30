@@ -30,11 +30,14 @@ export default function AppShell({ children }) {
     }
   }
 
+  const isEventManager = ['OFFICER', 'ADMIN'].includes(profile?.role)
+
   const navItems = session
     ? [
         { to: '/dashboard', label: 'Dashboard' },
         { to: '/events', label: 'Events' },
         { to: '/profile', label: 'Profile' },
+        ...(isEventManager ? [{ to: '/admin/events', label: 'Manage events' }] : []),
         ...(profile?.role === 'ADMIN' ? [{ to: '/admin', label: 'Admin' }] : []),
       ]
     : [

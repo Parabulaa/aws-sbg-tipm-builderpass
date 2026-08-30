@@ -65,7 +65,7 @@ export default function CreateEventPage() {
     <section className="mx-auto max-w-2xl px-5 py-12 sm:py-16">
       <BackLink to="/admin/events">Back to events</BackLink>
       <div className="mt-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700">Admin events</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700">Event management</p>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">Create event</h1>
         <p className="mt-3 text-slate-600">Only real events should be added here.</p>
 

@@ -9,6 +9,7 @@ import { eventStatusLabel, formatEventDate, formatEventTime } from '../../utils/
 export default function EventDetailPage() {
   const { profile } = useAuth()
   const { id } = useParams()
+  const isEventManager = ['OFFICER', 'ADMIN'].includes(profile?.role)
   const [event, setEvent] = useState(null)
   const [registration, setRegistration] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
@@ -185,7 +186,7 @@ export default function EventDetailPage() {
             <p className="font-semibold text-[var(--bp-text-dim)]">Registration is closed for this event.</p>
           )}
 
-          {profile?.role === 'ADMIN' && (
+          {isEventManager && (
             <Link
               className="ml-6 inline-block font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]"
               to={`/admin/events/${event.id}/registrations`}
