@@ -4,6 +4,7 @@ import { Link, NavLink } from 'react-router-dom'
 
 const navItems = [
   { to: '/', label: 'Home' },
+  { to: '/register', label: 'Register' },
 ]
 
 export default function AppShell({ children }) {

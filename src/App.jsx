@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import AppShell from './components/AppShell.jsx'
 import StartPage from './pages/StartPage.jsx'
+import RegisterPage from './pages/auth/RegisterPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 
 export default function App() {
@@ -8,6 +9,7 @@ export default function App() {
     <AppShell>
       <Routes>
         <Route path="/" element={<StartPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </AppShell>

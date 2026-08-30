@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 export default function StartPage() {
   return (
     <section className="mx-auto flex min-h-[calc(100vh-73px)] max-w-6xl items-center px-5 py-16">
@@ -7,7 +9,13 @@ export default function StartPage() {
         <p className="mt-5 text-lg leading-8 text-slate-600">
           A simple place for group members, events, and attendance.
         </p>
-        <p className="mt-8 text-sm text-slate-500">Member registration and sign-in are being added next.</p>
+        <p className="mt-8 text-sm text-slate-500">Start by creating your member account.</p>
+        <Link
+          className="mt-5 inline-flex rounded-md bg-indigo-700 px-4 py-2.5 font-semibold text-white hover:bg-indigo-800"
+          to="/register"
+        >
+          Register now
+        </Link>
       </div>
     </section>
   )
