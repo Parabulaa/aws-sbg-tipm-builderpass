@@ -55,15 +55,15 @@ export default function AdminEventsPage() {
         <div className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white">
           <div className="divide-y divide-slate-200">
             {events.map((event) => (
-              <Link className="block p-5 hover:bg-slate-50" key={event.id} to={`/events/${event.id}`}>
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <h2 className="font-semibold text-slate-950">{event.title}</h2>
-                    <p className="mt-1 flex items-center gap-2 text-sm text-slate-600">
-                      <CalendarDays size={16} /> {formatEventDate(event.event_date)} at {formatEventTime(event.start_time)}
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">{event.venue}</p>
-                  </div>
+              <article className="flex flex-wrap items-center justify-between gap-4 p-5" key={event.id}>
+                <div>
+                  <h2 className="font-semibold text-slate-950">{event.title}</h2>
+                  <p className="mt-1 flex items-center gap-2 text-sm text-slate-600">
+                    <CalendarDays size={16} /> {formatEventDate(event.event_date)} at {formatEventTime(event.start_time)}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">{event.venue}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                       event.registration_status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-700'
@@ -71,8 +71,17 @@ export default function AdminEventsPage() {
                   >
                     {eventStatusLabel(event.registration_status)}
                   </span>
+                  <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/events/${event.id}`}>
+                    Details
+                  </Link>
+                  <Link
+                    className="text-sm font-medium text-indigo-700 hover:text-indigo-900"
+                    to={`/admin/events/${event.id}/registrations`}
+                  >
+                    Registrations
+                  </Link>
                 </div>
-              </Link>
+              </article>
             ))}
           </div>
         </div>

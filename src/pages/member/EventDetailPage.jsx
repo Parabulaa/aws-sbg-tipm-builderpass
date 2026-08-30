@@ -1,42 +1,99 @@
 import { ArrowLeft, CalendarDays, MapPin } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { eventStatusLabel, formatEventDate, formatEventTime } from '../../utils/events.js'
 
 export default function EventDetailPage() {
+  const { profile } = useAuth()
   const { id } = useParams()
   const [event, setEvent] = useState(null)
+  const [registration, setRegistration] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
+  const [confirmationMessage, setConfirmationMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     async function loadEvent() {
-      const { data, error } = await supabase
+      setIsLoading(true)
+      setErrorMessage('')
+
+      const { data: eventData, error: eventError } = await supabase
         .from('events')
-        .select('id, title, description, event_date, start_time, venue, registration_status, created_at')
+        .select('id, title, description, event_date, start_time, venue, registration_status')
         .eq('id', id)
         .maybeSingle()
 
-      if (error) {
-        setErrorMessage(error.message || 'We could not load this event.')
-      } else if (!data) {
-        setErrorMessage('This event is not available.')
-      } else {
-        setEvent(data)
+      if (eventError || !eventData) {
+        setErrorMessage(eventError?.message || 'This event is not available.')
+        setIsLoading(false)
+        return
+      }
+
+      setEvent(eventData)
+
+      if (profile?.id) {
+        const { data: registrationData, error: registrationError } = await supabase
+          .from('event_registrations')
+          .select('id, status, registered_at')
+          .eq('event_id', id)
+          .eq('user_id', profile.id)
+          .maybeSingle()
+
+        if (registrationError) {
+          setErrorMessage(registrationError.message || 'We could not check your registration.')
+        } else {
+          setRegistration(registrationData)
+        }
       }
 
       setIsLoading(false)
     }
 
     loadEvent()
-  }, [id])
+  }, [id, profile?.id])
+
+  async function handleRegistration() {
+    if (!event || !profile?.id) {
+      setErrorMessage('Your member profile is not available. Please sign in again.')
+      return
+    }
+
+    setErrorMessage('')
+    setConfirmationMessage('')
+    setIsSubmitting(true)
+
+    try {
+      const { data, error } = await supabase
+        .from('event_registrations')
+        .insert({ event_id: event.id, user_id: profile.id })
+        .select('id, status, registered_at')
+        .single()
+
+      if (error?.code === '23505') {
+        setRegistration({ id: 'existing' })
+        setConfirmationMessage('You are already registered for this event.')
+        return
+      }
+
+      if (error) throw error
+
+      setRegistration(data)
+      setConfirmationMessage('You are registered for this event.')
+    } catch (error) {
+      setErrorMessage(error.message || 'We could not register you for this event. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   if (isLoading) {
     return <section className="mx-auto max-w-4xl px-5 py-12 text-slate-600">Loading event...</section>
   }
 
-  if (errorMessage) {
+  if (!event) {
     return (
       <section className="mx-auto max-w-4xl px-5 py-12">
         <p className="text-sm text-red-700">{errorMessage}</p>
@@ -85,6 +142,31 @@ export default function EventDetailPage() {
             <dd className="mt-1 text-slate-900">{event.venue}</dd>
           </div>
         </dl>
+
+        <div className="mt-8 border-t border-slate-200 pt-6">
+          {errorMessage && <p className="mb-4 text-sm text-red-700">{errorMessage}</p>}
+          {confirmationMessage && <p className="mb-4 text-sm font-medium text-green-700">{confirmationMessage}</p>}
+          {registration ? (
+            <p className="font-medium text-green-700">You are already registered for this event.</p>
+          ) : event.registration_status === 'OPEN' ? (
+            <button
+              className="rounded-md bg-indigo-700 px-4 py-2.5 font-semibold text-white hover:bg-indigo-800 disabled:cursor-not-allowed disabled:bg-indigo-400"
+              disabled={isSubmitting}
+              onClick={handleRegistration}
+              type="button"
+            >
+              {isSubmitting ? 'Registering...' : 'Register for this event'}
+            </button>
+          ) : (
+            <p className="font-medium text-slate-600">Registration is closed for this event.</p>
+          )}
+
+          {profile?.role === 'ADMIN' && (
+            <Link className="ml-4 inline-block font-medium text-indigo-700 hover:text-indigo-900" to={`/admin/events/${event.id}/registrations`}>
+              View registrations
+            </Link>
+          )}
+        </div>
       </article>
     </section>
   )
