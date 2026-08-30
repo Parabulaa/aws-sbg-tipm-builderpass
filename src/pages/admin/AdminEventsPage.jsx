@@ -80,6 +80,12 @@ export default function AdminEventsPage() {
                   >
                     Registrations
                   </Link>
+                  <Link
+                    className="text-sm font-medium text-indigo-700 hover:text-indigo-900"
+                    to={`/admin/events/${event.id}/attendance`}
+                  >
+                    Attendance
+                  </Link>
                 </div>
               </article>
             ))}
