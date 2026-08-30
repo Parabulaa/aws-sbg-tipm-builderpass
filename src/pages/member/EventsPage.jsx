@@ -1,4 +1,4 @@
-import { CalendarDays, MapPin } from 'lucide-react'
+import { ArrowRight, CalendarDays, MapPin } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../services/supabase/client.js'
@@ -32,45 +32,70 @@ export default function EventsPage() {
   }, [])
 
   return (
-    <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
-      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700">Events</p>
-      <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">Upcoming events</h1>
-      <p className="mt-4 text-slate-600">See events created by your Student Builder Group administrators.</p>
+    <section className="mx-auto max-w-[90rem] px-6 py-12 sm:py-20 lg:px-10">
+      <div className="border-b border-[var(--bp-border)] pb-8">
+        <p className="mono text-xs font-bold uppercase tracking-[.18em] text-[var(--bp-amber)]">Events</p>
+        <h1 className="mt-4 text-4xl font-black tracking-tight text-[var(--bp-text)]">Upcoming events</h1>
+        <p className="mt-4 text-base text-[var(--bp-text-dim)]">
+          See events created by your Student Builder Group administrators.
+        </p>
+      </div>
 
-      {isLoading && <p className="mt-8 text-slate-600">Loading events...</p>}
-      {errorMessage && <p className="mt-8 text-sm text-red-700">{errorMessage}</p>}
+      {isLoading && <p className="mt-8 text-[var(--bp-text-dim)]">Loading events...</p>}
+      {errorMessage && <p className="mt-8 text-sm text-[var(--bp-danger)]">{errorMessage}</p>}
 
       {!isLoading && !errorMessage && events.length === 0 && (
-        <p className="mt-8 rounded-lg border border-slate-200 bg-white px-5 py-4 text-slate-600">
+        <div className="mt-8 border border-[var(--bp-border)] bg-[var(--bp-surface)] px-6 py-5 text-[var(--bp-text-dim)]">
           No events are currently available.
-        </p>
+        </div>
       )}
 
       {!isLoading && !errorMessage && events.length > 0 && (
-        <div className="mt-8 grid gap-5 md:grid-cols-2">
+        <div className="bp-scroll mt-10 grid max-h-[70vh] gap-6 overflow-y-auto pr-1 md:grid-cols-2 lg:grid-cols-3">
           {events.map((event) => (
-            <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm" key={event.id}>
+            <article
+              className="border border-[var(--bp-border)] bg-[var(--bp-surface)] p-6 transition-all duration-150 ease-out hover:-translate-y-0.5 hover:border-[var(--bp-border-strong)]"
+              key={event.id}
+            >
               <div className="flex items-start justify-between gap-4">
-                <h2 className="text-xl font-semibold text-slate-950">{event.title}</h2>
-                <span
-                  className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                    event.registration_status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-700'
-                  }`}
-                >
-                  {eventStatusLabel(event.registration_status)}
-                </span>
+                <div className="flex-1">
+                  <span
+                    className={`mono inline-block px-3 py-1.5 text-xs font-bold uppercase tracking-wider ${
+                      event.registration_status === 'OPEN'
+                        ? 'border border-[var(--bp-success)] bg-[var(--bp-success)]/15 text-[var(--bp-success)]'
+                        : 'border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] text-[var(--bp-text-dim)]'
+                    }`}
+                  >
+                    [ {eventStatusLabel(event.registration_status)} ]
+                  </span>
+                </div>
               </div>
-              {event.description && <p className="mt-3 line-clamp-3 text-slate-600">{event.description}</p>}
-              <div className="mt-5 space-y-2 text-sm text-slate-600">
+
+              <h2 className="mt-4 text-xl font-black tracking-tight text-[var(--bp-text)]">{event.title}</h2>
+
+              {event.description && (
+                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-[var(--bp-text-dim)]">
+                  {event.description}
+                </p>
+              )}
+
+              <div className="mt-5 space-y-2 border-t border-[var(--bp-border)] pt-5 text-sm text-[var(--bp-text-muted)]">
                 <p className="flex items-center gap-2">
-                  <CalendarDays size={16} /> {formatEventDate(event.event_date)} at {formatEventTime(event.start_time)}
+                  <CalendarDays size={16} className="text-[var(--bp-amber)]" />
+                  {formatEventDate(event.event_date)} at {formatEventTime(event.start_time)}
                 </p>
                 <p className="flex items-center gap-2">
-                  <MapPin size={16} /> {event.venue}
+                  <MapPin size={16} className="text-[var(--bp-amber)]" />
+                  {event.venue}
                 </p>
               </div>
-              <Link className="mt-5 inline-block font-medium text-indigo-700 hover:text-indigo-900" to={`/events/${event.id}`}>
+
+              <Link
+                className="mt-6 inline-flex items-center gap-2 font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)] transition-colors"
+                to={`/events/${event.id}`}
+              >
                 View details
+                <ArrowRight size={16} />
               </Link>
             </article>
           ))}

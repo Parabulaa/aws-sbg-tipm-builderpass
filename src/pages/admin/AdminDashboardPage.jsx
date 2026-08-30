@@ -1,3 +1,4 @@
+import { ArrowRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../services/supabase/client.js'
@@ -25,21 +26,78 @@ export default function AdminDashboardPage() {
         supabase.from('attendance').select('*', { count: 'exact', head: true }),
       ])
       const failed = results.find((result) => result.error)
-      if (failed) setError(failed.error.message || 'Could not load dashboard statistics.')
-      else setCounts({ members: results[0].count, events: results[1].count, upcoming: results[2].count, registrations: results[3].count, attendance: results[4].count })
+      if (failed) {
+        setError(failed.error.message || 'Could not load dashboard statistics.')
+      } else {
+        setCounts({
+          members: results[0].count,
+          events: results[1].count,
+          upcoming: results[2].count,
+          registrations: results[3].count,
+          attendance: results[4].count,
+        })
+      }
     }
     loadCounts()
   }, [])
 
-  return <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
-    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700">Admin dashboard</p>
-    <h1 className="mt-3 text-3xl font-bold tracking-tight">BuilderPass overview</h1>
-    {error && <p className="mt-6 text-sm text-red-700">{error}</p>}
-    {!counts ? !error && <p className="mt-6 text-slate-600">Loading dashboard...</p> : <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{cards.map(([label, key, to]) => <Link className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:border-indigo-300" key={key} to={to}><p className="text-sm text-slate-600">{label}</p><p className="mt-2 text-3xl font-bold">{counts[key]}</p></Link>)}</div>}
-    <div className="mt-10 flex flex-wrap gap-3">
-      <Link className="rounded-md bg-indigo-700 px-4 py-2.5 font-semibold text-white hover:bg-indigo-800" to="/admin/members">Members</Link>
-      <Link className="rounded-md border border-slate-300 px-4 py-2.5 font-semibold hover:bg-slate-100" to="/admin/members/import">Import members</Link>
-      <Link className="rounded-md border border-slate-300 px-4 py-2.5 font-semibold hover:bg-slate-100" to="/admin/events">Events</Link>
-    </div>
-  </section>
+  return (
+    <section className="mx-auto max-w-[90rem] px-6 py-12 sm:py-20 lg:px-10">
+      <div className="border-b border-[var(--bp-border)] pb-8">
+        <p className="mono text-xs font-bold uppercase tracking-[.18em] text-[var(--bp-amber)]">Admin // Dashboard</p>
+        <h1 className="mt-4 text-4xl font-black tracking-tight text-[var(--bp-text)]">Operations console</h1>
+        <p className="mt-4 text-base text-[var(--bp-text-dim)]">
+          BuilderPass member, event, and attendance overview.
+        </p>
+      </div>
+
+      {error && <p className="mt-8 text-sm text-[var(--bp-danger)]">{error}</p>}
+
+      {!counts ? (
+        !error && <p className="mt-8 text-[var(--bp-text-dim)]">Loading dashboard...</p>
+      ) : (
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {cards.map(([label, key, to]) => (
+            <Link
+              className="group border border-[var(--bp-border)] bg-[var(--bp-surface)] p-5 transition-colors duration-150 hover:border-[var(--bp-amber)]"
+              key={key}
+              to={to}
+            >
+              <p className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)]">{label}</p>
+              <p className="mt-3 text-4xl font-black text-[var(--bp-text)] group-hover:text-[var(--bp-amber)]">
+                {String(counts[key]).padStart(2, '0')}
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-12 border-t border-[var(--bp-border)] pt-10">
+        <p className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)]">Quick actions</p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            className="inline-flex items-center gap-2 border-2 border-[var(--bp-amber)] bg-[var(--bp-amber)] px-5 py-3 font-bold uppercase tracking-wide text-black transition-colors duration-150 hover:bg-[var(--bp-amber-strong)]"
+            to="/admin/members"
+          >
+            Members
+            <ArrowRight size={16} />
+          </Link>
+          <Link
+            className="inline-flex items-center gap-2 border border-[var(--bp-border)] bg-[var(--bp-surface)] px-5 py-3 font-bold uppercase tracking-wide text-[var(--bp-text)] transition-colors duration-150 hover:border-[var(--bp-amber)] hover:text-[var(--bp-amber)]"
+            to="/admin/members/import"
+          >
+            Import members
+            <ArrowRight size={16} />
+          </Link>
+          <Link
+            className="inline-flex items-center gap-2 border border-[var(--bp-border)] bg-[var(--bp-surface)] px-5 py-3 font-bold uppercase tracking-wide text-[var(--bp-text)] transition-colors duration-150 hover:border-[var(--bp-amber)] hover:text-[var(--bp-amber)]"
+            to="/admin/events"
+          >
+            Events
+            <ArrowRight size={16} />
+          </Link>
+        </div>
+      </div>
+    </section>
+  )
 }
