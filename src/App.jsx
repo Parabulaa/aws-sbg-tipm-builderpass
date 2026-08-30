@@ -1,5 +1,6 @@
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import AppShell from './components/AppShell.jsx'
+import PageTransition from './components/PageTransition.jsx'
 import { RequireAdmin, RequireAuth } from './components/RequireAuth.jsx'
 import StartPage from './pages/StartPage.jsx'
 import AdminEventsPage from './pages/admin/AdminEventsPage.jsx'
@@ -17,12 +18,28 @@ import MemberDashboardPage from './pages/member/MemberDashboardPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 
 export default function App() {
+  const location = useLocation()
+
   return (
     <AppShell>
       <Routes>
         <Route path="/" element={<StartPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/login"
+          element={
+            <PageTransition key={location.pathname}>
+              <LoginPage />
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <PageTransition key={location.pathname}>
+              <RegisterPage />
+            </PageTransition>
+          }
+        />
         <Route
           path="/dashboard"
           element={
