@@ -74,6 +74,9 @@ export default function AdminEventsPage() {
                   <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/events/${event.id}`}>
                     Details
                   </Link>
+                  <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/admin/events/${event.id}/edit`}>
+                    Edit
+                  </Link>
                   <Link
                     className="text-sm font-medium text-indigo-700 hover:text-indigo-900"
                     to={`/admin/events/${event.id}/registrations`}

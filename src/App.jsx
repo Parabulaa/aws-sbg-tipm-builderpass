@@ -10,6 +10,7 @@ import EventRegistrationsPage from './pages/admin/EventRegistrationsPage.jsx'
 import MemberImportPage from './pages/admin/MemberImportPage.jsx'
 import MembersPage from './pages/admin/MembersPage.jsx'
 import CreateEventPage from './pages/admin/CreateEventPage.jsx'
+import EditEventPage from './pages/admin/EditEventPage.jsx'
 import LoginPage from './pages/auth/LoginPage.jsx'
 import RegisterPage from './pages/auth/RegisterPage.jsx'
 import EventDetailPage from './pages/member/EventDetailPage.jsx'
@@ -102,6 +103,14 @@ export default function App() {
           element={
             <RequireOfficer>
               <CreateEventPage />
+            </RequireOfficer>
+          }
+        />
+        <Route
+          path="/admin/events/:id/edit"
+          element={
+            <RequireOfficer>
+              <EditEventPage />
             </RequireOfficer>
           }
         />
