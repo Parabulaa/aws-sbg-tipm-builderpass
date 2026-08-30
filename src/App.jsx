@@ -3,9 +3,11 @@ import AppShell from './components/AppShell.jsx'
 import { RequireAdmin, RequireAuth } from './components/RequireAuth.jsx'
 import StartPage from './pages/StartPage.jsx'
 import AdminEventsPage from './pages/admin/AdminEventsPage.jsx'
+import AdminDashboardPage from './pages/admin/AdminDashboardPage.jsx'
 import EventAttendancePage from './pages/admin/EventAttendancePage.jsx'
 import EventRegistrationsPage from './pages/admin/EventRegistrationsPage.jsx'
-import AdminLandingPage from './pages/admin/AdminLandingPage.jsx'
+import MemberImportPage from './pages/admin/MemberImportPage.jsx'
+import MembersPage from './pages/admin/MembersPage.jsx'
 import CreateEventPage from './pages/admin/CreateEventPage.jsx'
 import LoginPage from './pages/auth/LoginPage.jsx'
 import RegisterPage from './pages/auth/RegisterPage.jsx'
@@ -49,9 +51,17 @@ export default function App() {
           path="/admin"
           element={
             <RequireAdmin>
-              <AdminLandingPage />
+              <AdminDashboardPage />
             </RequireAdmin>
           }
+        />
+        <Route
+          path="/admin/members"
+          element={<RequireAdmin><MembersPage /></RequireAdmin>}
+        />
+        <Route
+          path="/admin/members/import"
+          element={<RequireAdmin><MemberImportPage /></RequireAdmin>}
         />
         <Route
           path="/admin/events"
