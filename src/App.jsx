@@ -2,10 +2,14 @@ import { Route, Routes } from 'react-router-dom'
 import AppShell from './components/AppShell.jsx'
 import { RequireAdmin, RequireAuth } from './components/RequireAuth.jsx'
 import StartPage from './pages/StartPage.jsx'
+import AdminEventsPage from './pages/admin/AdminEventsPage.jsx'
+import AdminLandingPage from './pages/admin/AdminLandingPage.jsx'
+import CreateEventPage from './pages/admin/CreateEventPage.jsx'
 import LoginPage from './pages/auth/LoginPage.jsx'
 import RegisterPage from './pages/auth/RegisterPage.jsx'
+import EventDetailPage from './pages/member/EventDetailPage.jsx'
+import EventsPage from './pages/member/EventsPage.jsx'
 import MemberDashboardPage from './pages/member/MemberDashboardPage.jsx'
-import AdminLandingPage from './pages/admin/AdminLandingPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 
 export default function App() {
@@ -24,10 +28,42 @@ export default function App() {
           }
         />
         <Route
+          path="/events"
+          element={
+            <RequireAuth>
+              <EventsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/events/:id"
+          element={
+            <RequireAuth>
+              <EventDetailPage />
+            </RequireAuth>
+          }
+        />
+        <Route
           path="/admin"
           element={
             <RequireAdmin>
               <AdminLandingPage />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/events"
+          element={
+            <RequireAdmin>
+              <AdminEventsPage />
+            </RequireAdmin>
+          }
+        />
+        <Route
+          path="/admin/events/new"
+          element={
+            <RequireAdmin>
+              <CreateEventPage />
             </RequireAdmin>
           }
         />

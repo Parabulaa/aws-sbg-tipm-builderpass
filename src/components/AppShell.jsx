@@ -12,6 +12,7 @@ export default function AppShell({ children }) {
   const navItems = session
     ? [
         { to: '/dashboard', label: 'Dashboard' },
+        { to: '/events', label: 'Events' },
         ...(profile?.role === 'ADMIN' ? [{ to: '/admin', label: 'Admin' }] : []),
       ]
     : [
