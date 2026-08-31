@@ -5,9 +5,12 @@ import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrls } from '../../utils/eventPosters.js'
 import { eventStatusLabel, formatEventDate, formatEventTime } from '../../utils/events.js'
 
+const initialFilters = { time: 'ALL', registrationStatus: 'ALL' }
+
 export default function AdminEventsPage() {
   const [events, setEvents] = useState([])
   const [posterUrlsByPath, setPosterUrlsByPath] = useState({})
+  const [filters, setFilters] = useState(initialFilters)
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
@@ -46,6 +49,9 @@ export default function AdminEventsPage() {
     }
   }, [])
 
+  const filteredEvents = filterEvents(events, filters)
+  const hasActiveFilters = filters.time !== 'ALL' || filters.registrationStatus !== 'ALL'
+
   return (
     <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -69,63 +75,115 @@ export default function AdminEventsPage() {
       )}
 
       {!isLoading && !errorMessage && events.length > 0 && (
-        <div className="mt-8 overflow-hidden rounded-xl border border-slate-200 bg-white">
-          <div className="divide-y divide-slate-200">
-            {events.map((event) => {
-              const posterUrl = posterUrlsByPath[event.poster_path]
+        <>
+          <fieldset className="mt-8 border border-slate-200 bg-white p-5">
+            <legend className="px-1 text-sm font-semibold text-slate-900">Filter events</legend>
+            <div className="mt-3 flex flex-wrap items-end gap-4">
+              <FilterField label="Time" htmlFor="admin-event-time-filter">
+                <select className={filterClassName} id="admin-event-time-filter" name="time" onChange={handleFilterChange} value={filters.time}>
+                  <option value="ALL">All events</option>
+                  <option value="UPCOMING">Upcoming</option>
+                  <option value="PAST">Past</option>
+                </select>
+              </FilterField>
+              <FilterField label="Registration" htmlFor="admin-event-registration-filter">
+                <select className={filterClassName} id="admin-event-registration-filter" name="registrationStatus" onChange={handleFilterChange} value={filters.registrationStatus}>
+                  <option value="ALL">All statuses</option>
+                  <option value="OPEN">Open</option>
+                  <option value="CLOSED">Closed</option>
+                </select>
+              </FilterField>
+              {hasActiveFilters && (
+                <button className="text-sm font-medium text-indigo-700 hover:text-indigo-900" onClick={() => setFilters(initialFilters)} type="button">
+                  Reset filters
+                </button>
+              )}
+            </div>
+          </fieldset>
 
-              return (
-                <article className="flex flex-wrap items-center justify-between gap-4 p-5" key={event.id}>
-                  <div className="flex min-w-0 items-center gap-4">
-                    {posterUrl && (
-                      <img
-                        alt={`${event.title} poster`}
-                        className="h-20 w-32 shrink-0 border border-slate-200 object-cover"
-                        loading="lazy"
-                        src={posterUrl}
-                      />
-                    )}
-                    <div>
-                      <h2 className="font-semibold text-slate-950">{event.title}</h2>
-                      <p className="mt-1 flex items-center gap-2 text-sm text-slate-600">
-                        <CalendarDays size={16} /> {formatEventDate(event.event_date)} at {formatEventTime(event.start_time)}
-                      </p>
-                      <p className="mt-1 text-sm text-slate-600">{event.venue}</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                        event.registration_status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-700'
-                      }`}
-                    >
-                      {eventStatusLabel(event.registration_status)}
-                    </span>
-                    <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/events/${event.id}`}>
-                      Details
-                    </Link>
-                    <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/admin/events/${event.id}/edit`}>
-                      Edit
-                    </Link>
-                    <Link
-                      className="text-sm font-medium text-indigo-700 hover:text-indigo-900"
-                      to={`/admin/events/${event.id}/registrations`}
-                    >
-                      Registrations
-                    </Link>
-                    <Link
-                      className="text-sm font-medium text-indigo-700 hover:text-indigo-900"
-                      to={`/admin/events/${event.id}/attendance`}
-                    >
-                      Attendance
-                    </Link>
-                  </div>
-                </article>
-              )
-            })}
-          </div>
-        </div>
+          <p className="mt-4 text-sm text-slate-600" role="status">Showing {filteredEvents.length} of {events.length} events</p>
+
+          {filteredEvents.length === 0 ? (
+            <p className="mt-4 rounded-lg border border-slate-200 bg-white px-5 py-4 text-slate-600">No events match the current filters.</p>
+          ) : (
+            <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+              <div className="divide-y divide-slate-200">
+                {filteredEvents.map((event) => {
+                  const posterUrl = posterUrlsByPath[event.poster_path]
+
+                  return (
+                    <article className="flex flex-wrap items-center justify-between gap-4 p-5" key={event.id}>
+                      <div className="flex min-w-0 items-center gap-4">
+                        {posterUrl && (
+                          <img
+                            alt={`${event.title} poster`}
+                            className="h-20 w-32 shrink-0 border border-slate-200 object-cover"
+                            loading="lazy"
+                            src={posterUrl}
+                          />
+                        )}
+                        <div>
+                          <h2 className="font-semibold text-slate-950">{event.title}</h2>
+                          <p className="mt-1 flex items-center gap-2 text-sm text-slate-600">
+                            <CalendarDays size={16} /> {formatEventDate(event.event_date)} at {formatEventTime(event.start_time)}
+                          </p>
+                          <p className="mt-1 text-sm text-slate-600">{event.venue}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                            event.registration_status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-700'
+                          }`}
+                        >
+                          {eventStatusLabel(event.registration_status)}
+                        </span>
+                        <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/events/${event.id}`}>
+                          Details
+                        </Link>
+                        <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/admin/events/${event.id}/edit`}>
+                          Edit
+                        </Link>
+                        <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/admin/events/${event.id}/registrations`}>
+                          Registrations
+                        </Link>
+                        <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/admin/events/${event.id}/attendance`}>
+                          Attendance
+                        </Link>
+                      </div>
+                    </article>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </section>
   )
+
+  function handleFilterChange(event) {
+    const { name, value } = event.target
+    setFilters((current) => ({ ...current, [name]: value }))
+  }
 }
+
+function filterEvents(events, filters) {
+  const today = new Date().toISOString().slice(0, 10)
+
+  return events.filter((event) => (
+    (filters.time === 'ALL' || (filters.time === 'UPCOMING' ? event.event_date >= today : event.event_date < today))
+    && (filters.registrationStatus === 'ALL' || event.registration_status === filters.registrationStatus)
+  ))
+}
+
+function FilterField({ children, htmlFor, label }) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-slate-800" htmlFor={htmlFor}>{label}</label>
+      {children}
+    </div>
+  )
+}
+
+const filterClassName = 'min-w-40 rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-950 outline-none focus:ring-2 focus:ring-indigo-500'
