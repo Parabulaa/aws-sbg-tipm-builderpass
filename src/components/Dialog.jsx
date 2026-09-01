@@ -16,19 +16,57 @@ import { useEffect, useRef } from 'react'
  */
 export default function Dialog({ children, icon: Icon, isOpen, onClose, titleId, tone = 'amber' }) {
   const dialogRef = useRef(null)
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
   useEffect(() => {
     if (!isOpen) return
 
+    const previouslyFocusedElement = document.activeElement
+    const previousBodyOverflow = document.body.style.overflow
+
     function handleKeyDown(event) {
-      if (event.key === 'Escape') onClose()
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onCloseRef.current()
+        return
+      }
+
+      if (event.key !== 'Tab') return
+
+      const focusableElements = getFocusableElements(dialogRef.current)
+      if (focusableElements.length === 0) {
+        event.preventDefault()
+        dialogRef.current?.focus()
+        return
+      }
+
+      const firstElement = focusableElements[0]
+      const lastElement = focusableElements.at(-1)
+      const focusedElementIndex = focusableElements.indexOf(document.activeElement)
+
+      if (event.shiftKey && focusedElementIndex <= 0) {
+        event.preventDefault()
+        lastElement.focus()
+      } else if (!event.shiftKey && (focusedElementIndex === -1 || document.activeElement === lastElement)) {
+        event.preventDefault()
+        firstElement.focus()
+      }
     }
 
+    document.body.style.overflow = 'hidden'
     document.addEventListener('keydown', handleKeyDown)
-    dialogRef.current?.focus()
+    getFocusableElements(dialogRef.current)[0]?.focus()
 
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, onClose])
+    return () => {
+      document.body.style.overflow = previousBodyOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+
+      if (previouslyFocusedElement instanceof HTMLElement && previouslyFocusedElement.isConnected) {
+        previouslyFocusedElement.focus()
+      }
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
 
@@ -80,4 +118,12 @@ export default function Dialog({ children, icon: Icon, isOpen, onClose, titleId,
       </div>
     </div>
   )
+}
+
+function getFocusableElements(container) {
+  if (!container) return []
+
+  return [...container.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+  )].filter((element) => !element.hasAttribute('hidden') && element.getAttribute('aria-hidden') !== 'true')
 }
