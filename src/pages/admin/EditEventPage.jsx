@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import BackLink from '../../components/BackLink.jsx'
+import { useObjectUrl } from '../../hooks/useObjectUrl.js'
 import { supabase } from '../../services/supabase/client.js'
 import {
   getEventPosterUrl,
@@ -38,6 +39,8 @@ export default function EditEventPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isUnavailable, setIsUnavailable] = useState(false)
+  const posterPreviewUrl = useObjectUrl(posterFile)
+  const displayedPosterUrl = posterPreviewUrl || (!shouldRemovePoster ? posterUrl : '')
 
   useEffect(() => {
     let isActive = true
@@ -245,12 +248,17 @@ export default function EditEventPage() {
           </FormField>
 
           <FormField label="Event poster" htmlFor="poster">
-            {posterUrl && !posterFile && !shouldRemovePoster && (
-              <img
-                alt="Current event poster"
-                className="mb-3 aspect-video w-full border border-slate-200 object-cover"
-                src={posterUrl}
-              />
+            {displayedPosterUrl && (
+              <figure className="mb-3 border border-slate-200 bg-slate-50 p-2">
+                <img
+                  alt={posterPreviewUrl ? 'New event poster preview' : 'Current event poster'}
+                  className="aspect-video w-full object-contain"
+                  src={displayedPosterUrl}
+                />
+                <figcaption className="mt-2 text-xs font-medium text-slate-600">
+                  {posterPreviewUrl ? 'New poster preview' : 'Current poster'}
+                </figcaption>
+              </figure>
             )}
             <input
               accept="image/jpeg,image/png,image/webp"

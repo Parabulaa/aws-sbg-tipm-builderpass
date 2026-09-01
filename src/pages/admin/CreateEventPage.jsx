@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import BackLink from '../../components/BackLink.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
+import { useObjectUrl } from '../../hooks/useObjectUrl.js'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterValidationMessage, removeEventPoster, uploadEventPoster } from '../../utils/eventPosters.js'
 import { getDatabaseFeatureMessage } from '../../utils/supabaseCompatibility.js'
@@ -25,6 +26,7 @@ export default function CreateEventPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
+  const posterPreviewUrl = useObjectUrl(posterFile)
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -164,6 +166,16 @@ export default function CreateEventPage() {
           </FormField>
 
           <FormField label="Event poster (optional)" htmlFor="poster">
+            {posterPreviewUrl && (
+              <figure className="mb-3 border border-slate-200 bg-slate-50 p-2">
+                <img
+                  alt="Selected event poster preview"
+                  className="aspect-video w-full object-contain"
+                  src={posterPreviewUrl}
+                />
+                <figcaption className="mt-2 text-xs font-medium text-slate-600">Poster preview</figcaption>
+              </figure>
+            )}
             <input
               accept="image/jpeg,image/png,image/webp"
               className={inputClassName}
