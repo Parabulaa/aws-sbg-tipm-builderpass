@@ -6,7 +6,12 @@ import Dialog from '../../components/Dialog.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrl } from '../../utils/eventPosters.js'
-import { eventStatusLabel, formatEventDate, formatEventTime } from '../../utils/events.js'
+import {
+  eventIsCurrent,
+  eventRegistrationLabel,
+  formatEventDate,
+  formatEventTimeRange,
+} from '../../utils/events.js'
 
 export default function EventDetailPage() {
   const { profile } = useAuth()
@@ -35,7 +40,7 @@ export default function EventDetailPage() {
       const [eventResult, summaryResult] = await Promise.all([
         supabase
           .from('events')
-          .select('id, title, description, event_date, start_time, venue, capacity, registration_status, poster_path')
+          .select('id, title, description, event_date, start_time, end_time, venue, capacity, registration_status, poster_path')
           .eq('id', id)
           .maybeSingle(),
         supabase.rpc('get_event_rsvp_summary', { p_event_id: id }),
@@ -170,7 +175,7 @@ export default function EventDetailPage() {
   }
 
   const hasActiveRsvp = registration?.status === 'REGISTERED'
-  const hasCapacityLimit = rsvpSummary?.capacity != null
+  const isCurrent = eventIsCurrent(event)
   const isEventFull = Boolean(rsvpSummary?.is_full)
 
   return (
@@ -181,7 +186,7 @@ export default function EventDetailPage() {
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div className="flex-1">
             <p className="mono text-xs font-bold uppercase tracking-[.18em] text-[var(--bp-amber)]">
-              Event // {eventStatusLabel(event.registration_status)}
+              Event // {eventRegistrationLabel(event)}
             </p>
             <h1 className="mt-4 text-3xl font-black tracking-tight text-[var(--bp-text)] sm:text-4xl">
               {event.title}
@@ -189,12 +194,12 @@ export default function EventDetailPage() {
           </div>
           <span
             className={`mono shrink-0 px-3 py-2 text-xs font-bold uppercase tracking-wider ${
-              event.registration_status === 'OPEN'
+              event.registration_status === 'OPEN' && isCurrent
                 ? 'border border-[var(--bp-success)] bg-[var(--bp-success)]/15 text-[var(--bp-success)]'
                 : 'border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] text-[var(--bp-text-dim)]'
             }`}
           >
-            [ {eventStatusLabel(event.registration_status)} ]
+            [ {eventRegistrationLabel(event)} ]
           </span>
         </div>
 
@@ -212,7 +217,7 @@ export default function EventDetailPage() {
               <CalendarDays size={16} className="text-[var(--bp-amber)]" /> Date / Time
             </dt>
             <dd className="mt-2 font-bold text-[var(--bp-text)]">
-              {formatEventDate(event.event_date)} at {formatEventTime(event.start_time)}
+              {formatEventDate(event.event_date)} // {formatEventTimeRange(event.start_time, event.end_time)}
             </dd>
           </div>
           <div>
@@ -239,7 +244,7 @@ export default function EventDetailPage() {
 
           {rsvpSummary && (
             <div className="mb-6 border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] px-4 py-3 text-sm">
-              {hasCapacityLimit ? (
+              {rsvpSummary.capacity != null ? (
                 <>
                   <p className="font-bold text-[var(--bp-text)]">
                     {rsvpSummary.registered_count} / {rsvpSummary.capacity} RSVPs
@@ -249,7 +254,7 @@ export default function EventDetailPage() {
                   </p>
                 </>
               ) : (
-                <p className="font-bold text-[var(--bp-text)]">Unlimited capacity</p>
+                <p className="font-bold text-[var(--bp-danger)]">Capacity has not been configured for this legacy event.</p>
               )}
             </div>
           )}
@@ -264,7 +269,7 @@ export default function EventDetailPage() {
           {hasActiveRsvp ? (
             <div className="flex flex-wrap items-center gap-4">
               <p className="font-bold text-[var(--bp-success)]">You are registered for this event.</p>
-              {event.registration_status === 'OPEN' ? (
+              {event.registration_status === 'OPEN' && isCurrent ? (
                 <button
                   className="border border-[var(--bp-danger)] px-4 py-2 font-bold uppercase tracking-wide text-[var(--bp-danger)] transition-colors hover:bg-[var(--bp-danger)] hover:text-white"
                   onClick={() => setIsCancelDialogOpen(true)}
@@ -273,13 +278,17 @@ export default function EventDetailPage() {
                   Cancel RSVP
                 </button>
               ) : (
-                <p className="text-sm text-[var(--bp-text-dim)]">RSVP cancellation is unavailable after registration closes.</p>
+                <p className="text-sm text-[var(--bp-text-dim)]">RSVP cancellation is unavailable after registration closes or the event ends.</p>
               )}
             </div>
+          ) : !isCurrent ? (
+            <p className="font-semibold text-[var(--bp-text-dim)]">This event has ended. New reservations are no longer available.</p>
           ) : event.registration_status !== 'OPEN' ? (
             <p className="font-semibold text-[var(--bp-text-dim)]">Registration is closed for this event.</p>
           ) : isEventFull ? (
             <p className="font-bold text-[var(--bp-danger)]">EVENT FULL</p>
+          ) : rsvpSummary?.capacity == null ? (
+            <p className="font-semibold text-[var(--bp-text-dim)]">Reservations will open after an event manager sets the capacity.</p>
           ) : (
             <div>
               {registration?.status === 'CANCELLED' && (
@@ -291,7 +300,7 @@ export default function EventDetailPage() {
                 onClick={handleRegistration}
                 type="button"
               >
-                {isSubmitting ? 'Registering...' : rsvpSummary ? 'Register for this event' : 'Checking availability...'}
+                {isSubmitting ? 'Reserving...' : rsvpSummary ? 'Reserve a spot' : 'Checking availability...'}
               </button>
             </div>
           )}
@@ -346,6 +355,7 @@ export default function EventDetailPage() {
 function getRsvpErrorMessage(error, fallback) {
   const messages = {
     EVENT_FULL: 'This event is full.',
+    EVENT_ENDED: 'This event has ended. Reservations are no longer available.',
     REGISTRATION_CLOSED: 'Registration is closed for this event.',
     PROFILE_NOT_FOUND: 'Your member profile is not available. Please sign in again.',
     NO_ACTIVE_RSVP: 'You do not have an active RSVP to cancel.',

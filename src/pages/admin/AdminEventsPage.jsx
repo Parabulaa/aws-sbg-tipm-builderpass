@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrls } from '../../utils/eventPosters.js'
-import { eventMatchesFilters, eventStatusLabel, formatEventDate, formatEventTime } from '../../utils/events.js'
+import { eventIsCurrent, eventMatchesFilters, eventRegistrationLabel, formatEventDate, formatEventTimeRange } from '../../utils/events.js'
 
-const initialFilters = { time: 'ALL', registrationStatus: 'ALL' }
+const initialFilters = { time: 'CURRENT', registrationStatus: 'ALL' }
 
 export default function AdminEventsPage() {
   const [events, setEvents] = useState([])
@@ -20,7 +20,7 @@ export default function AdminEventsPage() {
     async function loadEvents() {
       const { data, error } = await supabase
         .from('events')
-        .select('id, title, event_date, start_time, venue, registration_status, poster_path')
+        .select('id, title, event_date, start_time, end_time, venue, registration_status, poster_path')
         .order('event_date', { ascending: true })
         .order('start_time', { ascending: true })
 
@@ -50,7 +50,7 @@ export default function AdminEventsPage() {
   }, [])
 
   const filteredEvents = filterEvents(events, filters)
-  const hasActiveFilters = filters.time !== 'ALL' || filters.registrationStatus !== 'ALL'
+  const hasActiveFilters = filters.time !== initialFilters.time || filters.registrationStatus !== initialFilters.registrationStatus
 
   return (
     <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
@@ -82,8 +82,9 @@ export default function AdminEventsPage() {
               <FilterField label="Time" htmlFor="admin-event-time-filter">
                 <select className={filterClassName} id="admin-event-time-filter" name="time" onChange={handleFilterChange} value={filters.time}>
                   <option value="ALL">All events</option>
+                  <option value="CURRENT">Current events</option>
                   <option value="UPCOMING">Upcoming</option>
-                  <option value="PAST">Past</option>
+                  <option value="PAST">Ended</option>
                 </select>
               </FilterField>
               <FilterField label="Registration" htmlFor="admin-event-registration-filter">
@@ -125,7 +126,7 @@ export default function AdminEventsPage() {
                         <div>
                           <h2 className="font-semibold text-slate-950">{event.title}</h2>
                           <p className="mt-1 flex items-center gap-2 text-sm text-slate-600">
-                            <CalendarDays size={16} /> {formatEventDate(event.event_date)} at {formatEventTime(event.start_time)}
+                            <CalendarDays size={16} /> {formatEventDate(event.event_date)} // {formatEventTimeRange(event.start_time, event.end_time)}
                           </p>
                           <p className="mt-1 text-sm text-slate-600">{event.venue}</p>
                         </div>
@@ -133,10 +134,10 @@ export default function AdminEventsPage() {
                       <div className="flex flex-wrap items-center gap-3">
                         <span
                           className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                            event.registration_status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-700'
+                            event.registration_status === 'OPEN' && eventIsCurrent(event) ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-700'
                           }`}
                         >
-                          {eventStatusLabel(event.registration_status)}
+                          {eventRegistrationLabel(event)}
                         </span>
                         <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/events/${event.id}`}>
                           Details

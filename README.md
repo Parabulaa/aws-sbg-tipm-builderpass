@@ -37,6 +37,7 @@ Requirements: Node.js 20.19+ or 22.12+, npm, and a Supabase project.
    3. `supabase/migrations/phase-5-rsvp-capacity.sql`
    4. `supabase/migrations/phase-6-event-posters.sql`
    5. `supabase/migrations/phase-7-attendance-workflow.sql`
+   6. `supabase/migrations/phase-8-event-lifecycle-member-profile.sql`
 
 4. Start the development server.
 

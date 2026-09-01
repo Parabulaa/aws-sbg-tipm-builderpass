@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
-import { eventStatusLabel, formatEventDate, formatEventTime, getLocalDateKey } from '../../utils/events.js'
+import { eventIsCurrent, eventRegistrationLabel, formatEventDate, formatEventTimeRange } from '../../utils/events.js'
 
 export default function MemberDashboardPage() {
   const { profile } = useAuth()
@@ -34,9 +34,8 @@ export default function MemberDashboardPage() {
           .eq('status', 'PRESENT'),
         supabase
           .from('event_registrations')
-          .select('id, events!inner(id, title, event_date, start_time, venue, registration_status)')
-          .eq('user_id', profile.id)
-          .eq('status', 'REGISTERED'),
+          .select('id, status, events!inner(id, title, event_date, start_time, end_time, venue, registration_status)')
+          .eq('user_id', profile.id),
       ])
 
       if (!isActive) return
@@ -47,16 +46,17 @@ export default function MemberDashboardPage() {
         return
       }
 
-      const today = getLocalDateKey()
-      const upcomingEvents = registrationsResult.data
+      const currentReservations = registrationsResult.data
+        .filter((registration) => registration.status === 'REGISTERED')
         .map((registration) => getRegistrationEvent(registration))
-        .filter((event) => event && event.event_date >= today)
+        .filter((event) => event && eventIsCurrent(event))
         .sort((left, right) => `${left.event_date}T${left.start_time}`.localeCompare(`${right.event_date}T${right.start_time}`))
 
       setDashboard({
         eventsAttended: attendanceResult.count ?? 0,
-        upcomingRsvps: upcomingEvents.length,
-        nextEvent: upcomingEvents[0] ?? null,
+        totalRsvps: registrationsResult.data.length,
+        currentReservations: currentReservations.length,
+        nextEvent: currentReservations[0] ?? null,
       })
       setIsLoading(false)
     }
@@ -113,9 +113,10 @@ export default function MemberDashboardPage() {
 
         {dashboard && (
           <>
-            <div className="mt-6 grid gap-6 md:grid-cols-2">
+            <div className="mt-6 grid gap-6 md:grid-cols-3">
+              <MetricCard label="Total RSVPs" value={dashboard.totalRsvps} />
+              <MetricCard label="Current reservations" value={dashboard.currentReservations} />
               <MetricCard label="Events attended" value={dashboard.eventsAttended} />
-              <MetricCard label="Upcoming RSVPs" value={dashboard.upcomingRsvps} />
             </div>
 
             <div className="mt-6 border border-[var(--bp-border)] bg-[var(--bp-surface)] p-6">
@@ -128,7 +129,7 @@ export default function MemberDashboardPage() {
                       <div className="mt-3 space-y-2 text-sm text-[var(--bp-text-dim)]">
                         <p className="flex items-center gap-2">
                           <CalendarDays size={16} className="text-[var(--bp-amber)]" />
-                          {formatEventDate(dashboard.nextEvent.event_date)} at {formatEventTime(dashboard.nextEvent.start_time)}
+                          {formatEventDate(dashboard.nextEvent.event_date)} // {formatEventTimeRange(dashboard.nextEvent.start_time, dashboard.nextEvent.end_time)}
                         </p>
                         <p className="flex items-center gap-2">
                           <MapPin size={16} className="text-[var(--bp-amber)]" />
@@ -137,7 +138,7 @@ export default function MemberDashboardPage() {
                       </div>
                     </div>
                     <span className="mono border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-[var(--bp-text-dim)]">
-                      {eventStatusLabel(dashboard.nextEvent.registration_status)}
+                      {eventRegistrationLabel(dashboard.nextEvent)}
                     </span>
                   </div>
                   <Link

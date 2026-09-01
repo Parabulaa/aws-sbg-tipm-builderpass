@@ -1,16 +1,25 @@
-import { ArrowRight, CalendarDays, MapPin } from 'lucide-react'
+import { CalendarDays, MapPin } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrls } from '../../utils/eventPosters.js'
-import { eventMatchesFilters, eventStatusLabel, formatEventDate, formatEventTime } from '../../utils/events.js'
+import {
+  eventIsCurrent,
+  eventMatchesFilters,
+  eventRegistrationLabel,
+  formatEventDate,
+  formatEventTimeRange,
+} from '../../utils/events.js'
 
-const initialFilters = { time: 'UPCOMING', registrationStatus: 'ALL' }
+const initialFilters = { time: 'CURRENT', registrationStatus: 'ALL', participation: 'ALL' }
 
 export default function EventsPage() {
+  const { profile } = useAuth()
   const [events, setEvents] = useState([])
   const [rsvpSummariesByEvent, setRsvpSummariesByEvent] = useState({})
   const [posterUrlsByPath, setPosterUrlsByPath] = useState({})
+  const [memberStateByEvent, setMemberStateByEvent] = useState({})
   const [filters, setFilters] = useState(initialFilters)
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
@@ -19,21 +28,42 @@ export default function EventsPage() {
     let isActive = true
 
     async function loadEvents() {
-      const { data, error } = await supabase
-        .from('events')
-        .select('id, title, description, event_date, start_time, venue, registration_status, poster_path')
-        .order('event_date', { ascending: true })
-        .order('start_time', { ascending: true })
+      if (!profile?.id) {
+        setErrorMessage('Your member profile is not available. Please sign in again.')
+        setIsLoading(false)
+        return
+      }
+
+      setErrorMessage('')
+      setIsLoading(true)
+      const [eventsResult, registrationsResult, attendanceResult] = await Promise.all([
+        supabase
+          .from('events')
+          .select('id, title, description, event_date, start_time, end_time, venue, capacity, registration_status, poster_path')
+          .order('event_date', { ascending: true })
+          .order('start_time', { ascending: true }),
+        supabase
+          .from('event_registrations')
+          .select('event_id, status')
+          .eq('user_id', profile.id),
+        supabase
+          .from('attendance')
+          .select('event_id, status')
+          .eq('user_id', profile.id),
+      ])
 
       if (!isActive) return
 
+      const error = eventsResult.error || registrationsResult.error || attendanceResult.error
       if (error) {
         setErrorMessage(error.message || 'We could not load events. Please try again.')
         setIsLoading(false)
         return
       }
 
+      const data = eventsResult.data
       setEvents(data)
+      setMemberStateByEvent(buildMemberState(registrationsResult.data, attendanceResult.data))
 
       const posterUrlsPromise = getEventPosterUrls(data.map((event) => event.poster_path)).catch(() => ({}))
       const summaryResults = await Promise.all(
@@ -59,10 +89,15 @@ export default function EventsPage() {
     return () => {
       isActive = false
     }
-  }, [])
+  }, [profile?.id])
 
-  const filteredEvents = filterEvents(events, filters)
-  const hasActiveFilters = filters.time !== initialFilters.time || filters.registrationStatus !== initialFilters.registrationStatus
+  const filteredEvents = filterEvents(events, filters, memberStateByEvent)
+  const hasActiveFilters = Object.entries(filters).some(([key, value]) => value !== initialFilters[key])
+  const eventsById = new Map(events.map((event) => [event.id, event]))
+  const currentReservations = Object.entries(memberStateByEvent)
+    .filter(([eventId, state]) => state.isReserved && eventsById.has(eventId) && eventIsCurrent(eventsById.get(eventId)))
+    .length
+  const attendedEvents = Object.values(memberStateByEvent).filter((state) => state.isAttended).length
 
   return (
     <section className="mx-auto max-w-[90rem] px-6 py-12 sm:py-20 lg:px-10">
@@ -91,8 +126,16 @@ export default function EventsPage() {
               <FilterField label="Time" htmlFor="member-event-time-filter">
                 <select className={filterClassName} id="member-event-time-filter" name="time" onChange={handleFilterChange} value={filters.time}>
                   <option value="ALL">All events</option>
+                  <option value="CURRENT">Current events</option>
                   <option value="UPCOMING">Upcoming</option>
-                  <option value="PAST">Past</option>
+                  <option value="PAST">Ended</option>
+                </select>
+              </FilterField>
+              <FilterField label="My activity" htmlFor="member-event-participation-filter">
+                <select className={filterClassName} id="member-event-participation-filter" name="participation" onChange={handleFilterChange} value={filters.participation}>
+                  <option value="ALL">All events</option>
+                  <option value="RESERVED">My reservations</option>
+                  <option value="ATTENDED">Events attended</option>
                 </select>
               </FilterField>
               <FilterField label="Registration" htmlFor="member-event-registration-filter">
@@ -110,7 +153,10 @@ export default function EventsPage() {
             </div>
           </fieldset>
 
-          <p className="mt-4 text-sm text-[var(--bp-text-dim)]" role="status">Showing {filteredEvents.length} of {events.length} events</p>
+          <div className="mt-4 flex flex-wrap justify-between gap-3 text-sm text-[var(--bp-text-dim)]" role="status">
+            <p>Showing {filteredEvents.length} of {events.length} events</p>
+            <p>{currentReservations} current reservation{currentReservations === 1 ? '' : 's'} // {attendedEvents} attended</p>
+          </div>
 
           {filteredEvents.length === 0 ? (
             <div className="mt-4 border border-[var(--bp-border)] bg-[var(--bp-surface)] px-6 py-5 text-[var(--bp-text-dim)]">
@@ -121,11 +167,15 @@ export default function EventsPage() {
               {filteredEvents.map((event) => {
                 const rsvpSummary = rsvpSummariesByEvent[event.id]
                 const posterUrl = posterUrlsByPath[event.poster_path]
+                const memberState = memberStateByEvent[event.id] || {}
+                const isCurrent = eventIsCurrent(event)
 
                 return (
-                  <article
-                    className="border border-[var(--bp-border)] bg-[var(--bp-surface)] p-6 transition-all duration-150 ease-out hover:-translate-y-0.5 hover:border-[var(--bp-border-strong)]"
+                  <Link
+                    aria-label={`View details for ${event.title}`}
+                    className="group block border border-[var(--bp-border)] bg-[var(--bp-surface)] p-6 transition-all duration-150 ease-out hover:-translate-y-0.5 hover:border-[var(--bp-amber)] focus:outline-none focus:ring-2 focus:ring-[var(--bp-amber)]"
                     key={event.id}
+                    to={`/events/${event.id}`}
                   >
                     {posterUrl && (
                       <img
@@ -140,13 +190,17 @@ export default function EventsPage() {
                       <div className="flex-1">
                         <span
                           className={`mono inline-block px-3 py-1.5 text-xs font-bold uppercase tracking-wider ${
-                            event.registration_status === 'OPEN'
+                            event.registration_status === 'OPEN' && isCurrent
                               ? 'border border-[var(--bp-success)] bg-[var(--bp-success)]/15 text-[var(--bp-success)]'
                               : 'border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] text-[var(--bp-text-dim)]'
                           }`}
                         >
-                          [ {eventStatusLabel(event.registration_status)} ]
+                          [ {eventRegistrationLabel(event)} ]
                         </span>
+                      </div>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        {memberState.isReserved && <span className="mono border border-[var(--bp-amber)] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--bp-amber)]">Reserved</span>}
+                        {memberState.isAttended && <span className="mono border border-[var(--bp-success)] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--bp-success)]">Attended</span>}
                       </div>
                     </div>
 
@@ -161,7 +215,7 @@ export default function EventsPage() {
                     <div className="mt-5 space-y-2 border-t border-[var(--bp-border)] pt-5 text-sm text-[var(--bp-text-muted)]">
                       <p className="flex items-center gap-2">
                         <CalendarDays size={16} className="text-[var(--bp-amber)]" />
-                        {formatEventDate(event.event_date)} at {formatEventTime(event.start_time)}
+                        {formatEventDate(event.event_date)} // {formatEventTimeRange(event.start_time, event.end_time)}
                       </p>
                       <p className="flex items-center gap-2">
                         <MapPin size={16} className="text-[var(--bp-amber)]" />
@@ -176,21 +230,17 @@ export default function EventsPage() {
                         }`}
                       >
                         {rsvpSummary.capacity == null
-                          ? 'Unlimited capacity'
+                          ? 'Capacity pending configuration'
                           : rsvpSummary.is_full
                             ? `Event full // ${rsvpSummary.registered_count} of ${rsvpSummary.capacity} RSVPs`
                             : `${rsvpSummary.registered_count} of ${rsvpSummary.capacity} RSVPs // ${rsvpSummary.slots_remaining} spots left`}
                       </p>
                     )}
 
-                    <Link
-                      className="mt-6 inline-flex items-center gap-2 font-bold text-[var(--bp-amber)] transition-colors hover:text-[var(--bp-amber-strong)]"
-                      to={`/events/${event.id}`}
-                    >
-                      View details
-                      <ArrowRight size={16} />
-                    </Link>
-                  </article>
+                    <p className="mt-6 font-bold text-[var(--bp-amber)] transition-colors group-hover:text-[var(--bp-amber-strong)]">
+                      {memberState.isReserved ? 'View reservation and details →' : isCurrent ? 'View details and reserve →' : 'View event details →'}
+                    </p>
+                  </Link>
                 )
               })}
             </div>
@@ -206,8 +256,35 @@ export default function EventsPage() {
   }
 }
 
-function filterEvents(events, filters) {
-  return events.filter((event) => eventMatchesFilters(event, filters))
+function filterEvents(events, filters, memberStateByEvent) {
+  return events.filter((event) => {
+    const memberState = memberStateByEvent[event.id] || {}
+    const matchesParticipation = filters.participation === 'ALL'
+      || (filters.participation === 'RESERVED' && memberState.isReserved)
+      || (filters.participation === 'ATTENDED' && memberState.isAttended)
+
+    return eventMatchesFilters(event, filters) && matchesParticipation
+  })
+}
+
+function buildMemberState(registrations, attendanceRecords) {
+  const stateByEvent = {}
+
+  registrations.forEach((registration) => {
+    stateByEvent[registration.event_id] = {
+      ...stateByEvent[registration.event_id],
+      isReserved: registration.status === 'REGISTERED',
+    }
+  })
+
+  attendanceRecords.forEach((attendance) => {
+    stateByEvent[attendance.event_id] = {
+      ...stateByEvent[attendance.event_id],
+      isAttended: attendance.status === 'PRESENT',
+    }
+  })
+
+  return stateByEvent
 }
 
 function FilterField({ children, htmlFor, label }) {

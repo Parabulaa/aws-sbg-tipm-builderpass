@@ -14,6 +14,7 @@ const initialForm = {
   description: '',
   eventDate: '',
   startTime: '',
+  endTime: '',
   venue: '',
   capacity: '',
   registrationStatus: 'OPEN',
@@ -46,7 +47,7 @@ export default function EditEventPage() {
 
       const { data, error } = await supabase
         .from('events')
-        .select('id, title, description, event_date, start_time, venue, capacity, registration_status, poster_path')
+        .select('id, title, description, event_date, start_time, end_time, venue, capacity, registration_status, poster_path')
         .eq('id', id)
         .maybeSingle()
 
@@ -61,6 +62,7 @@ export default function EditEventPage() {
           description: data.description,
           eventDate: data.event_date,
           startTime: data.start_time.slice(0, 5),
+          endTime: data.end_time?.slice(0, 5) || '',
           venue: data.venue,
           capacity: data.capacity == null ? '' : String(data.capacity),
           registrationStatus: data.registration_status,
@@ -119,14 +121,19 @@ export default function EditEventPage() {
   async function handleSubmit(event) {
     event.preventDefault()
 
-    if (!form.title.trim() || !form.eventDate || !form.startTime || !form.venue.trim()) {
-      setErrorMessage('Title, date, start time, and venue are required.')
+    if (!form.title.trim() || !form.eventDate || !form.startTime || !form.endTime || !form.venue.trim()) {
+      setErrorMessage('Title, date, start time, end time, and venue are required.')
+      return
+    }
+
+    if (form.endTime <= form.startTime) {
+      setErrorMessage('End time must be later than start time.')
       return
     }
 
     const capacity = getCapacityValue(form.capacity)
     if (capacity === undefined) {
-      setErrorMessage('Capacity must be a whole number greater than zero, or left blank for unlimited capacity.')
+      setErrorMessage('Capacity must be a whole number greater than zero.')
       return
     }
 
@@ -148,6 +155,7 @@ export default function EditEventPage() {
         description: form.description.trim(),
         event_date: form.eventDate,
         start_time: form.startTime,
+        end_time: form.endTime,
         venue: form.venue.trim(),
         capacity,
         registration_status: form.registrationStatus,
@@ -258,7 +266,7 @@ export default function EditEventPage() {
             )}
           </FormField>
 
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-3">
             <FormField label="Date" htmlFor="eventDate">
               <input
                 className={inputClassName}
@@ -279,6 +287,16 @@ export default function EditEventPage() {
                 value={form.startTime}
               />
             </FormField>
+            <FormField label="End time" htmlFor="endTime">
+              <input
+                className={inputClassName}
+                id="endTime"
+                name="endTime"
+                onChange={handleChange}
+                type="time"
+                value={form.endTime}
+              />
+            </FormField>
           </div>
 
           <FormField label="Venue" htmlFor="venue">
@@ -291,7 +309,7 @@ export default function EditEventPage() {
             />
           </FormField>
 
-          <FormField label="Capacity (optional)" htmlFor="capacity">
+          <FormField label="Capacity" htmlFor="capacity">
             <input
               className={inputClassName}
               id="capacity"
@@ -302,7 +320,7 @@ export default function EditEventPage() {
               type="number"
               value={form.capacity}
             />
-            <p className="mt-1.5 text-xs text-slate-500">Leave blank for unlimited capacity.</p>
+            <p className="mt-1.5 text-xs text-slate-500">Set the maximum number of active reservations.</p>
           </FormField>
 
           <FormField label="Registration status" htmlFor="registrationStatus">
@@ -332,10 +350,8 @@ export default function EditEventPage() {
 }
 
 function getCapacityValue(value) {
-  if (!value.trim()) return null
-
   const capacity = Number(value)
-  return Number.isInteger(capacity) && capacity > 0 ? capacity : undefined
+  return value.trim() && Number.isInteger(capacity) && capacity > 0 ? capacity : undefined
 }
 
 function FormField({ children, htmlFor, label }) {
