@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import BackLink from '../../components/BackLink.jsx'
+import { TIP_MANILA_COURSES, YEAR_LEVELS } from '../../constants/academics.js'
 import { supabase } from '../../services/supabase/client.js'
 
 const blankMember = {
@@ -25,8 +26,8 @@ const memberFields = [
   { key: 'first_name', label: 'First name', type: 'text' },
   { key: 'last_name', label: 'Last name', type: 'text' },
   { key: 'email', label: 'Email', type: 'email' },
-  { key: 'course', label: 'Course', type: 'text' },
-  { key: 'year_level', label: 'Year level', type: 'number' },
+  { key: 'course', label: 'Course', type: 'course' },
+  { key: 'year_level', label: 'Year level', type: 'year' },
 ]
 
 export default function MembersPage() {
@@ -77,8 +78,8 @@ export default function MembersPage() {
     }
 
     const yearLevel = Number(form.year_level)
-    if (!Number.isInteger(yearLevel) || yearLevel < 1 || yearLevel > 10) {
-      setErrorMessage('Year level must be a whole number from 1 to 10.')
+    if (!YEAR_LEVELS.includes(yearLevel)) {
+      setErrorMessage('Select a valid year level.')
       return
     }
 
@@ -143,16 +144,19 @@ export default function MembersPage() {
               <label className="mb-1.5 block text-sm font-medium text-slate-800" htmlFor={`member-${field.key}`}>
                 {field.label}
               </label>
-              <input
-                className="w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500"
-                id={`member-${field.key}`}
-                min={field.key === 'year_level' ? '1' : undefined}
-                name={field.key}
-                onChange={handleFormChange}
-                step={field.key === 'year_level' ? '1' : undefined}
-                type={field.type}
-                value={form[field.key]}
-              />
+              {field.type === 'course' ? (
+                <select className={memberInputClassName} id={`member-${field.key}`} name={field.key} onChange={handleFormChange} value={form[field.key]}>
+                  <option value="">Select course or program</option>
+                  {TIP_MANILA_COURSES.map((course) => <option key={course} value={course}>{course}</option>)}
+                </select>
+              ) : field.type === 'year' ? (
+                <select className={memberInputClassName} id={`member-${field.key}`} name={field.key} onChange={handleFormChange} value={form[field.key]}>
+                  <option value="">Select year level</option>
+                  {YEAR_LEVELS.map((year) => <option key={year} value={year}>Year {year}</option>)}
+                </select>
+              ) : (
+                <input className={memberInputClassName} id={`member-${field.key}`} name={field.key} onChange={handleFormChange} type={field.type} value={form[field.key]} />
+              )}
             </div>
           ))}
 
@@ -285,3 +289,4 @@ function formatRole(role) {
 }
 
 const filterClassName = 'w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-950 outline-none focus:ring-2 focus:ring-indigo-500'
+const memberInputClassName = 'w-full rounded-md border border-slate-300 px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500'

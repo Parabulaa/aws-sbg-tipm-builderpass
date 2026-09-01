@@ -2,6 +2,7 @@ import { CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Dialog from '../../components/Dialog.jsx'
+import { TIP_MANILA_COURSES, YEAR_LEVELS } from '../../constants/academics.js'
 import { supabase } from '../../services/supabase/client.js'
 
 const initialForm = {
@@ -172,14 +173,16 @@ export default function RegisterPage() {
             </p>
 
             <Field label="Course or program" error={errors.course}>
-              <input
-                autoComplete="organization-title"
+              <select
                 className={inputClassName(errors.course)}
                 id="course"
                 name="course"
                 onChange={handleChange}
                 value={form.course}
-              />
+              >
+                <option value="">Select course or program</option>
+                {TIP_MANILA_COURSES.map((course) => <option key={course} value={course}>{course}</option>)}
+              </select>
             </Field>
 
             <Field label="Year level" error={errors.yearLevel}>
@@ -191,12 +194,7 @@ export default function RegisterPage() {
                 value={form.yearLevel}
               >
                 <option value="">Select year level</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
+                {YEAR_LEVELS.map((year) => <option key={year} value={year}>Year {year}</option>)}
               </select>
             </Field>
           </div>
