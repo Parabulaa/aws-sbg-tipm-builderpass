@@ -12,7 +12,7 @@ const validRow = {
   first_name: 'Ada',
   last_name: 'Lovelace',
   email: 'Ada@Example.com',
-  course: 'BSCS',
+  course: 'BS Computer Science (BS CS)',
   year_level: '2',
   section: 'CS-21',
 }
@@ -69,5 +69,19 @@ test('reports missing fields, invalid email, and invalid year together', () => {
   assert.equal(result.validRows.length, 0)
   assert.match(result.invalidRows[0].reason, /Missing: first_name/)
   assert.match(result.invalidRows[0].reason, /Email address is invalid/)
-  assert.match(result.invalidRows[0].reason, /Year level must be a whole number/)
+  assert.match(result.invalidRows[0].reason, /Year level must be a whole number from 1 to 4/)
+})
+
+test('rejects year levels above the four-year program range', () => {
+  const result = validateMemberImportRows([{ ...validRow, year_level: '5' }])
+
+  assert.equal(result.validRows.length, 0)
+  assert.match(result.invalidRows[0].reason, /Year level must be a whole number from 1 to 4/)
+})
+
+test('rejects programs outside the supported BuilderPass list', () => {
+  const result = validateMemberImportRows([{ ...validRow, course: 'BS Architecture' }])
+
+  assert.equal(result.validRows.length, 0)
+  assert.match(result.invalidRows[0].reason, /Course or program is not supported/)
 })

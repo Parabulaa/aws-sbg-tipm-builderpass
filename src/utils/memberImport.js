@@ -1,3 +1,5 @@
+import { TIP_MANILA_COURSES } from '../constants/academics.js'
+
 export const REQUIRED_MEMBER_IMPORT_FIELDS = [
   'student_number',
   'first_name',
@@ -71,8 +73,11 @@ export function validateMemberImportRows(rows, existingProfiles = []) {
       errors.push(`Missing: ${formatMemberImportColumnNames(missingFields)}`)
     }
     if (email && !emailPattern.test(email)) errors.push('Email address is invalid')
-    if (row.year_level && (!Number.isInteger(yearLevel) || yearLevel < 1 || yearLevel > 10)) {
-      errors.push('Year level must be a whole number from 1 to 10')
+    if (row.course && !TIP_MANILA_COURSES.includes(row.course)) {
+      errors.push('Course or program is not supported')
+    }
+    if (row.year_level && (!Number.isInteger(yearLevel) || yearLevel < 1 || yearLevel > 4)) {
+      errors.push('Year level must be a whole number from 1 to 4')
     }
 
     if (studentNumberKey && existingStudentNumbers.has(studentNumberKey)) {

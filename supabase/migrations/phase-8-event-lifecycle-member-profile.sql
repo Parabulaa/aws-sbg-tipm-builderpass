@@ -38,6 +38,30 @@ alter table public.events
   add constraint events_end_time_after_start_check
   check (end_time is null or end_time > start_time);
 
+-- Keep historical rows readable while enforcing the current four-year,
+-- seven-program scope for every new or updated profile.
+alter table public.profiles
+  drop constraint if exists profiles_year_level_check;
+
+alter table public.profiles
+  add constraint profiles_year_level_check
+  check (year_level between 1 and 4) not valid;
+
+alter table public.profiles
+  drop constraint if exists profiles_course_supported_check;
+
+alter table public.profiles
+  add constraint profiles_course_supported_check
+  check (course in (
+    'BS Electrical Engineering (BS EE)',
+    'BS Computer Science (BS CS)',
+    'BS Information Technology (BS IT)',
+    'BS Information Systems (BS IS)',
+    'BS Computer Engineering (BS CPE)',
+    'BS Data Science and Analytics (BS DSA)',
+    'BS Entertainment and Multimedia Computing (BS EMC)'
+  )) not valid;
+
 -- New or reactivated reservations stop when an event reaches its configured
 -- end time. Legacy events without end_time use start_time as the cutoff.
 create or replace function public.rsvp_to_event(p_event_id uuid)
@@ -234,8 +258,20 @@ begin
     raise exception 'PROFILE_FIELDS_REQUIRED' using errcode = 'P0001';
   end if;
 
-  if p_year_level not between 1 and 6 then
+  if p_year_level not between 1 and 4 then
     raise exception 'INVALID_YEAR_LEVEL' using errcode = 'P0001';
+  end if;
+
+  if p_course not in (
+    'BS Electrical Engineering (BS EE)',
+    'BS Computer Science (BS CS)',
+    'BS Information Technology (BS IT)',
+    'BS Information Systems (BS IS)',
+    'BS Computer Engineering (BS CPE)',
+    'BS Data Science and Analytics (BS DSA)',
+    'BS Entertainment and Multimedia Computing (BS EMC)'
+  ) then
+    raise exception 'INVALID_COURSE' using errcode = 'P0001';
   end if;
 
   return query
