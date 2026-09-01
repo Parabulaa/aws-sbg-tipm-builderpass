@@ -11,3 +11,22 @@ export function formatEventTime(startTime) {
 export function eventStatusLabel(status) {
   return status === 'OPEN' ? 'Registration open' : 'Registration closed'
 }
+
+export function getLocalDateKey(date = new Date()) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+export function eventMatchesFilters(event, filters, today = getLocalDateKey()) {
+  const matchesTime =
+    filters.time === 'ALL'
+    || (filters.time === 'UPCOMING' ? event.event_date >= today : event.event_date < today)
+  const matchesRegistration =
+    filters.registrationStatus === 'ALL'
+    || event.registration_status === filters.registrationStatus
+
+  return matchesTime && matchesRegistration
+}

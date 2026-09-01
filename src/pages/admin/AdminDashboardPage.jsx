@@ -2,6 +2,7 @@ import { ArrowRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../services/supabase/client.js'
+import { getLocalDateKey } from '../../utils/events.js'
 
 const cards = [
   ['Total members', 'members', '/admin/members'],
@@ -17,7 +18,7 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     async function loadCounts() {
-      const today = new Date().toISOString().slice(0, 10)
+      const today = getLocalDateKey()
       const results = await Promise.all([
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
         supabase.from('events').select('*', { count: 'exact', head: true }),

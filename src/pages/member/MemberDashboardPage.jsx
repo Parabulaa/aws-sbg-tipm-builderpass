@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
-import { eventStatusLabel, formatEventDate, formatEventTime } from '../../utils/events.js'
+import { eventStatusLabel, formatEventDate, formatEventTime, getLocalDateKey } from '../../utils/events.js'
 
 export default function MemberDashboardPage() {
   const { profile } = useAuth()
@@ -47,7 +47,7 @@ export default function MemberDashboardPage() {
         return
       }
 
-      const today = new Date().toISOString().slice(0, 10)
+      const today = getLocalDateKey()
       const upcomingEvents = registrationsResult.data
         .map((registration) => getRegistrationEvent(registration))
         .filter((event) => event && event.event_date >= today)

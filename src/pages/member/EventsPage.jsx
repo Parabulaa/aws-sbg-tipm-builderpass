@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrls } from '../../utils/eventPosters.js'
-import { eventStatusLabel, formatEventDate, formatEventTime } from '../../utils/events.js'
+import { eventMatchesFilters, eventStatusLabel, formatEventDate, formatEventTime } from '../../utils/events.js'
 
 const initialFilters = { time: 'UPCOMING', registrationStatus: 'ALL' }
 
@@ -207,12 +207,7 @@ export default function EventsPage() {
 }
 
 function filterEvents(events, filters) {
-  const today = new Date().toISOString().slice(0, 10)
-
-  return events.filter((event) => (
-    (filters.time === 'ALL' || (filters.time === 'UPCOMING' ? event.event_date >= today : event.event_date < today))
-    && (filters.registrationStatus === 'ALL' || event.registration_status === filters.registrationStatus)
-  ))
+  return events.filter((event) => eventMatchesFilters(event, filters))
 }
 
 function FilterField({ children, htmlFor, label }) {
