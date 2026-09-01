@@ -1,10 +1,11 @@
 import { X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 /**
  * Reusable dialog/modal built with plain React + Tailwind + CSS keyframes.
- * No portal, no external dependency — a fixed overlay is sufficient for this
- * app's needs and keeps behavior simple and predictable.
+ * The portal keeps the fixed overlay relative to the viewport even when a
+ * page transition applies a transform to one of the dialog's ancestors.
  *
  * Props:
  * - isOpen: boolean
@@ -84,7 +85,7 @@ export default function Dialog({ children, icon: Icon, isOpen, onClose, titleId,
         ? 'border-[var(--bp-danger)] bg-[var(--bp-danger)]/10 text-[var(--bp-danger)]'
         : 'border-[var(--bp-amber)] bg-[var(--bp-amber)]/10 text-[var(--bp-amber)]'
 
-  return (
+  return createPortal(
     <div
       className="bp-overlay-enter fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4 py-8 backdrop-blur-sm"
       onMouseDown={(event) => {
@@ -116,7 +117,8 @@ export default function Dialog({ children, icon: Icon, isOpen, onClose, titleId,
 
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

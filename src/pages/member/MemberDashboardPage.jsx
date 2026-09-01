@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { eventIsCurrent, eventRegistrationLabel, formatEventDate, formatEventTimeRange } from '../../utils/events.js'
+import { eventWithOptionalEndTime, queryWithOptionalEventEndTime } from '../../utils/supabaseCompatibility.js'
 
 export default function MemberDashboardPage() {
   const { profile } = useAuth()
@@ -32,10 +33,12 @@ export default function MemberDashboardPage() {
           .select('id', { count: 'exact', head: true })
           .eq('user_id', profile.id)
           .eq('status', 'PRESENT'),
-        supabase
+        queryWithOptionalEventEndTime((includeEndTime) => supabase
           .from('event_registrations')
-          .select('id, status, events!inner(id, title, event_date, start_time, end_time, venue, registration_status)')
-          .eq('user_id', profile.id),
+          .select(includeEndTime
+            ? 'id, status, events!inner(id, title, event_date, start_time, end_time, venue, registration_status)'
+            : 'id, status, events!inner(id, title, event_date, start_time, venue, registration_status)')
+          .eq('user_id', profile.id)),
       ])
 
       if (!isActive) return
@@ -46,7 +49,14 @@ export default function MemberDashboardPage() {
         return
       }
 
-      const currentReservations = registrationsResult.data
+      const registrations = registrationsResult.data.map((registration) => ({
+        ...registration,
+        events: Array.isArray(registration.events)
+          ? registration.events.map(eventWithOptionalEndTime)
+          : eventWithOptionalEndTime(registration.events),
+      }))
+
+      const currentReservations = registrations
         .filter((registration) => registration.status === 'REGISTERED')
         .map((registration) => getRegistrationEvent(registration))
         .filter((event) => event && eventIsCurrent(event))
@@ -54,7 +64,7 @@ export default function MemberDashboardPage() {
 
       setDashboard({
         eventsAttended: attendanceResult.count ?? 0,
-        totalRsvps: registrationsResult.data.length,
+        totalRsvps: registrations.length,
         currentReservations: currentReservations.length,
         nextEvent: currentReservations[0] ?? null,
       })

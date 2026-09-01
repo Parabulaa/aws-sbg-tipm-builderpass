@@ -12,6 +12,7 @@ import {
   formatEventDate,
   formatEventTimeRange,
 } from '../../utils/events.js'
+import { eventWithOptionalEndTime, queryWithOptionalEventEndTime } from '../../utils/supabaseCompatibility.js'
 
 export default function EventDetailPage() {
   const { profile } = useAuth()
@@ -38,11 +39,13 @@ export default function EventDetailPage() {
       setRsvpSummary(null)
 
       const [eventResult, summaryResult] = await Promise.all([
-        supabase
+        queryWithOptionalEventEndTime((includeEndTime) => supabase
           .from('events')
-          .select('id, title, description, event_date, start_time, end_time, venue, capacity, registration_status, poster_path')
+          .select(includeEndTime
+            ? 'id, title, description, event_date, start_time, end_time, venue, capacity, registration_status, poster_path'
+            : 'id, title, description, event_date, start_time, venue, capacity, registration_status, poster_path')
           .eq('id', id)
-          .maybeSingle(),
+          .maybeSingle()),
         supabase.rpc('get_event_rsvp_summary', { p_event_id: id }),
       ])
 
@@ -54,7 +57,7 @@ export default function EventDetailPage() {
         return
       }
 
-      setEvent(eventResult.data)
+      setEvent(eventWithOptionalEndTime(eventResult.data))
 
       if (eventResult.data.poster_path) {
         getEventPosterUrl(eventResult.data.poster_path)

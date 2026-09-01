@@ -82,11 +82,21 @@ export default function RegisterPage() {
         return
       }
 
+      const requiresEmailConfirmation = !data.session
+
+      // Supabase creates an active session immediately when email confirmation
+      // is disabled. End that session so registration never signs the new member
+      // in automatically; they can enter their credentials on the login page.
+      if (data.session) {
+        const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' })
+        if (signOutError) throw signOutError
+      }
+
       setForm(initialForm)
       setSuccessMessage(
-        data.session
-          ? 'Your BuilderPass account was created successfully.'
-          : 'Your account was created. Check your email to confirm it before signing in.',
+        requiresEmailConfirmation
+          ? 'Your account was created. Check your email to confirm it before signing in.'
+          : 'Your BuilderPass account was created successfully. Sign in manually to continue.',
       )
     } catch (error) {
       setSubmissionError(error.message || 'We could not create your account. Please try again.')
@@ -266,10 +276,13 @@ export default function RegisterPage() {
         <div className="mt-6 flex flex-wrap gap-3">
           <button
             className="border-2 border-[var(--bp-amber)] bg-[var(--bp-amber)] px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-black transition-colors duration-150 hover:bg-[var(--bp-amber-strong)]"
-            onClick={() => navigate('/login')}
+            onClick={() => {
+              setSuccessMessage('')
+              navigate('/login')
+            }}
             type="button"
           >
-            Continue to Login
+            Go to Login
           </button>
           <button
             className="border border-[var(--bp-border)] px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-[var(--bp-text-dim)] transition-colors duration-150 hover:border-[var(--bp-amber)] hover:text-[var(--bp-amber)]"

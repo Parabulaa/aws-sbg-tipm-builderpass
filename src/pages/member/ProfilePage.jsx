@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { TIP_MANILA_COURSES, YEAR_LEVELS } from '../../constants/academics.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
+import { getDatabaseFeatureMessage } from '../../utils/supabaseCompatibility.js'
 
 const fields = [
   ['AWS SBG Member ID', 'student_number'],
@@ -82,7 +83,7 @@ export default function ProfilePage() {
       setIsEditing(false)
       setSuccessMessage('Your profile was updated successfully.')
     } catch (error) {
-      setErrorMessage(error.message || 'We could not update your profile. Please try again.')
+      setErrorMessage(getDatabaseFeatureMessage(error, 'We could not update your profile. Please try again.'))
     } finally {
       setIsSaving(false)
     }

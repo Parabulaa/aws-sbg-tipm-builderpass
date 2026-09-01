@@ -55,7 +55,7 @@ export default function AppShell({ children }) {
     try {
       await signOut()
       closeMenu()
-      navigate('/login', { replace: true })
+      navigate('/', { replace: true })
     } catch (error) {
       setLogoutError(error.message || 'We could not sign you out. Please try again.')
     }

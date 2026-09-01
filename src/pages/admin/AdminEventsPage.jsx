@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrls } from '../../utils/eventPosters.js'
 import { eventIsCurrent, eventMatchesFilters, eventRegistrationLabel, formatEventDate, formatEventTimeRange } from '../../utils/events.js'
+import { eventWithOptionalEndTime, queryWithOptionalEventEndTime } from '../../utils/supabaseCompatibility.js'
 
 const initialFilters = { time: 'CURRENT', registrationStatus: 'ALL' }
 
@@ -18,21 +19,24 @@ export default function AdminEventsPage() {
     let isActive = true
 
     async function loadEvents() {
-      const { data, error } = await supabase
+      const { data, error } = await queryWithOptionalEventEndTime((includeEndTime) => supabase
         .from('events')
-        .select('id, title, event_date, start_time, end_time, venue, registration_status, poster_path')
+        .select(includeEndTime
+          ? 'id, title, event_date, start_time, end_time, venue, registration_status, poster_path'
+          : 'id, title, event_date, start_time, venue, registration_status, poster_path')
         .order('event_date', { ascending: true })
-        .order('start_time', { ascending: true })
+        .order('start_time', { ascending: true }))
 
       if (!isActive) return
 
       if (error) {
         setErrorMessage(error.message || 'We could not load events. Please try again.')
       } else {
-        setEvents(data)
+        const compatibleEvents = data.map(eventWithOptionalEndTime)
+        setEvents(compatibleEvents)
 
         try {
-          const posterUrls = await getEventPosterUrls(data.map((event) => event.poster_path))
+          const posterUrls = await getEventPosterUrls(compatibleEvents.map((event) => event.poster_path))
           if (isActive) setPosterUrlsByPath(posterUrls)
         } catch {
           if (isActive) setPosterUrlsByPath({})

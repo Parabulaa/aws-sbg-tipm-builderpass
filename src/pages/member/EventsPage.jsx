@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrls } from '../../utils/eventPosters.js'
+import { eventWithOptionalEndTime, queryWithOptionalEventEndTime } from '../../utils/supabaseCompatibility.js'
 import {
   eventIsCurrent,
   eventMatchesFilters,
@@ -37,11 +38,13 @@ export default function EventsPage() {
       setErrorMessage('')
       setIsLoading(true)
       const [eventsResult, registrationsResult, attendanceResult] = await Promise.all([
-        supabase
+        queryWithOptionalEventEndTime((includeEndTime) => supabase
           .from('events')
-          .select('id, title, description, event_date, start_time, end_time, venue, capacity, registration_status, poster_path')
+          .select(includeEndTime
+            ? 'id, title, description, event_date, start_time, end_time, venue, capacity, registration_status, poster_path'
+            : 'id, title, description, event_date, start_time, venue, capacity, registration_status, poster_path')
           .order('event_date', { ascending: true })
-          .order('start_time', { ascending: true }),
+          .order('start_time', { ascending: true })),
         supabase
           .from('event_registrations')
           .select('event_id, status')
@@ -61,7 +64,7 @@ export default function EventsPage() {
         return
       }
 
-      const data = eventsResult.data
+      const data = eventsResult.data.map(eventWithOptionalEndTime)
       setEvents(data)
       setMemberStateByEvent(buildMemberState(registrationsResult.data, attendanceResult.data))
 

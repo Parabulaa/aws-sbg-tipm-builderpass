@@ -8,6 +8,11 @@ import {
   removeEventPoster,
   uploadEventPoster,
 } from '../../utils/eventPosters.js'
+import {
+  eventWithOptionalEndTime,
+  getDatabaseFeatureMessage,
+  queryWithOptionalEventEndTime,
+} from '../../utils/supabaseCompatibility.js'
 
 const initialForm = {
   title: '',
@@ -45,11 +50,14 @@ export default function EditEventPage() {
       setShouldRemovePoster(false)
       setPosterUrl(null)
 
-      const { data, error } = await supabase
+      const { data: rawData, error } = await queryWithOptionalEventEndTime((includeEndTime) => supabase
         .from('events')
-        .select('id, title, description, event_date, start_time, end_time, venue, capacity, registration_status, poster_path')
+        .select(includeEndTime
+          ? 'id, title, description, event_date, start_time, end_time, venue, capacity, registration_status, poster_path'
+          : 'id, title, description, event_date, start_time, venue, capacity, registration_status, poster_path')
         .eq('id', id)
-        .maybeSingle()
+        .maybeSingle())
+      const data = eventWithOptionalEndTime(rawData)
 
       if (!isActive) return
 
@@ -179,7 +187,7 @@ export default function EditEventPage() {
       navigate('/admin/events')
     } catch (error) {
       if (uploadedPosterPath) await removeEventPoster(uploadedPosterPath).catch(() => {})
-      setErrorMessage(error.message || 'We could not save this event. Please try again.')
+      setErrorMessage(getDatabaseFeatureMessage(error, 'We could not save this event. Please try again.'))
     } finally {
       setIsSubmitting(false)
     }

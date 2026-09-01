@@ -4,6 +4,7 @@ import BackLink from '../../components/BackLink.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterValidationMessage, removeEventPoster, uploadEventPoster } from '../../utils/eventPosters.js'
+import { getDatabaseFeatureMessage } from '../../utils/supabaseCompatibility.js'
 
 const initialForm = {
   title: '',
@@ -115,7 +116,7 @@ export default function CreateEventPage() {
 
       navigate(`/events/${data.id}`)
     } catch (error) {
-      setErrorMessage(error.message || 'We could not create the event. Please try again.')
+      setErrorMessage(getDatabaseFeatureMessage(error, 'We could not create the event. Please try again.'))
     } finally {
       setIsSubmitting(false)
     }
