@@ -38,7 +38,7 @@ export default function AppShell({ children }) {
         { to: '/events', label: 'Events' },
         { to: '/profile', label: 'Profile' },
         ...(isEventManager ? [{ to: '/admin/events', label: 'Manage events' }] : []),
-        ...(profile?.role === 'ADMIN' ? [{ to: '/admin', label: 'Admin' }] : []),
+        ...(profile?.role === 'ADMIN' ? [{ to: '/admin', label: 'Admin', end: true }] : []),
       ]
     : [
         { to: '/', label: 'Home' },
@@ -108,6 +108,7 @@ export default function AppShell({ children }) {
               {navItems.map((item) => (
                 <NavLink
                   className={linkClass}
+                  end={item.end}
                   key={item.to}
                   onClick={() => scrollToTopIfSamePath(item.to)}
                   to={item.to}
@@ -135,6 +136,7 @@ export default function AppShell({ children }) {
               {navItems.map((item) => (
                 <NavLink
                   className={linkClass}
+                  end={item.end}
                   key={item.to}
                   onClick={() => {
                     closeMenu()
