@@ -1,17 +1,13 @@
 import { CheckCircle2, FileSpreadsheet, Upload, X } from 'lucide-react'
 import { useRef, useState } from 'react'
-import * as XLSX from 'xlsx'
 import BackLink from '../../components/BackLink.jsx'
 import { supabase } from '../../services/supabase/client.js'
-
-const requiredFields = ['student_number', 'first_name', 'last_name', 'email', 'course', 'year_level']
-const headerAliases = {
-  member_id: 'student_number',
-  student_number: 'student_number',
-  aws_sbg_member_id: 'student_number',
-  aws_sbg_memberid: 'student_number',
-}
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+import {
+  formatMemberImportColumnNames,
+  readMemberImportFile,
+  REQUIRED_MEMBER_IMPORT_FIELDS,
+  validateMemberImportRows,
+} from '../../utils/memberImport.js'
 
 export default function MemberImportPage() {
   const fileInputRef = useRef(null)
@@ -47,7 +43,7 @@ export default function MemberImportPage() {
     setIsReading(true)
 
     try {
-      const parsedFile = await readImportFile(file)
+      const parsedFile = await readMemberImportFile(file)
       setSelectedFile(file)
       setHeaders(parsedFile.headers)
       setRows(parsedFile.rows)
@@ -75,9 +71,9 @@ export default function MemberImportPage() {
     setValidRows([])
     setInvalidRows([])
 
-    const missingHeaders = requiredFields.filter((field) => !headers.includes(field))
+    const missingHeaders = REQUIRED_MEMBER_IMPORT_FIELDS.filter((field) => !headers.includes(field))
     if (missingHeaders.length > 0) {
-      setMessage(`Missing required columns: ${formatColumnNames(missingHeaders)}.`)
+      setMessage(`Missing required columns: ${formatMemberImportColumnNames(missingHeaders)}.`)
       return
     }
 
@@ -95,7 +91,7 @@ export default function MemberImportPage() {
 
       if (error) throw error
 
-      const preview = validateRows(rows, existingProfiles)
+      const preview = validateMemberImportRows(rows, existingProfiles)
       setValidRows(preview.validRows)
       setInvalidRows(preview.invalidRows)
     } catch (error) {
@@ -254,93 +250,6 @@ export default function MemberImportPage() {
       )}
     </section>
   )
-}
-
-async function readImportFile(file) {
-  const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array' })
-  const worksheet = workbook.Sheets[workbook.SheetNames[0]]
-  if (!worksheet) throw new Error('This workbook does not contain a readable worksheet.')
-
-  const headerRow = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', blankrows: false })[0]
-  if (!Array.isArray(headerRow) || headerRow.length === 0) throw new Error('This file needs a header row before member records.')
-
-  const headers = [...new Set(headerRow.map((header) => normalizeHeader(header)).filter(Boolean))]
-  const rows = XLSX.utils
-    .sheet_to_json(worksheet, { defval: '', blankrows: false })
-    .map((row, index) => normalizeRow(row, index + 2))
-
-  return { headers, rows }
-}
-
-function validateRows(rows, existingProfiles) {
-  const existingStudentNumbers = new Set(existingProfiles.map((profile) => profile.student_number.trim().toLowerCase()))
-  const existingEmails = new Set(existingProfiles.map((profile) => profile.email.trim().toLowerCase()))
-  const seenStudentNumbers = new Set()
-  const seenEmails = new Set()
-  const validRows = []
-  const invalidRows = []
-
-  rows.forEach((row) => {
-    const errors = []
-    const studentNumber = row.student_number
-    const email = row.email.toLowerCase()
-    const yearLevel = Number(row.year_level)
-    const studentNumberKey = studentNumber.toLowerCase()
-
-    const missingFields = requiredFields.filter((field) => !row[field])
-    if (missingFields.length > 0) errors.push(`Missing: ${formatColumnNames(missingFields)}`)
-    if (email && !emailPattern.test(email)) errors.push('Email address is invalid')
-    if (row.year_level && (!Number.isInteger(yearLevel) || yearLevel < 1 || yearLevel > 10)) {
-      errors.push('Year level must be a whole number from 1 to 10')
-    }
-
-    if (studentNumber && (seenStudentNumbers.has(studentNumberKey) || existingStudentNumbers.has(studentNumberKey))) {
-      errors.push('Duplicate AWS SBG Member ID')
-    }
-    if (email && (seenEmails.has(email) || existingEmails.has(email))) errors.push('Duplicate email address')
-
-    if (studentNumber) seenStudentNumbers.add(studentNumberKey)
-    if (email) seenEmails.add(email)
-
-    if (errors.length > 0) {
-      invalidRows.push({ ...row, reason: errors.join('; ') })
-      return
-    }
-
-    validRows.push({
-      row: row.row,
-      student_number: studentNumber,
-      first_name: row.first_name,
-      last_name: row.last_name,
-      email,
-      course: row.course,
-      year_level: yearLevel,
-      section: row.section || null,
-    })
-  })
-
-  return { validRows, invalidRows }
-}
-
-function normalizeRow(row, rowNumber) {
-  return Object.entries(row).reduce(
-    (normalizedRow, [header, value]) => ({
-      ...normalizedRow,
-      [normalizeHeader(header)]: String(value).trim(),
-    }),
-    { row: rowNumber },
-  )
-}
-
-function normalizeHeader(header) {
-  const normalizedHeader = String(header).trim().toLowerCase().replace(/[\s-]+/g, '_')
-  return headerAliases[normalizedHeader] || normalizedHeader
-}
-
-function formatColumnNames(columns) {
-  return columns
-    .map((column) => (column === 'student_number' ? 'member_id or student_number' : column))
-    .join(', ')
 }
 
 function ImportTable({ rows, showReason = false }) {
