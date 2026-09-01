@@ -3,6 +3,7 @@ import { Route, Routes, useLocation } from 'react-router-dom'
 import AppShell from './components/AppShell.jsx'
 import PageTransition from './components/PageTransition.jsx'
 import { RequireAdmin, RequireAuth, RequireOfficer } from './components/RequireAuth.jsx'
+import RouteErrorBoundary from './components/RouteErrorBoundary.jsx'
 import StartPage from './pages/StartPage.jsx'
 
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage.jsx'))
@@ -26,8 +27,9 @@ export default function App() {
 
   return (
     <AppShell>
-      <Suspense fallback={<RouteLoadingScreen />}>
-        <Routes>
+      <RouteErrorBoundary key={location.key}>
+        <Suspense fallback={<RouteLoadingScreen />}>
+          <Routes>
           <Route path="/" element={<StartPage />} />
           <Route
             path="/login"
@@ -133,9 +135,10 @@ export default function App() {
               </RequireOfficer>
             }
           />
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </Suspense>
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
+      </RouteErrorBoundary>
     </AppShell>
   )
 }
