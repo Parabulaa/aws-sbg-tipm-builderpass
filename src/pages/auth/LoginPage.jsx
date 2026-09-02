@@ -1,3 +1,4 @@
+import { Eye, EyeOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext.jsx'
@@ -7,6 +8,7 @@ export default function LoginPage() {
   const { isLoading, profile, session } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const location = useLocation()
@@ -84,14 +86,25 @@ export default function LoginPage() {
             <label className="mb-2 block text-sm font-semibold text-[var(--bp-text-muted)]" htmlFor="password">
               Password
             </label>
-            <input
-              autoComplete="current-password"
-              className="w-full border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] px-4 py-3 text-[var(--bp-text)] outline-none transition-colors focus:border-[var(--bp-amber)] focus:ring-1 focus:ring-[var(--bp-amber)]"
-              id="password"
-              onChange={(event) => setPassword(event.target.value)}
-              type="password"
-              value={password}
-            />
+            <div className="relative">
+              <input
+                autoComplete="current-password"
+                className="w-full border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] px-4 py-3 pr-16 text-[var(--bp-text)] outline-none transition-colors focus:border-[var(--bp-amber)] focus:ring-1 focus:ring-[var(--bp-amber)]"
+                id="password"
+                onChange={(event) => setPassword(event.target.value)}
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+              />
+              <button
+                aria-label={`${showPassword ? 'Hide' : 'Show'} password`}
+                aria-pressed={showPassword}
+                className="absolute bottom-1 right-1 top-1 flex w-11 items-center justify-center border border-[var(--bp-amber-muted)] text-[var(--bp-amber)] transition-colors hover:border-[var(--bp-amber)] hover:bg-[var(--bp-amber)]/10"
+                onClick={() => setShowPassword((current) => !current)}
+                type="button"
+              >
+                {showPassword ? <EyeOff aria-hidden="true" size={19} /> : <Eye aria-hidden="true" size={19} />}
+              </button>
+            </div>
           </div>
 
           <button

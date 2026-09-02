@@ -19,12 +19,14 @@ const strengthChecks = [
 
 const strengthLabels = ['Weak', 'Weak', 'Fair', 'Good', 'Strong']
 
+export const PASSWORD_REQUIREMENTS = 'Password should contain at least 12 characters, uppercase and lowercase letters, a number, and a symbol.'
+
 export function getPasswordStrength(password) {
   if (!password) {
     return {
       label: 'Not entered',
       score: 0,
-      suggestion: 'Use at least 12 characters with uppercase and lowercase letters, a number, and a symbol.',
+      suggestion: PASSWORD_REQUIREMENTS,
     }
   }
 

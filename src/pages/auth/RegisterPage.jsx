@@ -5,7 +5,7 @@ import Dialog from '../../components/Dialog.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
 import { TIP_MANILA_COURSES, YEAR_LEVELS } from '../../constants/academics.js'
 import { supabase } from '../../services/supabase/client.js'
-import { getPasswordStrength } from '../../utils/passwordStrength.js'
+import { getPasswordStrength, PASSWORD_REQUIREMENTS } from '../../utils/passwordStrength.js'
 
 const initialForm = {
   studentNumber: '',
@@ -28,7 +28,7 @@ function validateForm(form) {
   if (!emailPattern.test(form.email.trim())) errors.email = 'Enter a valid email address.'
   if (!form.course.trim()) errors.course = 'Course or program is required.'
   if (!form.yearLevel) errors.yearLevel = 'Select a year level.'
-  if (form.password.length < 8) errors.password = 'Password must be at least 8 characters.'
+  if (getPasswordStrength(form.password).score < 4) errors.password = 'Password must meet every requirement below.'
   if (form.password !== form.confirmPassword) errors.confirmPassword = 'Passwords do not match.'
 
   return errors
@@ -43,6 +43,9 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const navigate = useNavigate()
+  const passwordError = form.password ? errors.password : ''
+  const hasConfirmPassword = Boolean(form.confirmPassword)
+  const passwordsMatch = hasConfirmPassword && form.password === form.confirmPassword
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -213,10 +216,11 @@ export default function RegisterPage() {
             <p className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-muted)]">Password</p>
 
             <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="Password" error={errors.password} htmlFor="password">
+              <Field label="Password" error={passwordError} htmlFor="password">
                 <div>
                   <PasswordInput
-                    error={errors.password}
+                    describedBy="password-requirements"
+                    error={passwordError}
                     id="password"
                     isVisible={showPassword}
                     name="password"
@@ -227,16 +231,20 @@ export default function RegisterPage() {
                   <PasswordStrength password={form.password} />
                 </div>
               </Field>
-              <Field label="Confirm password" error={errors.confirmPassword} htmlFor="confirmPassword">
-                <PasswordInput
-                  error={errors.confirmPassword}
-                  id="confirmPassword"
-                  isVisible={showConfirmPassword}
-                  name="confirmPassword"
-                  onChange={handleChange}
-                  onToggleVisibility={() => setShowConfirmPassword((current) => !current)}
-                  value={form.confirmPassword}
-                />
+              <Field label="Confirm password" htmlFor="confirmPassword">
+                <div>
+                  <PasswordInput
+                    describedBy={hasConfirmPassword ? 'confirm-password-status' : undefined}
+                    error={hasConfirmPassword && !passwordsMatch}
+                    id="confirmPassword"
+                    isVisible={showConfirmPassword}
+                    name="confirmPassword"
+                    onChange={handleChange}
+                    onToggleVisibility={() => setShowConfirmPassword((current) => !current)}
+                    value={form.confirmPassword}
+                  />
+                  <PasswordMatchStatus confirmPassword={form.confirmPassword} password={form.password} />
+                </div>
               </Field>
             </div>
           </div>
@@ -314,12 +322,13 @@ function Field({ children, error, htmlFor, label }) {
   )
 }
 
-function PasswordInput({ error, id, isVisible, name, onChange, onToggleVisibility, value }) {
+function PasswordInput({ describedBy, error, id, isVisible, name, onChange, onToggleVisibility, value }) {
   const VisibilityIcon = isVisible ? EyeOff : Eye
 
   return (
     <div className="relative">
       <input
+        aria-describedby={describedBy}
         autoComplete="new-password"
         className={`${inputClassName(error)} pr-12`}
         id={id}
@@ -342,8 +351,12 @@ function PasswordInput({ error, id, isVisible, name, onChange, onToggleVisibilit
 }
 
 function PasswordStrength({ password }) {
+  if (!password) {
+    return <p className="mt-2 text-xs leading-relaxed text-[var(--bp-text-dim)]" id="password-requirements">{PASSWORD_REQUIREMENTS}</p>
+  }
+
   const strength = getPasswordStrength(password)
-  const visibleScore = password ? Math.max(1, strength.score) : 0
+  const visibleScore = Math.max(1, strength.score)
   const meterColor = {
     Weak: 'var(--bp-danger)',
     Fair: '#d98e45',
@@ -355,7 +368,7 @@ function PasswordStrength({ password }) {
     <div className="mt-3" aria-live="polite">
       <div className="flex items-center justify-between gap-3 text-xs">
         <span className="font-semibold text-[var(--bp-text-muted)]">Password strength</span>
-        <span className="mono font-bold uppercase tracking-[.08em]" style={{ color: meterColor || 'var(--bp-text-dim)' }}>
+        <span className="mono font-bold uppercase tracking-[.08em]" style={{ color: meterColor }}>
           {strength.label}
         </span>
       </div>
@@ -375,8 +388,24 @@ function PasswordStrength({ password }) {
           />
         ))}
       </div>
-      <p className="mt-2 text-xs leading-relaxed text-[var(--bp-text-dim)]">{strength.suggestion}</p>
+      <p className="mt-2 text-xs leading-relaxed text-[var(--bp-text-dim)]" id="password-requirements">{PASSWORD_REQUIREMENTS}</p>
     </div>
+  )
+}
+
+function PasswordMatchStatus({ confirmPassword, password }) {
+  if (!confirmPassword) return null
+
+  const matches = password === confirmPassword
+
+  return (
+    <p
+      className={`mt-2 text-xs font-semibold ${matches ? 'text-[var(--bp-success)]' : 'text-[var(--bp-danger)]'}`}
+      id="confirm-password-status"
+      role="status"
+    >
+      {matches ? '✓ Passwords match' : 'Passwords do not match'}
+    </p>
   )
 }
 

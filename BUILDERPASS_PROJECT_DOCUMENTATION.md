@@ -26,17 +26,18 @@ BuilderPass is a React single-page application. Supabase supplies authentication
 
 1. A guest opens `/register`.
 2. They enter their AWS SBG Member ID, name, email, supported program, year level, password, and password confirmation.
-3. The form validates required fields, email structure, an eight-character password minimum, and matching passwords.
-4. The password area provides independent show/hide controls for both password fields.
-5. A live four-level strength meter reports **Weak**, **Fair**, **Good**, or **Strong** and suggests improvements for length, mixed case, numbers, and symbols.
-6. `supabase.auth.signUp()` creates the authentication user and sends the membership fields as user metadata.
-7. The `handle_new_user()` database trigger either creates a new profile or securely links a pre-imported membership record with the same Member ID and email.
-8. If Supabase automatically creates a session, BuilderPass signs it out locally. Registration never logs the new member in automatically.
-9. A success dialog explains whether email confirmation is required. The user closes it or deliberately proceeds to `/login`.
+3. The form validates required fields, email structure, matching passwords, and the full password policy: at least 12 characters, uppercase and lowercase letters, a number, and a symbol.
+4. The password area provides independent show/hide controls for both password fields. Login has its own amber-outlined show/hide control.
+5. Once the user starts typing a password, a live four-level strength meter reports **Weak**, **Fair**, **Good**, or **Strong**. The label and segmented bar stay hidden while the field is empty, while the requirements remain visible.
+6. Confirm Password shows no initial validation. After typing begins it reports either **Passwords match** or **Passwords do not match**, and hides the message again if cleared.
+7. `supabase.auth.signUp()` creates the authentication user and sends the membership fields as user metadata.
+8. The `handle_new_user()` database trigger either creates a new profile or securely links a pre-imported membership record with the same Member ID and email.
+9. If Supabase automatically creates a session, BuilderPass signs it out locally. Registration never logs the new member in automatically.
+10. A success dialog explains whether email confirmation is required. The user closes it or deliberately proceeds to `/login`.
 
 ### 2.2 Login and session handling
 
-- Login uses Supabase email/password authentication.
+- Login uses Supabase email/password authentication and provides an amber-outlined show/hide password control.
 - The authentication provider restores existing sessions at application startup and listens for later auth changes.
 - Repeated `SIGNED_IN` or token-refresh events for the same user do not force the whole page back into a loading state.
 - A member profile is loaded by matching `profiles.auth_user_id` with the authenticated Supabase user ID.
