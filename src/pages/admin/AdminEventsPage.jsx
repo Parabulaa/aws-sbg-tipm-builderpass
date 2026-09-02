@@ -82,7 +82,7 @@ export default function AdminEventsPage() {
             </div>
           )}
           <Link
-            className="inline-flex min-h-12 items-center gap-2 bg-[var(--bp-amber)] px-5 py-3 font-bold uppercase tracking-wide text-black hover:bg-[var(--bp-amber-strong)]"
+            className="inline-flex min-h-11 items-center gap-2 bg-[var(--bp-amber)] px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-black hover:bg-[var(--bp-amber-strong)]"
             to="/admin/events/new"
           >
             <Plus size={18} /> Create event
@@ -103,7 +103,7 @@ export default function AdminEventsPage() {
           {filteredEvents.length === 0 ? (
             <p className="mt-4 rounded-lg border border-slate-200 bg-white px-5 py-4 text-slate-600">No events match the current filters.</p>
           ) : (
-            <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white">
+            <div className="bp-panel-outline mt-4 overflow-hidden bg-white">
               <div className="divide-y divide-slate-200">
                 {filteredEvents.map((event) => {
                   const posterUrl = posterUrlsByPath[event.poster_path]

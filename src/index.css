@@ -226,7 +226,7 @@ button, input, select, textarea { font: inherit; }
 
 main .bg-white { background-color: var(--bp-surface) !important; border: 1px solid var(--bp-border); }
 main .bg-slate-50 { background-color: var(--bp-bg-soft) !important; }
-main .border, main .border-slate-200, main .border-slate-300 { border-color: var(--bp-border) !important; }
+main .border-slate-200, main .border-slate-300 { border-color: var(--bp-border) !important; }
 main .text-slate-950, main .text-slate-900, main .text-slate-800 { color: var(--bp-text) !important; }
 main .text-slate-700 { color: var(--bp-text-muted) !important; }
 main .text-slate-600, main .text-slate-500 { color: var(--bp-text-dim) !important; }
@@ -261,12 +261,27 @@ main .bp-control input {
   border: 0 !important;
   background: transparent !important;
 }
+main .bp-date-time-input {
+  font-variant-numeric: tabular-nums;
+}
+main .bp-date-time-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(76%) sepia(88%) saturate(1022%) hue-rotate(344deg) brightness(104%);
+  opacity: 1;
+}
 main .bp-control-error {
   border-color: var(--bp-danger) !important;
 }
 main .bp-panel-outline {
   border: 1px solid color-mix(in srgb, var(--bp-amber) 48%, transparent) !important;
   box-shadow: inset 0 0 0 1px rgba(255, 179, 26, 0.06);
+}
+main .bp-event-card {
+  border: 1px solid var(--bp-amber-muted) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 179, 26, 0.08);
+}
+main .bp-event-card:hover {
+  border-color: var(--bp-amber) !important;
 }
 main input::placeholder, main textarea::placeholder { color: var(--bp-text-dim); }
 main table thead, main .bg-slate-50 { background: var(--bp-surface) !important; }

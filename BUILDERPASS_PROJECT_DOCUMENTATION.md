@@ -78,7 +78,7 @@ Officers and admins can:
 
 - Create events with title, description, optional poster, date, start time, end time, venue, capacity, and registration status.
 - Open the native system calendar or time picker and still type values manually.
-- Use the **Today** and **Now** shortcuts inside the corresponding date/time controls.
+- Use the native picker's built-in **Today/Now** action when the browser provides it, without duplicating it as a separate form button.
 - Preview a newly selected poster before saving.
 - Edit event information without replacing registrations or attendance records.
 - Replace or remove the current poster.
@@ -424,7 +424,7 @@ The interface uses near-black backgrounds, warm off-white text, and amber as its
 - Forms collapse from multi-column layouts to one column.
 - Header navigation changes to a mobile menu below 768px.
 - The landing slideshow is present on mobile and loads compressed mobile-specific photos.
-- Event cards use responsive widths and centered grid alignment.
+- Event cards use responsive widths and begin at the left edge in normal reading order.
 - Wide administrative tables scroll horizontally.
 - Dialogs and field controls remain usable on small screens.
 
@@ -452,7 +452,7 @@ The interface uses near-black backgrounds, warm off-white text, and amber as its
 | `RequireAdmin` | Protects admin-only operations |
 | `Dialog` | Accessible reusable modal |
 | `SelectControl` | Branded custom dropdown/combobox |
-| `EventDateTimeField` | Native date/time input plus embedded Today/Now shortcut |
+| `EventDateTimeField` | Native validated date/time input with visible browser picker indicator |
 | `GridBackground` | Decorative animated amber grid |
 | `PageTransition` | Route entrance animation |
 | `ScrollReveal` | Intersection-based content reveal |
@@ -593,7 +593,7 @@ Recommended manual verification:
 
 ### Officer
 
-- Native calendar/time pickers open and Today/Now shortcuts populate fields.
+- Native calendar/time pickers open, expose any device-provided Today/Now action, and accept only valid manual values.
 - Event poster previews before upload and displays after save.
 - Capacity and end-time rules produce readable errors.
 - Registrations and attendance tables scroll correctly on narrow screens.

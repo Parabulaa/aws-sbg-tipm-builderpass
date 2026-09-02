@@ -12,7 +12,7 @@ import {
   removeEventPoster,
   uploadEventPoster,
 } from '../../utils/eventPosters.js'
-import { getLocalDateKey, getLocalTimeValue, isValidEventDate, isValidEventTime } from '../../utils/events.js'
+import { isValidEventDate, isValidEventTime } from '../../utils/events.js'
 import {
   eventWithOptionalEndTime,
   getDatabaseFeatureMessage,
@@ -299,9 +299,9 @@ export default function EditEventPage() {
           </FormField>
 
           <div className="grid gap-5 sm:grid-cols-3">
-            <EventDateTimeField id="eventDate" kind="date" label="Date" name="eventDate" onChange={handleChange} onUseCurrent={() => setFieldValue('eventDate', getLocalDateKey())} value={form.eventDate} />
-            <EventDateTimeField id="startTime" kind="time" label="Start time" name="startTime" onChange={handleChange} onUseCurrent={() => setFieldValue('startTime', getLocalTimeValue())} value={form.startTime} />
-            <EventDateTimeField id="endTime" kind="time" label="End time" name="endTime" onChange={handleChange} onUseCurrent={() => setFieldValue('endTime', getLocalTimeValue())} value={form.endTime} />
+            <EventDateTimeField id="eventDate" kind="date" label="Date" name="eventDate" onChange={handleChange} value={form.eventDate} />
+            <EventDateTimeField id="startTime" kind="time" label="Start time" name="startTime" onChange={handleChange} value={form.startTime} />
+            <EventDateTimeField id="endTime" kind="time" label="End time" name="endTime" onChange={handleChange} value={form.endTime} />
           </div>
 
           <FormField label="Venue" htmlFor="venue">
@@ -352,9 +352,6 @@ export default function EditEventPage() {
     </section>
   )
 
-  function setFieldValue(name, value) {
-    handleChange({ target: { name, value } })
-  }
 }
 
 function getCapacityValue(value) {

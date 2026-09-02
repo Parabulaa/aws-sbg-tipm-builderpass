@@ -23,7 +23,6 @@ export default function EventDetailPage() {
   const [registration, setRegistration] = useState(null)
   const [rsvpSummary, setRsvpSummary] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
-  const [confirmationMessage, setConfirmationMessage] = useState('')
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -115,7 +114,6 @@ export default function EventDetailPage() {
     }
 
     setErrorMessage('')
-    setConfirmationMessage('')
     setIsSubmitting(true)
 
     try {
@@ -127,7 +125,6 @@ export default function EventDetailPage() {
 
       setRegistration(nextRegistration)
       await refreshRsvpSummary()
-      setConfirmationMessage('You are registered for this event.')
     } catch (error) {
       setErrorMessage(getRsvpErrorMessage(error, 'We could not register you for this event. Please try again.'))
     } finally {
@@ -139,7 +136,6 @@ export default function EventDetailPage() {
     if (!event) return
 
     setErrorMessage('')
-    setConfirmationMessage('')
     setIsSubmitting(true)
 
     try {
@@ -152,7 +148,6 @@ export default function EventDetailPage() {
       setRegistration(nextRegistration)
       setIsCancelDialogOpen(false)
       await refreshRsvpSummary()
-      setConfirmationMessage('Your RSVP has been cancelled. The spot is now available to another member.')
     } catch (error) {
       setErrorMessage(getRsvpErrorMessage(error, 'We could not cancel your RSVP. Please try again.'))
     } finally {
@@ -185,7 +180,7 @@ export default function EventDetailPage() {
     <section className="mx-auto max-w-5xl px-6 py-12 sm:py-20 lg:px-10">
       <BackLink to="/events">Back to events</BackLink>
 
-      <article className="mt-8 border border-[var(--bp-border)] bg-[var(--bp-surface)] p-6 sm:p-10">
+      <article className="bp-panel-outline mt-8 bg-[var(--bp-surface)] p-6 sm:p-10">
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div className="flex-1">
             <p className="mono text-xs font-bold uppercase tracking-[.18em] text-[var(--bp-amber)]">
@@ -246,7 +241,7 @@ export default function EventDetailPage() {
           </p>
 
           {rsvpSummary && (
-            <div className="mb-6 border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] px-4 py-3 text-sm">
+            <div className="mb-6 border border-[var(--bp-amber-muted)] bg-[var(--bp-bg-soft)] px-4 py-3 text-sm">
               {rsvpSummary.capacity != null ? (
                 <>
                   <p className="font-bold text-[var(--bp-text)]">
@@ -263,18 +258,18 @@ export default function EventDetailPage() {
           )}
 
           {errorMessage && (
-            <p className="mb-4 text-sm text-[var(--bp-danger)]">{errorMessage}</p>
-          )}
-          {confirmationMessage && (
-            <p className="mb-4 text-sm font-semibold text-[var(--bp-success)]">{confirmationMessage}</p>
+            <p className="mb-4 border border-[var(--bp-danger)]/60 bg-[var(--bp-danger)]/10 px-4 py-3 text-sm text-[var(--bp-danger)]" role="alert">{errorMessage}</p>
           )}
 
           {hasActiveRsvp ? (
-            <div className="flex flex-wrap items-center gap-4">
-              <p className="font-bold text-[var(--bp-success)]">You are registered for this event.</p>
+            <div className="flex flex-col gap-4 border border-[var(--bp-success)]/70 bg-[var(--bp-success)]/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-bold text-[var(--bp-success)]">RSVP confirmed</p>
+                <p className="mt-1 text-sm text-[var(--bp-text-muted)]">You are registered for this event.</p>
+              </div>
               {event.registration_status === 'OPEN' && isCurrent ? (
                 <button
-                  className="border border-[var(--bp-danger)] px-4 py-2 font-bold uppercase tracking-wide text-[var(--bp-danger)] transition-colors hover:bg-[var(--bp-danger)] hover:text-white"
+                  className="min-h-11 min-w-36 border border-[var(--bp-danger)] px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-[var(--bp-danger)] transition-colors hover:bg-[var(--bp-danger)] hover:text-white"
                   onClick={() => setIsCancelDialogOpen(true)}
                   type="button"
                 >
@@ -293,12 +288,15 @@ export default function EventDetailPage() {
           ) : rsvpSummary?.capacity == null ? (
             <p className="font-semibold text-[var(--bp-text-dim)]">Reservations will open after an event manager sets the capacity.</p>
           ) : (
-            <div>
+            <div className={registration?.status === 'CANCELLED' ? 'border border-[var(--bp-amber-muted)] bg-[var(--bp-amber)]/5 p-4' : ''}>
               {registration?.status === 'CANCELLED' && (
-                <p className="mb-4 text-sm text-[var(--bp-text-dim)]">Your previous RSVP was cancelled. You can register again while slots are available.</p>
+                <div className="mb-4">
+                  <p className="font-bold text-[var(--bp-amber)]">RSVP cancelled</p>
+                  <p className="mt-1 text-sm text-[var(--bp-text-muted)]">Your spot was released. You can reserve again while slots are available.</p>
+                </div>
               )}
               <button
-                className="border-2 border-[var(--bp-amber)] bg-[var(--bp-amber)] px-6 py-3 font-bold uppercase tracking-wide text-black transition-colors hover:bg-[var(--bp-amber-strong)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="min-h-11 min-w-36 border-2 border-[var(--bp-amber)] bg-[var(--bp-amber)] px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-black transition-colors hover:bg-[var(--bp-amber-strong)] disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isSubmitting || !rsvpSummary}
                 onClick={handleRegistration}
                 type="button"
@@ -309,12 +307,14 @@ export default function EventDetailPage() {
           )}
 
           {isEventManager && (
-            <Link
-              className="ml-6 inline-block font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]"
-              to={`/admin/events/${event.id}/registrations`}
-            >
-              View registrations →
-            </Link>
+            <div className="mt-6 border-t border-[var(--bp-border)] pt-5">
+              <Link
+                className="inline-block font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]"
+                to={`/admin/events/${event.id}/registrations`}
+              >
+                View registrations →
+              </Link>
+            </div>
           )}
         </div>
       </article>

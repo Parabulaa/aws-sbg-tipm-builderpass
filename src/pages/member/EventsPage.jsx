@@ -160,7 +160,7 @@ export default function EventsPage() {
               No events match the current filters.
             </div>
           ) : (
-            <div className="bp-scroll mt-6 grid max-h-[70vh] grid-cols-[repeat(auto-fit,minmax(min(100%,22rem),24rem))] justify-center gap-7 overflow-y-auto px-1 pb-1">
+            <div className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(min(100%,22rem),24rem))] justify-start gap-7 pb-1">
               {filteredEvents.map((event) => {
                 const rsvpSummary = rsvpSummariesByEvent[event.id]
                 const posterUrl = posterUrlsByPath[event.poster_path]
@@ -170,7 +170,7 @@ export default function EventsPage() {
                 return (
                   <Link
                     aria-label={`View details for ${event.title}`}
-                    className="bp-panel-outline group block w-full bg-[var(--bp-surface)] p-6 transition-all duration-150 ease-out hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_var(--bp-amber)] focus:outline-none focus:ring-2 focus:ring-[var(--bp-amber)]"
+                    className="bp-event-card group block w-full bg-[var(--bp-surface)] p-6 transition-all duration-150 ease-out hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_var(--bp-amber)] focus:outline-none focus:ring-2 focus:ring-[var(--bp-amber)]"
                     key={event.id}
                     to={`/events/${event.id}`}
                   >
