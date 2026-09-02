@@ -12,9 +12,21 @@ const learnMoreDetails = [
 const terminalText = '> builderpass.init("tip-manila")'
 
 const heroSlides = [
-  { src: '/images/events/DSC_0086.JPG', caption: 'Building together. Shipping impact.' },
-  { src: '/images/events/DSC_0701.JPG', caption: 'Community sessions and builder meetups.' },
-  { src: '/images/events/IMG_8332.png', caption: 'Students building together.' },
+  {
+    src: '/images/events/DSC_0086.JPG',
+    mobileSrc: '/images/events/mobile/DSC_0086-mobile.jpg',
+    caption: 'Building together. Shipping impact.',
+  },
+  {
+    src: '/images/events/DSC_0701.JPG',
+    mobileSrc: '/images/events/mobile/DSC_0701-mobile.jpg',
+    caption: 'Community sessions and builder meetups.',
+  },
+  {
+    src: '/images/events/IMG_8332.png',
+    mobileSrc: '/images/events/mobile/IMG_8332-mobile.jpg',
+    caption: 'Students building together.',
+  },
 ]
 
 const HERO_AUTOPLAY_DELAY = 5500
@@ -99,7 +111,7 @@ export default function StartPage() {
   return (
     <>
       <section className="bp-hero-viewport mx-auto flex max-w-[80rem] items-center px-6 py-8 sm:py-12 lg:px-10">
-        <div className="grid w-full items-center gap-6 lg:grid-cols-[1fr_1fr] lg:gap-6">
+        <div className="grid w-full items-center gap-10 lg:grid-cols-[1fr_1fr] lg:gap-6">
           <div className="max-w-2xl">
             <p className="bp-hero-in-eyebrow mono mb-2 flex items-center gap-3 text-[clamp(0.7rem,0.85vw,0.9rem)] font-bold uppercase tracking-[.2em] text-[var(--bp-text-dim)]">
               <span className="h-[2px] w-8 bg-[var(--bp-amber)]" />
@@ -135,31 +147,36 @@ export default function StartPage() {
             </div>
           </div>
 
-          <div className="bp-hero-in-slideshow relative hidden lg:block">
+          <div className="bp-hero-in-slideshow relative block min-w-0">
             {/* Sparse amber corner details around the frame — decorative only,
                kept off the photo itself so faces/content stay clean and readable. */}
             <span aria-hidden="true" className="absolute -left-3 -top-3 h-3 w-3 border border-[var(--bp-amber)]/60 bg-[var(--bp-amber)]/25" />
             <span aria-hidden="true" className="absolute -bottom-4 -right-4 h-5 w-5 bg-[var(--bp-amber)]/20" />
 
             <div className="group relative overflow-hidden border-2 border-[var(--bp-border-strong)] bg-[var(--bp-surface)]">
-              <div className="relative h-80 w-full overflow-hidden xl:h-96 2xl:h-[26rem]">
+              <div className="relative h-56 w-full overflow-hidden sm:h-72 lg:h-80 xl:h-96 2xl:h-[26rem]">
                 <div
                   className="flex h-full w-full transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)]"
                   style={{ transform: `translateX(-${activeSlide * 100}%)` }}
                 >
-                  {heroSlides.map((slide) => (
-                    <img
-                      alt={slide.caption}
-                      className="h-full w-full shrink-0 object-cover"
-                      key={slide.src}
-                      src={slide.src}
-                    />
+                  {heroSlides.map((slide, index) => (
+                    <picture className="h-full w-full shrink-0" key={slide.src}>
+                      <source media="(max-width: 1023px)" srcSet={slide.mobileSrc} />
+                      <img
+                        alt={slide.caption}
+                        className="h-full w-full object-cover"
+                        draggable="false"
+                        fetchPriority={index === 0 ? 'high' : 'auto'}
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                        src={slide.src}
+                      />
+                    </picture>
                   ))}
                 </div>
 
                 <button
                   aria-label="Previous community photo"
-                  className="absolute left-3 top-1/2 z-10 -translate-y-1/2 border border-white/25 bg-black/50 p-2.5 text-white opacity-0 backdrop-blur transition-all duration-200 ease-out hover:bg-[var(--bp-amber)] hover:text-black group-hover:opacity-100 focus-visible:opacity-100"
+                  className="absolute left-3 top-1/2 z-10 -translate-y-1/2 border border-white/25 bg-black/55 p-2 text-white opacity-100 backdrop-blur transition-all duration-200 ease-out hover:bg-[var(--bp-amber)] hover:text-black sm:p-2.5 lg:opacity-0 lg:group-hover:opacity-100 focus-visible:opacity-100"
                   onClick={previousHeroSlide}
                   type="button"
                 >
@@ -167,7 +184,7 @@ export default function StartPage() {
                 </button>
                 <button
                   aria-label="Next community photo"
-                  className="absolute right-3 top-1/2 z-10 -translate-y-1/2 border border-white/25 bg-black/50 p-2.5 text-white opacity-0 backdrop-blur transition-all duration-200 ease-out hover:bg-[var(--bp-amber)] hover:text-black group-hover:opacity-100 focus-visible:opacity-100"
+                  className="absolute right-3 top-1/2 z-10 -translate-y-1/2 border border-white/25 bg-black/55 p-2 text-white opacity-100 backdrop-blur transition-all duration-200 ease-out hover:bg-[var(--bp-amber)] hover:text-black sm:p-2.5 lg:opacity-0 lg:group-hover:opacity-100 focus-visible:opacity-100"
                   onClick={nextHeroSlide}
                   type="button"
                 >
@@ -175,7 +192,7 @@ export default function StartPage() {
                 </button>
               </div>
 
-              <div className="flex items-center justify-between gap-4 border-t border-[var(--bp-border)] bg-[var(--bp-surface)] px-5 py-4">
+              <div className="flex flex-col items-start justify-between gap-3 border-t border-[var(--bp-border)] bg-[var(--bp-surface)] px-4 py-4 sm:flex-row sm:items-center sm:gap-4 sm:px-5">
                 <p className="mono flex items-center gap-2 text-xs font-bold uppercase tracking-[.1em] text-[var(--bp-text-dim)]">
                   <span className="h-2 w-2 bg-[var(--bp-amber)]" />
                   {currentHeroSlide.caption}
@@ -195,7 +212,7 @@ export default function StartPage() {
                       />
                     ))}
                   </div>
-                  <p className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-amber)]">TIP Manila</p>
+                  <p className="mono hidden text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-amber)] sm:block">TIP Manila</p>
                 </div>
               </div>
             </div>
