@@ -49,6 +49,7 @@ BuilderPass is a React single-page application. Supabase supplies authentication
 
 Authenticated users can browse all events, including current and ended events. The event directory provides:
 
+- **Name search:** Case-insensitive event-title search that can be combined with every filter.
 - **Time filter:** All events, Current events, Upcoming, or Ended.
 - **My activity filter:** All events, Reserved, or Attended.
 - **Registration filter:** All statuses, Open, or Closed.

@@ -61,7 +61,7 @@ export default function SelectControl({ className = '', id, name, onChange, opti
         aria-controls={listboxId}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        className={`bp-control bp-select-trigger flex min-h-12 w-full items-center justify-between gap-4 bg-[var(--bp-bg-soft)] px-4 py-3 text-left text-[var(--bp-text)] transition-colors ${
+        className={`bp-control bp-select-trigger flex h-12 w-full items-center justify-between gap-4 bg-[var(--bp-bg-soft)] px-4 text-left text-[var(--bp-text)] transition-colors ${
           isOpen ? 'ring-1 ring-inset ring-[var(--bp-amber)]' : ''
         }`}
         id={controlId}

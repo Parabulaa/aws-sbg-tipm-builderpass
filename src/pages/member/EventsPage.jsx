@@ -1,6 +1,7 @@
 import { CalendarDays, MapPin } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import EventSearchControl from '../../components/EventSearchControl.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
@@ -14,7 +15,7 @@ import {
   formatEventTimeRange,
 } from '../../utils/events.js'
 
-const initialFilters = { time: 'ALL', registrationStatus: 'ALL', participation: 'ALL' }
+const initialFilters = { search: '', time: 'ALL', registrationStatus: 'ALL', participation: 'ALL' }
 
 export default function EventsPage() {
   const { profile } = useAuth()
@@ -105,7 +106,7 @@ export default function EventsPage() {
 
   return (
     <section className="mx-auto max-w-[90rem] px-6 py-12 sm:py-20 lg:px-10">
-      <div className="grid gap-8 border-b border-[var(--bp-border)] pb-8 xl:grid-cols-[minmax(0,1fr)_minmax(38rem,auto)] xl:items-end">
+      <div className="grid gap-8 border-b border-[var(--bp-border)] pb-8 xl:grid-cols-[minmax(17rem,1fr)_minmax(0,52rem)] xl:items-end">
         <div>
           <p className="mono text-xs font-bold uppercase tracking-[.18em] text-[var(--bp-amber)]">Events</p>
           <h1 className="mt-4 text-4xl font-black tracking-tight text-[var(--bp-text)]">Events</h1>
@@ -124,7 +125,10 @@ export default function EventsPage() {
                 </button>
               )}
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(13rem,1.15fr)_repeat(3,minmax(10rem,1fr))]">
+              <FilterField label="Search" htmlFor="member-event-search-filter">
+                <EventSearchControl id="member-event-search-filter" onChange={handleFilterChange} value={filters.search} />
+              </FilterField>
               <FilterField label="Time" htmlFor="member-event-time-filter">
                 <SelectControl id="member-event-time-filter" name="time" onChange={handleFilterChange} options={timeFilterOptions} value={filters.time} />
               </FilterField>

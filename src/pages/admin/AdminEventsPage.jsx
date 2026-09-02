@@ -1,6 +1,7 @@
-import { CalendarDays, Plus, Search } from 'lucide-react'
+import { CalendarDays, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import EventSearchControl from '../../components/EventSearchControl.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrls } from '../../utils/eventPosters.js'
@@ -59,31 +60,19 @@ export default function AdminEventsPage() {
   const hasActiveFilters = Object.keys(initialFilters).some((key) => filters[key] !== initialFilters[key])
 
   return (
-    <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
-      <div className="grid gap-6 border-b border-[var(--bp-border)] pb-8 xl:grid-cols-[minmax(15rem,1fr)_minmax(0,48rem)] xl:items-end">
+    <section className="mx-auto max-w-[90rem] px-6 py-12 sm:py-16 lg:px-10">
+      <div className="grid gap-6 border-b border-[var(--bp-border)] pb-8 xl:grid-cols-[minmax(17rem,1fr)_minmax(0,52rem)] xl:items-end">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700">Event management</p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">Events</h1>
           <p className="mt-3 text-slate-600">Create events and review registrations or attendance.</p>
         </div>
         <div className="bp-panel-outline bg-[var(--bp-surface)] p-3">
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(13rem,1fr)_11.5rem_11.5rem_auto] xl:items-end">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(13rem,1fr)_11.5rem_11.5rem_10.5rem] lg:items-end">
             {!isLoading && !errorMessage && events.length > 0 && (
               <>
                 <FilterField label="Search" htmlFor="admin-event-search-filter">
-                  <div className="bp-control bp-control-accent flex min-h-12 items-center gap-3 px-4">
-                    <Search aria-hidden="true" className="shrink-0 text-[var(--bp-amber)]" size={18} />
-                    <input
-                      aria-label="Search events by name"
-                      className="min-w-0 flex-1 border-0 bg-transparent p-0 text-[var(--bp-text)] outline-none"
-                      id="admin-event-search-filter"
-                      name="search"
-                      onChange={handleFilterChange}
-                      placeholder="Event name"
-                      type="search"
-                      value={filters.search}
-                    />
-                  </div>
+                  <EventSearchControl id="admin-event-search-filter" onChange={handleFilterChange} value={filters.search} />
                 </FilterField>
                 <FilterField label="Time" htmlFor="admin-event-time-filter">
                   <SelectControl className="w-full" id="admin-event-time-filter" name="time" onChange={handleFilterChange} options={timeFilterOptions} value={filters.time} />
@@ -94,7 +83,7 @@ export default function AdminEventsPage() {
               </>
             )}
             <Link
-              className="inline-flex min-h-12 w-full items-center justify-center gap-2 self-end bg-[var(--bp-amber)] px-4 py-3 text-sm font-bold uppercase tracking-wide text-black hover:bg-[var(--bp-amber-strong)]"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 self-end whitespace-nowrap bg-[var(--bp-amber)] px-4 text-sm font-bold uppercase tracking-wide text-black hover:bg-[var(--bp-amber-strong)] lg:col-start-4"
               to="/admin/events/new"
             >
               <Plus size={18} /> Create event
