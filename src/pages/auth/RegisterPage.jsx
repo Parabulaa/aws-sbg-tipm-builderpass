@@ -340,7 +340,11 @@ function PasswordInput({ describedBy, error, id, isVisible, name, onChange, onTo
       <button
         aria-label={`${isVisible ? 'Hide' : 'Show'} ${name === 'confirmPassword' ? 'confirmation password' : 'password'}`}
         aria-pressed={isVisible}
-        className="absolute right-0 top-0 flex h-full w-12 items-center justify-center text-[var(--bp-text-dim)] transition-colors hover:text-[var(--bp-amber)]"
+        className={`bp-password-visibility-toggle absolute right-0 top-0 flex h-full w-12 items-center justify-center transition-colors focus-visible:text-[var(--bp-amber)] ${
+          isVisible
+            ? 'text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]'
+            : 'text-[var(--bp-text-dim)] hover:text-[var(--bp-amber)]'
+        }`}
         onClick={onToggleVisibility}
         type="button"
       >

@@ -74,7 +74,7 @@ export default function LoginPage() {
             </label>
             <input
               autoComplete="email"
-              className="w-full border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] px-4 py-3 text-[var(--bp-text)] outline-none transition-colors focus:border-[var(--bp-amber)] focus:ring-1 focus:ring-[var(--bp-amber)]"
+              className="bp-control w-full bg-[var(--bp-bg-soft)] px-4 py-3 text-[var(--bp-text)] outline-none transition-colors focus:ring-1 focus:ring-[var(--bp-amber)]"
               id="email"
               onChange={(event) => setEmail(event.target.value)}
               type="email"
@@ -89,7 +89,7 @@ export default function LoginPage() {
             <div className="relative">
               <input
                 autoComplete="current-password"
-                className="w-full border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] px-4 py-3 pr-12 text-[var(--bp-text)] outline-none transition-colors focus:border-[var(--bp-amber)] focus:ring-1 focus:ring-[var(--bp-amber)]"
+                className="bp-control w-full bg-[var(--bp-bg-soft)] px-4 py-3 pr-12 text-[var(--bp-text)] outline-none transition-colors focus:ring-1 focus:ring-[var(--bp-amber)]"
                 id="password"
                 onChange={(event) => setPassword(event.target.value)}
                 type={showPassword ? 'text' : 'password'}
@@ -98,7 +98,11 @@ export default function LoginPage() {
               <button
                 aria-label={`${showPassword ? 'Hide' : 'Show'} password`}
                 aria-pressed={showPassword}
-                className="absolute right-0 top-0 flex h-full w-12 items-center justify-center text-[var(--bp-amber)] transition-colors hover:text-[var(--bp-amber-strong)]"
+                className={`bp-password-visibility-toggle absolute right-0 top-0 flex h-full w-12 items-center justify-center transition-colors focus-visible:text-[var(--bp-amber)] ${
+                  showPassword
+                    ? 'text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]'
+                    : 'text-[var(--bp-text-dim)] hover:text-[var(--bp-amber)]'
+                }`}
                 onClick={() => setShowPassword((current) => !current)}
                 type="button"
               >

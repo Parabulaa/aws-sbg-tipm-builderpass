@@ -249,7 +249,7 @@ main input:focus, main select:focus, main textarea:focus {
   outline: none;
 }
 main .bp-control {
-  border: 1px solid color-mix(in srgb, var(--bp-amber) 42%, transparent) !important;
+  border: 1px solid var(--bp-amber) !important;
 }
 main .bp-control:hover,
 main .bp-control:focus,
@@ -267,6 +267,9 @@ main .bp-select-trigger[aria-expanded="true"] {
 main .bp-control input {
   border: 0 !important;
   background: transparent !important;
+}
+main .bp-password-visibility-toggle:focus-visible {
+  outline: none;
 }
 main .bp-date-time-input {
   font-variant-numeric: tabular-nums;

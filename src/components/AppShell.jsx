@@ -104,8 +104,7 @@ export default function AppShell({ children }) {
             }}
           >
             <Logo className="h-14 w-14" />
-            <span className="hidden sm:inline">BUILDERPASS</span>
-            <span className="sm:hidden">BP</span>
+            <span>BUILDERPASS</span>
           </Link>
 
           <button
