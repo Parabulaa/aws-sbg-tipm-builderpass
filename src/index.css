@@ -237,6 +237,26 @@ main input:focus, main select:focus, main textarea:focus {
   border-color: var(--bp-amber) !important;
   outline: none;
 }
+main .bp-control {
+  border: 1px solid color-mix(in srgb, var(--bp-amber) 42%, transparent) !important;
+}
+main .bp-control:hover,
+main .bp-control:focus,
+main .bp-control:focus-within {
+  border-color: var(--bp-amber) !important;
+  outline: none;
+}
+main .bp-control input {
+  border: 0 !important;
+  background: transparent !important;
+}
+main .bp-control-error {
+  border-color: var(--bp-danger) !important;
+}
+main .bp-panel-outline {
+  border: 1px solid color-mix(in srgb, var(--bp-amber) 48%, transparent) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 179, 26, 0.06);
+}
 main input::placeholder, main textarea::placeholder { color: var(--bp-text-dim); }
 main table thead, main .bg-slate-50 { background: var(--bp-surface) !important; }
 main .shadow-sm { box-shadow: none; border: 1px solid var(--bp-border); }

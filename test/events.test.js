@@ -8,12 +8,26 @@ import {
   formatEventTimeRange,
   getEventLifecycle,
   getLocalDateKey,
+  getLocalTimeValue,
+  isValidEventDate,
+  isValidEventTime,
 } from '../src/utils/events.js'
 
 test('getLocalDateKey uses the date local calendar fields', () => {
   const localDate = new Date(2026, 8, 1, 0, 15)
 
   assert.equal(getLocalDateKey(localDate), '2026-09-01')
+})
+
+test('event form helpers format local time and reject invalid manual values', () => {
+  const localDate = new Date(2026, 8, 1, 7, 5)
+
+  assert.equal(getLocalTimeValue(localDate), '07:05')
+  assert.equal(isValidEventDate('2026-09-01'), true)
+  assert.equal(isValidEventDate('2026-02-30'), false)
+  assert.equal(isValidEventTime('23:59'), true)
+  assert.equal(isValidEventTime('24:00'), false)
+  assert.equal(isValidEventTime('7:05'), false)
 })
 
 test('eventMatchesFilters treats today as upcoming and applies registration status', () => {

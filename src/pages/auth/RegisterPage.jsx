@@ -2,6 +2,7 @@ import { CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Dialog from '../../components/Dialog.jsx'
+import SelectControl from '../../components/SelectControl.jsx'
 import { TIP_MANILA_COURSES, YEAR_LEVELS } from '../../constants/academics.js'
 import { supabase } from '../../services/supabase/client.js'
 
@@ -107,7 +108,7 @@ export default function RegisterPage() {
 
   return (
     <section className="mx-auto max-w-2xl px-5 py-12 sm:py-20">
-      <div className="border border-[var(--bp-border)] bg-[var(--bp-surface)] p-6 sm:p-10">
+      <div className="bp-panel-outline bg-[var(--bp-surface)] p-6 sm:p-10">
         <p className="mono text-xs font-bold uppercase tracking-[.18em] text-[var(--bp-amber)]">
           Member registration
         </p>
@@ -183,29 +184,25 @@ export default function RegisterPage() {
             </p>
 
             <Field label="Course or program" error={errors.course}>
-              <select
-                className={inputClassName(errors.course)}
+              <SelectControl
+                className="w-full"
                 id="course"
                 name="course"
                 onChange={handleChange}
+                options={courseOptions}
                 value={form.course}
-              >
-                <option value="">Select course or program</option>
-                {TIP_MANILA_COURSES.map((course) => <option key={course} value={course}>{course}</option>)}
-              </select>
+              />
             </Field>
 
             <Field label="Year level" error={errors.yearLevel}>
-              <select
-                className={inputClassName(errors.yearLevel)}
+              <SelectControl
+                className="w-full"
                 id="yearLevel"
                 name="yearLevel"
                 onChange={handleChange}
+                options={yearOptions}
                 value={form.yearLevel}
-              >
-                <option value="">Select year level</option>
-                {YEAR_LEVELS.map((year) => <option key={year} value={year}>Year {year}</option>)}
-              </select>
+              />
             </Field>
           </div>
 
@@ -312,7 +309,17 @@ function Field({ children, error, label }) {
 }
 
 function inputClassName(error) {
-  return `w-full border bg-[var(--bp-bg-soft)] px-4 py-3 text-[var(--bp-text)] outline-none transition-colors focus:border-[var(--bp-amber)] focus:ring-1 focus:ring-[var(--bp-amber)] ${
-    error ? 'border-[var(--bp-danger)]' : 'border-[var(--bp-border)]'
+  return `bp-control w-full bg-[var(--bp-bg-soft)] px-4 py-3 text-[var(--bp-text)] outline-none transition-colors focus:ring-1 focus:ring-[var(--bp-amber)] ${
+    error ? 'bp-control-error' : ''
   }`
 }
+
+const courseOptions = [
+  { value: '', label: 'Select course or program' },
+  ...TIP_MANILA_COURSES.map((course) => ({ value: course, label: course })),
+]
+
+const yearOptions = [
+  { value: '', label: 'Select year level' },
+  ...YEAR_LEVELS.map((year) => ({ value: String(year), label: `Year ${year}` })),
+]

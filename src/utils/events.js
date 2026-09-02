@@ -25,6 +25,29 @@ export function getLocalDateKey(date = new Date()) {
   return `${year}-${month}-${day}`
 }
 
+export function getLocalTimeValue(date = new Date()) {
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+
+  return `${hours}:${minutes}`
+}
+
+export function isValidEventDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+
+  const date = new Date(`${value}T00:00:00`)
+  return !Number.isNaN(date.getTime()) && getLocalDateKey(date) === value
+}
+
+export function isValidEventTime(value) {
+  const match = /^(\d{2}):(\d{2})$/.exec(value)
+  if (!match) return false
+
+  const hours = Number(match[1])
+  const minutes = Number(match[2])
+  return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59
+}
+
 export function getEventLifecycle(event, now = new Date()) {
   const start = new Date(`${event.event_date}T${event.start_time}`)
   const end = new Date(`${event.event_date}T${event.end_time || event.start_time}`)

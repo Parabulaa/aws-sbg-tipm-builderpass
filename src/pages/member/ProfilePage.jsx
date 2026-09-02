@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { TIP_MANILA_COURSES, YEAR_LEVELS } from '../../constants/academics.js'
+import SelectControl from '../../components/SelectControl.jsx'
+import { normalizeCourse, TIP_MANILA_COURSES, YEAR_LEVELS } from '../../constants/academics.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getDatabaseFeatureMessage } from '../../utils/supabaseCompatibility.js'
@@ -31,7 +32,7 @@ export default function ProfilePage() {
     setForm({
       firstName: profile.first_name || '',
       lastName: profile.last_name || '',
-      course: profile.course || '',
+      course: normalizeCourse(profile.course),
       yearLevel: profile.year_level ? String(profile.year_level) : '',
       section: profile.section || '',
     })
@@ -50,7 +51,7 @@ export default function ProfilePage() {
     setForm({
       firstName: profile?.first_name || '',
       lastName: profile?.last_name || '',
-      course: profile?.course || '',
+      course: normalizeCourse(profile?.course),
       yearLevel: profile?.year_level ? String(profile.year_level) : '',
       section: profile?.section || '',
     })
@@ -115,7 +116,7 @@ export default function ProfilePage() {
       {successMessage && <p className="mt-6 border border-[var(--bp-success)] bg-[var(--bp-success)]/10 px-4 py-3 text-sm text-[var(--bp-success)]" role="status">{successMessage}</p>}
 
       {isEditing ? (
-        <form className="mt-10 space-y-5 border border-[var(--bp-border)] bg-[var(--bp-surface)] p-6 sm:p-8" onSubmit={handleSubmit}>
+        <form className="bp-panel-outline mt-10 space-y-5 bg-[var(--bp-surface)] p-6 sm:p-8" onSubmit={handleSubmit}>
           <div className="grid gap-5 sm:grid-cols-2">
             <FormField label="First name" htmlFor="profile-first-name">
               <input className={inputClassName} id="profile-first-name" name="firstName" onChange={handleChange} value={form.firstName} />
@@ -126,19 +127,12 @@ export default function ProfilePage() {
           </div>
 
           <FormField label="Course or program" htmlFor="profile-course">
-            <select className={inputClassName} id="profile-course" name="course" onChange={handleChange} value={form.course}>
-              {!TIP_MANILA_COURSES.includes(form.course) && form.course && <option value={form.course}>{form.course}</option>}
-              <option value="">Select course or program</option>
-              {TIP_MANILA_COURSES.map((course) => <option key={course} value={course}>{course}</option>)}
-            </select>
+            <SelectControl className="w-full" id="profile-course" name="course" onChange={handleChange} options={courseOptions} value={form.course} />
           </FormField>
 
           <div className="grid gap-5 sm:grid-cols-2">
             <FormField label="Year level" htmlFor="profile-year-level">
-              <select className={inputClassName} id="profile-year-level" name="yearLevel" onChange={handleChange} value={form.yearLevel}>
-                <option value="">Select year level</option>
-                {YEAR_LEVELS.map((year) => <option key={year} value={year}>Year {year}</option>)}
-              </select>
+              <SelectControl className="w-full" id="profile-year-level" name="yearLevel" onChange={handleChange} options={yearOptions} value={form.yearLevel} />
             </FormField>
             <FormField label="Section (optional)" htmlFor="profile-section">
               <input className={inputClassName} id="profile-section" name="section" onChange={handleChange} value={form.section} />
@@ -160,7 +154,7 @@ export default function ProfilePage() {
             <div className="grid gap-1 px-6 py-4 sm:grid-cols-[220px_1fr] sm:items-center sm:gap-4" key={key}>
               <dt className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)]">{label}</dt>
               <dd className="font-bold text-[var(--bp-text)]">
-                {profile?.[key] !== undefined && profile?.[key] !== null && profile?.[key] !== '' ? String(profile[key]) : 'Not set'}
+                {formatProfileValue(profile, key)}
               </dd>
             </div>
           ))}
@@ -179,4 +173,19 @@ function FormField({ children, htmlFor, label }) {
   )
 }
 
-const inputClassName = 'w-full border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] px-4 py-3 text-[var(--bp-text)] outline-none focus:border-[var(--bp-amber)] focus:ring-1 focus:ring-[var(--bp-amber)]'
+const inputClassName = 'bp-control w-full bg-[var(--bp-bg-soft)] px-4 py-3 text-[var(--bp-text)] outline-none focus:ring-1 focus:ring-[var(--bp-amber)]'
+
+const courseOptions = [
+  { value: '', label: 'Select course or program' },
+  ...TIP_MANILA_COURSES.map((course) => ({ value: course, label: course })),
+]
+
+const yearOptions = [
+  { value: '', label: 'Select year level' },
+  ...YEAR_LEVELS.map((year) => ({ value: String(year), label: `Year ${year}` })),
+]
+
+function formatProfileValue(profile, key) {
+  const value = key === 'course' ? normalizeCourse(profile?.course) : profile?.[key]
+  return value !== undefined && value !== null && value !== '' ? String(value) : 'Not set'
+}

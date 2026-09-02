@@ -1,10 +1,14 @@
+import { ImagePlus } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import BackLink from '../../components/BackLink.jsx'
+import EventDateTimeField from '../../components/EventDateTimeField.jsx'
+import SelectControl from '../../components/SelectControl.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useObjectUrl } from '../../hooks/useObjectUrl.js'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterValidationMessage, removeEventPoster, uploadEventPoster } from '../../utils/eventPosters.js'
+import { getLocalDateKey, getLocalTimeValue, isValidEventDate, isValidEventTime } from '../../utils/events.js'
 import { getDatabaseFeatureMessage } from '../../utils/supabaseCompatibility.js'
 
 const initialForm = {
@@ -56,6 +60,11 @@ export default function CreateEventPage() {
 
     if (!form.title.trim() || !form.eventDate || !form.startTime || !form.endTime || !form.venue.trim()) {
       setErrorMessage('Title, date, start time, end time, and venue are required.')
+      return
+    }
+
+    if (!isValidEventDate(form.eventDate) || !isValidEventTime(form.startTime) || !isValidEventTime(form.endTime)) {
+      setErrorMessage('Use YYYY-MM-DD for the date and 24-hour HH:MM for both times.')
       return
     }
 
@@ -127,7 +136,7 @@ export default function CreateEventPage() {
   return (
     <section className="mx-auto max-w-2xl px-5 py-12 sm:py-16">
       <BackLink to="/admin/events">Back to events</BackLink>
-      <div className="mt-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <div className="bp-panel-outline mt-5 bg-[var(--bp-surface)] p-6 sm:p-8">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700">Event management</p>
         <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">Create event</h1>
         <p className="mt-3 text-slate-600">Only real events should be added here.</p>
@@ -156,11 +165,11 @@ export default function CreateEventPage() {
 
           <FormField label="Description" htmlFor="description">
             <textarea
-              className={inputClassName}
               id="description"
               name="description"
               onChange={handleChange}
               rows="5"
+              className={`${inputClassName} resize-none`}
               value={form.description}
             />
           </FormField>
@@ -171,6 +180,7 @@ export default function CreateEventPage() {
                 <img
                   alt="Selected event poster preview"
                   className="aspect-video w-full object-contain"
+                  draggable="false"
                   src={posterPreviewUrl}
                 />
                 <figcaption className="mt-2 text-xs font-medium text-slate-600">Poster preview</figcaption>
@@ -178,46 +188,25 @@ export default function CreateEventPage() {
             )}
             <input
               accept="image/jpeg,image/png,image/webp"
-              className={inputClassName}
+              className="sr-only"
               id="poster"
               onChange={handlePosterChange}
               type="file"
             />
+            <label
+              className="bp-control inline-flex cursor-pointer items-center gap-2 bg-[var(--bp-bg-soft)] px-4 py-3 font-bold text-[var(--bp-amber)] transition-colors hover:bg-[var(--bp-amber)]/10"
+              htmlFor="poster"
+            >
+              <ImagePlus aria-hidden="true" size={18} /> Choose poster image
+            </label>
             <p className="mt-1.5 text-xs text-slate-500">JPEG, PNG, or WebP up to 5 MB. A 16:9 image works best.</p>
             {posterFile && <p className="mt-2 text-sm text-slate-600">Selected: {posterFile.name}</p>}
           </FormField>
 
           <div className="grid gap-5 sm:grid-cols-3">
-            <FormField label="Date" htmlFor="eventDate">
-              <input
-                className={inputClassName}
-                id="eventDate"
-                name="eventDate"
-                onChange={handleChange}
-                type="date"
-                value={form.eventDate}
-              />
-            </FormField>
-            <FormField label="Start time" htmlFor="startTime">
-              <input
-                className={inputClassName}
-                id="startTime"
-                name="startTime"
-                onChange={handleChange}
-                type="time"
-                value={form.startTime}
-              />
-            </FormField>
-            <FormField label="End time" htmlFor="endTime">
-              <input
-                className={inputClassName}
-                id="endTime"
-                name="endTime"
-                onChange={handleChange}
-                type="time"
-                value={form.endTime}
-              />
-            </FormField>
+            <EventDateTimeField id="eventDate" kind="date" label="Date" name="eventDate" onChange={handleChange} onUseCurrent={() => setFieldValue('eventDate', getLocalDateKey())} value={form.eventDate} />
+            <EventDateTimeField id="startTime" kind="time" label="Start time" name="startTime" onChange={handleChange} onUseCurrent={() => setFieldValue('startTime', getLocalTimeValue())} value={form.startTime} />
+            <EventDateTimeField id="endTime" kind="time" label="End time" name="endTime" onChange={handleChange} onUseCurrent={() => setFieldValue('endTime', getLocalTimeValue())} value={form.endTime} />
           </div>
 
           <FormField label="Venue" htmlFor="venue">
@@ -237,24 +226,23 @@ export default function CreateEventPage() {
               min="1"
               name="capacity"
               onChange={handleChange}
-              step="1"
-              type="number"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              type="text"
               value={form.capacity}
             />
             <p className="mt-1.5 text-xs text-slate-500">Set the maximum number of active reservations.</p>
           </FormField>
 
           <FormField label="Registration status" htmlFor="registrationStatus">
-            <select
-              className={inputClassName}
+            <SelectControl
+              className="w-full"
               id="registrationStatus"
               name="registrationStatus"
               onChange={handleChange}
+              options={registrationStatusOptions}
               value={form.registrationStatus}
-            >
-              <option value="OPEN">Open</option>
-              <option value="CLOSED">Closed</option>
-            </select>
+            />
           </FormField>
 
           <button
@@ -268,6 +256,10 @@ export default function CreateEventPage() {
       </div>
     </section>
   )
+
+  function setFieldValue(name, value) {
+    handleChange({ target: { name, value } })
+  }
 }
 
 function getCapacityValue(value) {
@@ -287,4 +279,9 @@ function FormField({ children, htmlFor, label }) {
 }
 
 const inputClassName =
-  'w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-slate-950 outline-none transition focus:ring-2 focus:ring-indigo-500'
+  'bp-control w-full bg-[var(--bp-bg-soft)] px-4 py-3 text-[var(--bp-text)] outline-none transition focus:ring-1 focus:ring-[var(--bp-amber)]'
+
+const registrationStatusOptions = [
+  { value: 'OPEN', label: 'Open' },
+  { value: 'CLOSED', label: 'Closed' },
+]

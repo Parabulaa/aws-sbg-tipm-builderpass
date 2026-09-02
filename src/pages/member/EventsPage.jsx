@@ -1,6 +1,7 @@
 import { CalendarDays, MapPin } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import SelectControl from '../../components/SelectControl.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrls } from '../../utils/eventPosters.js'
@@ -13,7 +14,7 @@ import {
   formatEventTimeRange,
 } from '../../utils/events.js'
 
-const initialFilters = { time: 'CURRENT', registrationStatus: 'ALL', participation: 'ALL' }
+const initialFilters = { time: 'ALL', registrationStatus: 'ALL', participation: 'ALL' }
 
 export default function EventsPage() {
   const { profile } = useAuth()
@@ -104,12 +105,38 @@ export default function EventsPage() {
 
   return (
     <section className="mx-auto max-w-[90rem] px-6 py-12 sm:py-20 lg:px-10">
-      <div className="border-b border-[var(--bp-border)] pb-8">
-        <p className="mono text-xs font-bold uppercase tracking-[.18em] text-[var(--bp-amber)]">Events</p>
-        <h1 className="mt-4 text-4xl font-black tracking-tight text-[var(--bp-text)]">Events</h1>
-        <p className="mt-4 text-base text-[var(--bp-text-dim)]">
-          See events created by your Student Builder Group administrators.
-        </p>
+      <div className="grid gap-8 border-b border-[var(--bp-border)] pb-8 xl:grid-cols-[minmax(0,1fr)_minmax(38rem,auto)] xl:items-end">
+        <div>
+          <p className="mono text-xs font-bold uppercase tracking-[.18em] text-[var(--bp-amber)]">Events</p>
+          <h1 className="mt-4 text-4xl font-black tracking-tight text-[var(--bp-text)]">Events</h1>
+          <p className="mt-4 text-base text-[var(--bp-text-dim)]">
+            See events created by your Student Builder Group administrators.
+          </p>
+        </div>
+
+        {!isLoading && !errorMessage && events.length > 0 && (
+          <div className="bp-panel-outline bg-[var(--bp-surface)] p-4">
+            <div className="mb-3 flex items-center justify-between gap-4">
+              <p className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-amber)]">Filter events</p>
+              {hasActiveFilters && (
+                <button className="text-sm font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" onClick={() => setFilters(initialFilters)} type="button">
+                  Reset
+                </button>
+              )}
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <FilterField label="Time" htmlFor="member-event-time-filter">
+                <SelectControl id="member-event-time-filter" name="time" onChange={handleFilterChange} options={timeFilterOptions} value={filters.time} />
+              </FilterField>
+              <FilterField label="My activity" htmlFor="member-event-participation-filter">
+                <SelectControl id="member-event-participation-filter" name="participation" onChange={handleFilterChange} options={participationFilterOptions} value={filters.participation} />
+              </FilterField>
+              <FilterField label="Registration" htmlFor="member-event-registration-filter">
+                <SelectControl id="member-event-registration-filter" name="registrationStatus" onChange={handleFilterChange} options={registrationFilterOptions} value={filters.registrationStatus} />
+              </FilterField>
+            </div>
+          </div>
+        )}
       </div>
 
       {isLoading && <p className="mt-8 text-[var(--bp-text-dim)]">Loading events...</p>}
@@ -123,40 +150,7 @@ export default function EventsPage() {
 
       {!isLoading && !errorMessage && events.length > 0 && (
         <>
-          <fieldset className="mt-8 border border-[var(--bp-border)] bg-[var(--bp-surface)] p-5">
-            <legend className="mono px-1 text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)]">Filter events</legend>
-            <div className="mt-3 flex flex-wrap items-end gap-4">
-              <FilterField label="Time" htmlFor="member-event-time-filter">
-                <select className={filterClassName} id="member-event-time-filter" name="time" onChange={handleFilterChange} value={filters.time}>
-                  <option value="ALL">All events</option>
-                  <option value="CURRENT">Current events</option>
-                  <option value="UPCOMING">Upcoming</option>
-                  <option value="PAST">Ended</option>
-                </select>
-              </FilterField>
-              <FilterField label="My activity" htmlFor="member-event-participation-filter">
-                <select className={filterClassName} id="member-event-participation-filter" name="participation" onChange={handleFilterChange} value={filters.participation}>
-                  <option value="ALL">All events</option>
-                  <option value="RESERVED">My reservations</option>
-                  <option value="ATTENDED">Events attended</option>
-                </select>
-              </FilterField>
-              <FilterField label="Registration" htmlFor="member-event-registration-filter">
-                <select className={filterClassName} id="member-event-registration-filter" name="registrationStatus" onChange={handleFilterChange} value={filters.registrationStatus}>
-                  <option value="ALL">All statuses</option>
-                  <option value="OPEN">Open</option>
-                  <option value="CLOSED">Closed</option>
-                </select>
-              </FilterField>
-              {hasActiveFilters && (
-                <button className="font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" onClick={() => setFilters(initialFilters)} type="button">
-                  Reset filters
-                </button>
-              )}
-            </div>
-          </fieldset>
-
-          <div className="mt-4 flex flex-wrap justify-between gap-3 text-sm text-[var(--bp-text-dim)]" role="status">
+          <div className="mt-6 flex flex-wrap justify-between gap-3 text-sm text-[var(--bp-text-dim)]" role="status">
             <p>Showing {filteredEvents.length} of {events.length} events</p>
             <p>{currentReservations} current reservation{currentReservations === 1 ? '' : 's'} // {attendedEvents} attended</p>
           </div>
@@ -166,7 +160,7 @@ export default function EventsPage() {
               No events match the current filters.
             </div>
           ) : (
-            <div className="bp-scroll mt-6 grid max-h-[70vh] gap-6 overflow-y-auto pr-1 md:grid-cols-2 lg:grid-cols-3">
+            <div className="bp-scroll mt-6 grid max-h-[70vh] grid-cols-[repeat(auto-fit,minmax(min(100%,22rem),24rem))] justify-center gap-7 overflow-y-auto px-1 pb-1">
               {filteredEvents.map((event) => {
                 const rsvpSummary = rsvpSummariesByEvent[event.id]
                 const posterUrl = posterUrlsByPath[event.poster_path]
@@ -176,7 +170,7 @@ export default function EventsPage() {
                 return (
                   <Link
                     aria-label={`View details for ${event.title}`}
-                    className="group block border border-[var(--bp-border)] bg-[var(--bp-surface)] p-6 transition-all duration-150 ease-out hover:-translate-y-0.5 hover:border-[var(--bp-amber)] focus:outline-none focus:ring-2 focus:ring-[var(--bp-amber)]"
+                    className="bp-panel-outline group block w-full bg-[var(--bp-surface)] p-6 transition-all duration-150 ease-out hover:-translate-y-0.5 hover:shadow-[0_0_0_1px_var(--bp-amber)] focus:outline-none focus:ring-2 focus:ring-[var(--bp-amber)]"
                     key={event.id}
                     to={`/events/${event.id}`}
                   >
@@ -184,6 +178,7 @@ export default function EventsPage() {
                       <img
                         alt={`${event.title} poster`}
                         className="aspect-video w-full border border-[var(--bp-border)] object-cover"
+                        draggable="false"
                         loading="lazy"
                         src={posterUrl}
                       />
@@ -299,4 +294,21 @@ function FilterField({ children, htmlFor, label }) {
   )
 }
 
-const filterClassName = 'min-w-40 border border-[var(--bp-border)] bg-[var(--bp-bg)] px-3 py-2 text-[var(--bp-text)] outline-none focus:border-[var(--bp-amber)]'
+const timeFilterOptions = [
+  { value: 'ALL', label: 'All events' },
+  { value: 'CURRENT', label: 'Current events' },
+  { value: 'UPCOMING', label: 'Upcoming' },
+  { value: 'PAST', label: 'Ended' },
+]
+
+const participationFilterOptions = [
+  { value: 'ALL', label: 'All events' },
+  { value: 'RESERVED', label: 'My reservations' },
+  { value: 'ATTENDED', label: 'Events attended' },
+]
+
+const registrationFilterOptions = [
+  { value: 'ALL', label: 'All statuses' },
+  { value: 'OPEN', label: 'Open' },
+  { value: 'CLOSED', label: 'Closed' },
+]

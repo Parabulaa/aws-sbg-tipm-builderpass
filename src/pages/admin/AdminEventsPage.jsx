@@ -1,12 +1,13 @@
 import { CalendarDays, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import SelectControl from '../../components/SelectControl.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrls } from '../../utils/eventPosters.js'
 import { eventIsCurrent, eventMatchesFilters, eventRegistrationLabel, formatEventDate, formatEventTimeRange } from '../../utils/events.js'
 import { eventWithOptionalEndTime, queryWithOptionalEventEndTime } from '../../utils/supabaseCompatibility.js'
 
-const initialFilters = { time: 'CURRENT', registrationStatus: 'ALL' }
+const initialFilters = { time: 'ALL', registrationStatus: 'ALL' }
 
 export default function AdminEventsPage() {
   const [events, setEvents] = useState([])
@@ -58,18 +59,35 @@ export default function AdminEventsPage() {
 
   return (
     <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="grid gap-6 border-b border-[var(--bp-border)] pb-8 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700">Event management</p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">Events</h1>
           <p className="mt-3 text-slate-600">Create events and review registrations or attendance.</p>
         </div>
-        <Link
-          className="inline-flex items-center gap-2 rounded-md bg-indigo-700 px-4 py-2.5 font-semibold text-white hover:bg-indigo-800"
-          to="/admin/events/new"
-        >
-          <Plus size={18} /> Create event
-        </Link>
+        <div className="flex flex-wrap items-end gap-3">
+          {!isLoading && !errorMessage && events.length > 0 && (
+            <div className="bp-panel-outline flex flex-wrap items-end gap-3 bg-[var(--bp-surface)] p-3">
+              <FilterField label="Time" htmlFor="admin-event-time-filter">
+                <SelectControl className="w-48" id="admin-event-time-filter" name="time" onChange={handleFilterChange} options={timeFilterOptions} value={filters.time} />
+              </FilterField>
+              <FilterField label="Registration" htmlFor="admin-event-registration-filter">
+                <SelectControl className="w-48" id="admin-event-registration-filter" name="registrationStatus" onChange={handleFilterChange} options={registrationFilterOptions} value={filters.registrationStatus} />
+              </FilterField>
+              {hasActiveFilters && (
+                <button className="px-2 py-3 text-sm font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" onClick={() => setFilters(initialFilters)} type="button">
+                  Reset
+                </button>
+              )}
+            </div>
+          )}
+          <Link
+            className="inline-flex min-h-12 items-center gap-2 bg-[var(--bp-amber)] px-5 py-3 font-bold uppercase tracking-wide text-black hover:bg-[var(--bp-amber-strong)]"
+            to="/admin/events/new"
+          >
+            <Plus size={18} /> Create event
+          </Link>
+        </div>
       </div>
 
       {isLoading && <p className="mt-8 text-slate-600">Loading events...</p>}
@@ -80,33 +98,7 @@ export default function AdminEventsPage() {
 
       {!isLoading && !errorMessage && events.length > 0 && (
         <>
-          <fieldset className="mt-8 border border-slate-200 bg-white p-5">
-            <legend className="px-1 text-sm font-semibold text-slate-900">Filter events</legend>
-            <div className="mt-3 flex flex-wrap items-end gap-4">
-              <FilterField label="Time" htmlFor="admin-event-time-filter">
-                <select className={filterClassName} id="admin-event-time-filter" name="time" onChange={handleFilterChange} value={filters.time}>
-                  <option value="ALL">All events</option>
-                  <option value="CURRENT">Current events</option>
-                  <option value="UPCOMING">Upcoming</option>
-                  <option value="PAST">Ended</option>
-                </select>
-              </FilterField>
-              <FilterField label="Registration" htmlFor="admin-event-registration-filter">
-                <select className={filterClassName} id="admin-event-registration-filter" name="registrationStatus" onChange={handleFilterChange} value={filters.registrationStatus}>
-                  <option value="ALL">All statuses</option>
-                  <option value="OPEN">Open</option>
-                  <option value="CLOSED">Closed</option>
-                </select>
-              </FilterField>
-              {hasActiveFilters && (
-                <button className="text-sm font-medium text-indigo-700 hover:text-indigo-900" onClick={() => setFilters(initialFilters)} type="button">
-                  Reset filters
-                </button>
-              )}
-            </div>
-          </fieldset>
-
-          <p className="mt-4 text-sm text-slate-600" role="status">Showing {filteredEvents.length} of {events.length} events</p>
+          <p className="mt-6 text-sm text-slate-600" role="status">Showing {filteredEvents.length} of {events.length} events</p>
 
           {filteredEvents.length === 0 ? (
             <p className="mt-4 rounded-lg border border-slate-200 bg-white px-5 py-4 text-slate-600">No events match the current filters.</p>
@@ -186,4 +178,15 @@ function FilterField({ children, htmlFor, label }) {
   )
 }
 
-const filterClassName = 'min-w-40 rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-950 outline-none focus:ring-2 focus:ring-indigo-500'
+const timeFilterOptions = [
+  { value: 'ALL', label: 'All events' },
+  { value: 'CURRENT', label: 'Current events' },
+  { value: 'UPCOMING', label: 'Upcoming' },
+  { value: 'PAST', label: 'Ended' },
+]
+
+const registrationFilterOptions = [
+  { value: 'ALL', label: 'All statuses' },
+  { value: 'OPEN', label: 'Open' },
+  { value: 'CLOSED', label: 'Closed' },
+]
