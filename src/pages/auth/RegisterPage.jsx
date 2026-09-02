@@ -1,4 +1,4 @@
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Dialog from '../../components/Dialog.jsx'
@@ -39,6 +39,8 @@ export default function RegisterPage() {
   const [submissionError, setSubmissionError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const navigate = useNavigate()
 
   function handleChange(event) {
@@ -210,25 +212,25 @@ export default function RegisterPage() {
             <p className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-muted)]">Password</p>
 
             <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="Password" error={errors.password}>
-                <input
-                  autoComplete="new-password"
-                  className={inputClassName(errors.password)}
+              <Field label="Password" error={errors.password} htmlFor="password">
+                <PasswordInput
+                  error={errors.password}
                   id="password"
+                  isVisible={showPassword}
                   name="password"
                   onChange={handleChange}
-                  type="password"
+                  onToggleVisibility={() => setShowPassword((current) => !current)}
                   value={form.password}
                 />
               </Field>
-              <Field label="Confirm password" error={errors.confirmPassword}>
-                <input
-                  autoComplete="new-password"
-                  className={inputClassName(errors.confirmPassword)}
+              <Field label="Confirm password" error={errors.confirmPassword} htmlFor="confirmPassword">
+                <PasswordInput
+                  error={errors.confirmPassword}
                   id="confirmPassword"
+                  isVisible={showConfirmPassword}
                   name="confirmPassword"
                   onChange={handleChange}
-                  type="password"
+                  onToggleVisibility={() => setShowConfirmPassword((current) => !current)}
                   value={form.confirmPassword}
                 />
               </Field>
@@ -294,8 +296,8 @@ export default function RegisterPage() {
   )
 }
 
-function Field({ children, error, label }) {
-  const inputId = children.props.id
+function Field({ children, error, htmlFor, label }) {
+  const inputId = htmlFor || children.props.id
 
   return (
     <div>
@@ -304,6 +306,33 @@ function Field({ children, error, label }) {
       </label>
       {children}
       {error && <p className="mt-2 text-sm text-[var(--bp-danger)]">{error}</p>}
+    </div>
+  )
+}
+
+function PasswordInput({ error, id, isVisible, name, onChange, onToggleVisibility, value }) {
+  const VisibilityIcon = isVisible ? EyeOff : Eye
+
+  return (
+    <div className="relative">
+      <input
+        autoComplete="new-password"
+        className={`${inputClassName(error)} pr-12`}
+        id={id}
+        name={name}
+        onChange={onChange}
+        type={isVisible ? 'text' : 'password'}
+        value={value}
+      />
+      <button
+        aria-label={`${isVisible ? 'Hide' : 'Show'} ${name === 'confirmPassword' ? 'confirmation password' : 'password'}`}
+        aria-pressed={isVisible}
+        className="absolute right-0 top-0 flex h-full w-12 items-center justify-center text-[var(--bp-text-dim)] transition-colors hover:text-[var(--bp-amber)]"
+        onClick={onToggleVisibility}
+        type="button"
+      >
+        <VisibilityIcon aria-hidden="true" size={19} />
+      </button>
     </div>
   )
 }
