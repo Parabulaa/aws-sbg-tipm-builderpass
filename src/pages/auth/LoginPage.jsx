@@ -89,7 +89,7 @@ export default function LoginPage() {
             <div className="relative">
               <input
                 autoComplete="current-password"
-                className="w-full border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] px-4 py-3 pr-16 text-[var(--bp-text)] outline-none transition-colors focus:border-[var(--bp-amber)] focus:ring-1 focus:ring-[var(--bp-amber)]"
+                className="w-full border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] px-4 py-3 pr-12 text-[var(--bp-text)] outline-none transition-colors focus:border-[var(--bp-amber)] focus:ring-1 focus:ring-[var(--bp-amber)]"
                 id="password"
                 onChange={(event) => setPassword(event.target.value)}
                 type={showPassword ? 'text' : 'password'}
@@ -98,7 +98,7 @@ export default function LoginPage() {
               <button
                 aria-label={`${showPassword ? 'Hide' : 'Show'} password`}
                 aria-pressed={showPassword}
-                className="absolute bottom-1 right-1 top-1 flex w-11 items-center justify-center border border-[var(--bp-amber-muted)] text-[var(--bp-amber)] transition-colors hover:border-[var(--bp-amber)] hover:bg-[var(--bp-amber)]/10"
+                className="absolute right-0 top-0 flex h-full w-12 items-center justify-center text-[var(--bp-amber)] transition-colors hover:text-[var(--bp-amber-strong)]"
                 onClick={() => setShowPassword((current) => !current)}
                 type="button"
               >
