@@ -42,7 +42,8 @@ BuilderPass is a React single-page application. Supabase supplies authentication
 - Repeated `SIGNED_IN` or token-refresh events for the same user do not force the whole page back into a loading state.
 - A member profile is loaded by matching `profiles.auth_user_id` with the authenticated Supabase user ID.
 - Unauthenticated users attempting a protected route are redirected to `/login`.
-- Logout clears the Supabase session and returns the user to the public landing page (`/`).
+- Logout first opens an amber confirmation dialog to prevent accidental session termination. Confirming clears the Supabase session and returns the user to the public landing page (`/`).
+- The AWS SBG TIP Manila navbar emblem is also used as the browser-tab and Apple touch icon.
 
 ### 2.3 Event discovery
 

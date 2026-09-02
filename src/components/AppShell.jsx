@@ -2,12 +2,15 @@ import { LogOut, Mail, Menu, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
+import Dialog from './Dialog.jsx'
 import GridBackground from './GridBackground.jsx'
 import Logo from './Logo.jsx'
 
 export default function AppShell({ children }) {
   const { profile, session, signOut } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
   const [logoutError, setLogoutError] = useState('')
   const navigate = useNavigate()
   const location = useLocation()
@@ -50,14 +53,27 @@ export default function AppShell({ children }) {
     setIsMenuOpen(false)
   }
 
+  function openLogoutDialog() {
+    setLogoutError('')
+    setIsLogoutDialogOpen(true)
+  }
+
+  function closeLogoutDialog() {
+    if (!isSigningOut) setIsLogoutDialogOpen(false)
+  }
+
   async function handleSignOut() {
     setLogoutError('')
+    setIsSigningOut(true)
     try {
       await signOut()
+      setIsLogoutDialogOpen(false)
       closeMenu()
       navigate('/', { replace: true })
     } catch (error) {
       setLogoutError(error.message || 'We could not sign you out. Please try again.')
+    } finally {
+      setIsSigningOut(false)
     }
   }
 
@@ -120,7 +136,7 @@ export default function AppShell({ children }) {
             {session && (
               <button
                 className="mono inline-flex items-center gap-2 text-sm font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)] hover:text-[var(--bp-amber)] transition-colors"
-                onClick={handleSignOut}
+                onClick={openLogoutDialog}
                 type="button"
               >
                 <LogOut size={16} />
@@ -151,7 +167,7 @@ export default function AppShell({ children }) {
             {session && (
               <button
                 className="mono mt-5 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)]"
-                onClick={handleSignOut}
+                onClick={openLogoutDialog}
                 type="button"
               >
                 <LogOut size={15} />
@@ -161,9 +177,6 @@ export default function AppShell({ children }) {
           </div>
         )}
 
-        {logoutError && (
-          <p className="mx-auto max-w-[90rem] px-6 py-2 text-sm text-[var(--bp-danger)] lg:px-10">{logoutError}</p>
-        )}
       </header>
 
       <main className="flex-1">{children}</main>
@@ -219,6 +232,44 @@ export default function AppShell({ children }) {
           </p>
         </div>
       </footer>
+
+      <Dialog
+        icon={LogOut}
+        isOpen={isLogoutDialogOpen}
+        onClose={closeLogoutDialog}
+        titleId="logout-confirmation-title"
+        tone="amber"
+      >
+        <h2 className="pr-10 text-2xl font-bold text-[var(--bp-text)]" id="logout-confirmation-title">
+          Log out of BuilderPass?
+        </h2>
+        <p className="mt-3 text-sm leading-6 text-[var(--bp-text-muted)]">
+          Your current session will end, and you will return to the BuilderPass home page.
+        </p>
+        {logoutError && (
+          <p className="mt-4 border border-[var(--bp-danger)]/40 bg-[var(--bp-danger)]/10 px-3 py-2 text-sm text-[var(--bp-danger)]" role="alert">
+            {logoutError}
+          </p>
+        )}
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <button
+            className="min-h-12 border border-[var(--bp-amber)] px-4 py-3 text-sm font-bold uppercase tracking-wide text-[var(--bp-amber)] transition-colors hover:bg-[var(--bp-amber)]/10 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={isSigningOut}
+            onClick={closeLogoutDialog}
+            type="button"
+          >
+            Stay signed in
+          </button>
+          <button
+            className="min-h-12 bg-[var(--bp-amber)] px-4 py-3 text-sm font-bold uppercase tracking-wide text-black transition-colors hover:bg-[var(--bp-amber-strong)] disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={isSigningOut}
+            onClick={handleSignOut}
+            type="button"
+          >
+            {isSigningOut ? 'Logging out...' : 'Log out'}
+          </button>
+        </div>
+      </Dialog>
       </div>
     </div>
   )
