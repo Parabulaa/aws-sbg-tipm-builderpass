@@ -5,6 +5,7 @@ import Dialog from '../../components/Dialog.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
 import { TIP_MANILA_COURSES, YEAR_LEVELS } from '../../constants/academics.js'
 import { supabase } from '../../services/supabase/client.js'
+import { getPasswordStrength } from '../../utils/passwordStrength.js'
 
 const initialForm = {
   studentNumber: '',
@@ -27,7 +28,7 @@ function validateForm(form) {
   if (!emailPattern.test(form.email.trim())) errors.email = 'Enter a valid email address.'
   if (!form.course.trim()) errors.course = 'Course or program is required.'
   if (!form.yearLevel) errors.yearLevel = 'Select a year level.'
-  if (form.password.length < 6) errors.password = 'Password must be at least 6 characters.'
+  if (form.password.length < 8) errors.password = 'Password must be at least 8 characters.'
   if (form.password !== form.confirmPassword) errors.confirmPassword = 'Passwords do not match.'
 
   return errors
@@ -213,15 +214,18 @@ export default function RegisterPage() {
 
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label="Password" error={errors.password} htmlFor="password">
-                <PasswordInput
-                  error={errors.password}
-                  id="password"
-                  isVisible={showPassword}
-                  name="password"
-                  onChange={handleChange}
-                  onToggleVisibility={() => setShowPassword((current) => !current)}
-                  value={form.password}
-                />
+                <div>
+                  <PasswordInput
+                    error={errors.password}
+                    id="password"
+                    isVisible={showPassword}
+                    name="password"
+                    onChange={handleChange}
+                    onToggleVisibility={() => setShowPassword((current) => !current)}
+                    value={form.password}
+                  />
+                  <PasswordStrength password={form.password} />
+                </div>
               </Field>
               <Field label="Confirm password" error={errors.confirmPassword} htmlFor="confirmPassword">
                 <PasswordInput
@@ -333,6 +337,45 @@ function PasswordInput({ error, id, isVisible, name, onChange, onToggleVisibilit
       >
         <VisibilityIcon aria-hidden="true" size={19} />
       </button>
+    </div>
+  )
+}
+
+function PasswordStrength({ password }) {
+  const strength = getPasswordStrength(password)
+  const visibleScore = password ? Math.max(1, strength.score) : 0
+  const meterColor = {
+    Weak: 'var(--bp-danger)',
+    Fair: '#d98e45',
+    Good: 'var(--bp-amber)',
+    Strong: 'var(--bp-success)',
+  }[strength.label]
+
+  return (
+    <div className="mt-3" aria-live="polite">
+      <div className="flex items-center justify-between gap-3 text-xs">
+        <span className="font-semibold text-[var(--bp-text-muted)]">Password strength</span>
+        <span className="mono font-bold uppercase tracking-[.08em]" style={{ color: meterColor || 'var(--bp-text-dim)' }}>
+          {strength.label}
+        </span>
+      </div>
+      <div
+        aria-label={`Password strength: ${strength.label}`}
+        aria-valuemax="4"
+        aria-valuemin="0"
+        aria-valuenow={strength.score}
+        className="mt-2 grid grid-cols-4 gap-1"
+        role="meter"
+      >
+        {[1, 2, 3, 4].map((segment) => (
+          <span
+            className="h-1.5 bg-[var(--bp-border)] transition-colors"
+            key={segment}
+            style={segment <= visibleScore ? { backgroundColor: meterColor } : undefined}
+          />
+        ))}
+      </div>
+      <p className="mt-2 text-xs leading-relaxed text-[var(--bp-text-dim)]">{strength.suggestion}</p>
     </div>
   )
 }
