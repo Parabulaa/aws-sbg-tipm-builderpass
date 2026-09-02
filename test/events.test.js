@@ -45,6 +45,14 @@ test('eventMatchesFilters identifies dates before today as past', () => {
   assert.equal(eventMatchesFilters(event, { time: 'PAST', registrationStatus: 'CLOSED' }, new Date('2026-09-01T00:00:00')), true)
 })
 
+test('eventMatchesFilters searches event titles without case sensitivity', () => {
+  const event = { title: 'Student Community Day', event_date: '2026-09-02', start_time: '10:00', end_time: '12:00', registration_status: 'OPEN' }
+  const filters = { search: 'community', time: 'ALL', registrationStatus: 'ALL' }
+
+  assert.equal(eventMatchesFilters(event, filters, new Date('2026-09-01T09:00:00')), true)
+  assert.equal(eventMatchesFilters(event, { ...filters, search: 'conference' }, new Date('2026-09-01T09:00:00')), false)
+})
+
 test('eventStatusLabel has a safe closed label for non-open states', () => {
   assert.equal(eventStatusLabel('OPEN'), 'Registration open')
   assert.equal(eventStatusLabel('CLOSED'), 'Registration closed')

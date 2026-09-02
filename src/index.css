@@ -257,6 +257,13 @@ main .bp-control:focus-within {
   border-color: var(--bp-amber) !important;
   outline: none;
 }
+main .bp-control-accent,
+main .bp-select-trigger {
+  border-color: var(--bp-amber) !important;
+}
+main .bp-select-trigger[aria-expanded="true"] {
+  border-color: var(--bp-amber) !important;
+}
 main .bp-control input {
   border: 0 !important;
   background: transparent !important;
@@ -282,6 +289,9 @@ main .bp-event-card {
 }
 main .bp-event-card:hover {
   border-color: var(--bp-amber) !important;
+}
+main .bp-admin-event-list > article + article {
+  border-top: 1px solid var(--bp-amber-muted);
 }
 main input::placeholder, main textarea::placeholder { color: var(--bp-text-dim); }
 main table thead, main .bg-slate-50 { background: var(--bp-surface) !important; }

@@ -1,4 +1,4 @@
-import { CalendarDays, Plus } from 'lucide-react'
+import { CalendarDays, Plus, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import SelectControl from '../../components/SelectControl.jsx'
@@ -7,7 +7,8 @@ import { getEventPosterUrls } from '../../utils/eventPosters.js'
 import { eventIsCurrent, eventMatchesFilters, eventRegistrationLabel, formatEventDate, formatEventTimeRange } from '../../utils/events.js'
 import { eventWithOptionalEndTime, queryWithOptionalEventEndTime } from '../../utils/supabaseCompatibility.js'
 
-const initialFilters = { time: 'ALL', registrationStatus: 'ALL' }
+const initialFilters = { search: '', time: 'ALL', registrationStatus: 'ALL' }
+const eventActionClassName = 'inline-flex min-h-10 items-center justify-center border border-[var(--bp-amber-muted)] px-3 text-center text-sm font-semibold text-[var(--bp-amber)] transition-colors hover:border-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]'
 
 export default function AdminEventsPage() {
   const [events, setEvents] = useState([])
@@ -55,38 +56,55 @@ export default function AdminEventsPage() {
   }, [])
 
   const filteredEvents = filterEvents(events, filters)
-  const hasActiveFilters = filters.time !== initialFilters.time || filters.registrationStatus !== initialFilters.registrationStatus
+  const hasActiveFilters = Object.keys(initialFilters).some((key) => filters[key] !== initialFilters[key])
 
   return (
     <section className="mx-auto max-w-6xl px-5 py-12 sm:py-16">
-      <div className="grid gap-6 border-b border-[var(--bp-border)] pb-8 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+      <div className="grid gap-6 border-b border-[var(--bp-border)] pb-8 xl:grid-cols-[minmax(15rem,1fr)_minmax(0,48rem)] xl:items-end">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-700">Event management</p>
           <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">Events</h1>
           <p className="mt-3 text-slate-600">Create events and review registrations or attendance.</p>
         </div>
-        <div className="flex flex-wrap items-end gap-3">
-          {!isLoading && !errorMessage && events.length > 0 && (
-            <div className="bp-panel-outline flex flex-wrap items-end gap-3 bg-[var(--bp-surface)] p-3">
-              <FilterField label="Time" htmlFor="admin-event-time-filter">
-                <SelectControl className="w-48" id="admin-event-time-filter" name="time" onChange={handleFilterChange} options={timeFilterOptions} value={filters.time} />
-              </FilterField>
-              <FilterField label="Registration" htmlFor="admin-event-registration-filter">
-                <SelectControl className="w-48" id="admin-event-registration-filter" name="registrationStatus" onChange={handleFilterChange} options={registrationFilterOptions} value={filters.registrationStatus} />
-              </FilterField>
-              {hasActiveFilters && (
-                <button className="px-2 py-3 text-sm font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" onClick={() => setFilters(initialFilters)} type="button">
-                  Reset
-                </button>
-              )}
-            </div>
+        <div className="bp-panel-outline bg-[var(--bp-surface)] p-3">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(13rem,1fr)_11.5rem_11.5rem_auto] xl:items-end">
+            {!isLoading && !errorMessage && events.length > 0 && (
+              <>
+                <FilterField label="Search" htmlFor="admin-event-search-filter">
+                  <div className="bp-control bp-control-accent flex min-h-12 items-center gap-3 px-4">
+                    <Search aria-hidden="true" className="shrink-0 text-[var(--bp-amber)]" size={18} />
+                    <input
+                      aria-label="Search events by name"
+                      className="min-w-0 flex-1 border-0 bg-transparent p-0 text-[var(--bp-text)] outline-none"
+                      id="admin-event-search-filter"
+                      name="search"
+                      onChange={handleFilterChange}
+                      placeholder="Event name"
+                      type="search"
+                      value={filters.search}
+                    />
+                  </div>
+                </FilterField>
+                <FilterField label="Time" htmlFor="admin-event-time-filter">
+                  <SelectControl className="w-full" id="admin-event-time-filter" name="time" onChange={handleFilterChange} options={timeFilterOptions} value={filters.time} />
+                </FilterField>
+                <FilterField label="Registration" htmlFor="admin-event-registration-filter">
+                  <SelectControl className="w-full" id="admin-event-registration-filter" name="registrationStatus" onChange={handleFilterChange} options={registrationFilterOptions} value={filters.registrationStatus} />
+                </FilterField>
+              </>
+            )}
+            <Link
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 self-end bg-[var(--bp-amber)] px-4 py-3 text-sm font-bold uppercase tracking-wide text-black hover:bg-[var(--bp-amber-strong)]"
+              to="/admin/events/new"
+            >
+              <Plus size={18} /> Create event
+            </Link>
+          </div>
+          {hasActiveFilters && (
+            <button className="mt-3 text-sm font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" onClick={() => setFilters(initialFilters)} type="button">
+              Reset filters
+            </button>
           )}
-          <Link
-            className="inline-flex min-h-11 items-center gap-2 bg-[var(--bp-amber)] px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-black hover:bg-[var(--bp-amber-strong)]"
-            to="/admin/events/new"
-          >
-            <Plus size={18} /> Create event
-          </Link>
         </div>
       </div>
 
@@ -104,7 +122,7 @@ export default function AdminEventsPage() {
             <p className="mt-4 rounded-lg border border-slate-200 bg-white px-5 py-4 text-slate-600">No events match the current filters.</p>
           ) : (
             <div className="bp-panel-outline mt-4 overflow-hidden bg-white">
-              <div className="divide-y divide-slate-200">
+              <div className="bp-admin-event-list">
                 {filteredEvents.map((event) => {
                   const posterUrl = posterUrlsByPath[event.poster_path]
 
@@ -127,7 +145,7 @@ export default function AdminEventsPage() {
                           <p className="mt-1 text-sm text-slate-600">{event.venue}</p>
                         </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex w-full flex-col gap-3 lg:w-auto lg:items-end">
                         <span
                           className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                             event.registration_status === 'OPEN' && eventIsCurrent(event) ? 'bg-green-100 text-green-800' : 'bg-slate-200 text-slate-700'
@@ -135,18 +153,20 @@ export default function AdminEventsPage() {
                         >
                           {eventRegistrationLabel(event)}
                         </span>
-                        <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/events/${event.id}`}>
-                          Details
-                        </Link>
-                        <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/admin/events/${event.id}/edit`}>
-                          Edit
-                        </Link>
-                        <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/admin/events/${event.id}/registrations`}>
-                          Registrations
-                        </Link>
-                        <Link className="text-sm font-medium text-indigo-700 hover:text-indigo-900" to={`/admin/events/${event.id}/attendance`}>
-                          Attendance
-                        </Link>
+                        <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 lg:w-auto">
+                          <Link className={eventActionClassName} to={`/events/${event.id}`}>
+                            Details
+                          </Link>
+                          <Link className={eventActionClassName} to={`/admin/events/${event.id}/edit`}>
+                            Edit
+                          </Link>
+                          <Link className={eventActionClassName} to={`/admin/events/${event.id}/registrations`}>
+                            Registrations
+                          </Link>
+                          <Link className={eventActionClassName} to={`/admin/events/${event.id}/attendance`}>
+                            Attendance
+                          </Link>
+                        </div>
                       </div>
                     </article>
                   )

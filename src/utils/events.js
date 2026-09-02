@@ -79,6 +79,8 @@ export function eventMatchesFilters(event, filters, todayOrNow = new Date()) {
   const matchesRegistration =
     filters.registrationStatus === 'ALL'
     || effectiveRegistrationStatus === filters.registrationStatus
+  const searchQuery = (filters.search || '').trim().toLocaleLowerCase()
+  const matchesSearch = !searchQuery || (event.title || '').toLocaleLowerCase().includes(searchQuery)
 
-  return matchesTime && matchesRegistration
+  return matchesTime && matchesRegistration && matchesSearch
 }

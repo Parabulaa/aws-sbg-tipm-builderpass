@@ -77,6 +77,7 @@ Ended events remain viewable as history, but they no longer expose RSVP or cance
 
 Officers and admins can:
 
+- Search event titles and combine the search with time and registration-status filters.
 - Create events with title, description, optional poster, date, start time, end time, venue, capacity, and registration status.
 - Open the native system calendar or time picker and still type values manually.
 - Use the native picker's built-in **Today/Now** action when the browser provides it, without duplicating it as a separate form button.

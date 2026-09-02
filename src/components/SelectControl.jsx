@@ -61,8 +61,8 @@ export default function SelectControl({ className = '', id, name, onChange, opti
         aria-controls={listboxId}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        className={`bp-control flex min-h-12 w-full items-center justify-between gap-4 bg-[var(--bp-bg-soft)] px-4 py-3 text-left text-[var(--bp-text)] transition-colors hover:border-[var(--bp-amber)] ${
-          isOpen ? 'border-[var(--bp-amber)] ring-1 ring-[var(--bp-amber)]' : ''
+        className={`bp-control bp-select-trigger flex min-h-12 w-full items-center justify-between gap-4 bg-[var(--bp-bg-soft)] px-4 py-3 text-left text-[var(--bp-text)] transition-colors ${
+          isOpen ? 'ring-1 ring-inset ring-[var(--bp-amber)]' : ''
         }`}
         id={controlId}
         onClick={() => (isOpen ? setIsOpen(false) : openMenu())}
@@ -77,7 +77,7 @@ export default function SelectControl({ className = '', id, name, onChange, opti
       {isOpen && (
         <div
           aria-labelledby={controlId}
-          className="bp-scroll absolute z-40 mt-1 max-h-64 w-full overflow-y-auto border-2 border-[var(--bp-amber)] bg-[var(--bp-surface-raised)] p-1 shadow-2xl shadow-black/50"
+          className="bp-scroll absolute left-0 right-0 z-40 mt-1 max-h-64 overflow-y-auto border border-[var(--bp-amber)] bg-[var(--bp-surface-raised)] p-1 shadow-2xl shadow-black/50"
           id={listboxId}
           role="listbox"
         >
