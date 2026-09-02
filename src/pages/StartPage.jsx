@@ -148,11 +148,6 @@ export default function StartPage() {
           </div>
 
           <div className="bp-hero-in-slideshow relative block min-w-0">
-            {/* Sparse amber corner details around the frame — decorative only,
-               kept off the photo itself so faces/content stay clean and readable. */}
-            <span aria-hidden="true" className="absolute -left-3 -top-3 h-3 w-3 border border-[var(--bp-amber)]/60 bg-[var(--bp-amber)]/25" />
-            <span aria-hidden="true" className="absolute -bottom-4 -right-4 h-5 w-5 bg-[var(--bp-amber)]/20" />
-
             <div className="group relative overflow-hidden border-2 border-[var(--bp-border-strong)] bg-[var(--bp-surface)]">
               <div className="relative h-56 w-full overflow-hidden sm:h-72 lg:h-80 xl:h-96 2xl:h-[26rem]">
                 <div
