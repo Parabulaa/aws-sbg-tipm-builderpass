@@ -116,7 +116,7 @@ export default function EventAttendancePage() {
       {registrations.length === 0 ? (
         <p className="mt-8 rounded-lg border border-slate-200 bg-white px-5 py-4 text-slate-600">No registered members are available for attendance.</p>
       ) : (
-        <div className="mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <div className="bp-scroll mt-8 overflow-x-auto rounded-xl border border-slate-200 bg-white">
           <table className="min-w-[1100px] divide-y divide-slate-200 text-left text-sm">
             <thead className="bg-slate-50 text-slate-600">
               <tr>

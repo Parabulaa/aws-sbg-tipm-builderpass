@@ -234,7 +234,7 @@ export default function MembersPage() {
           )}
 
           {!isLoading && filteredMembers.length > 0 && (
-            <div className="mt-6 overflow-x-auto rounded-xl border border-slate-200 bg-white">
+            <div className="bp-scroll mt-6 overflow-x-auto rounded-xl border border-slate-200 bg-white">
               <table className="min-w-[900px] text-sm">
                 <thead className="bg-slate-50 text-slate-700">
                   <tr>
