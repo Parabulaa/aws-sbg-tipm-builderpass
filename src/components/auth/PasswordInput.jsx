@@ -1,5 +1,6 @@
 import { Eye, EyeOff } from 'lucide-react'
 import AuthInput from './AuthInput.jsx'
+import { getPasswordInputType } from '../../utils/authValidation.js'
 
 export default function PasswordInput({
   autoComplete = 'new-password',
@@ -25,7 +26,7 @@ export default function PasswordInput({
         id={id}
         name={name}
         onChange={onChange}
-        type={isVisible ? 'text' : 'password'}
+        type={getPasswordInputType(isVisible)}
         value={value}
       />
       <button

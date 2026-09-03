@@ -1,5 +1,6 @@
 import { ImageOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { getPosterDisplayState } from '../utils/posterDisplay.js'
 
 export default function EventPoster({ className = '', imageClassName = '', loading = 'lazy', src, title }) {
   const [hasError, setHasError] = useState(false)
@@ -10,13 +11,14 @@ export default function EventPoster({ className = '', imageClassName = '', loadi
     setIsLoaded(false)
   }, [src])
 
-  const showFallback = !src || hasError
+  const displayState = getPosterDisplayState({ hasError, isLoaded, src })
+  const showFallback = displayState === 'unavailable'
 
   return (
     <div
       className={`relative isolate overflow-hidden border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] ${className}`}
     >
-      {(!isLoaded || showFallback) && (
+      {displayState !== 'ready' && (
         <div
           aria-label={showFallback ? `${title} poster unavailable` : `${title} poster loading`}
           className="absolute inset-0 grid place-items-center bg-[linear-gradient(135deg,var(--bp-bg-soft),var(--bp-surface-raised))]"

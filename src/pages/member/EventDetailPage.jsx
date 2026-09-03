@@ -14,6 +14,7 @@ import {
   formatEventTimeRange,
 } from '../../utils/events.js'
 import { eventWithOptionalEndTime, queryWithOptionalEventEndTime } from '../../utils/supabaseCompatibility.js'
+import { createActionLock } from '../../utils/actionLock.js'
 
 export default function EventDetailPage() {
   const { profile } = useAuth()
@@ -27,7 +28,7 @@ export default function EventDetailPage() {
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const rsvpRequestInFlightRef = useRef(false)
+  const rsvpRequestLockRef = useRef(createActionLock())
 
   useEffect(() => {
     let isActive = true
@@ -110,15 +111,15 @@ export default function EventDetailPage() {
   }
 
   async function handleRegistration() {
-    if (rsvpRequestInFlightRef.current) return
+    if (!rsvpRequestLockRef.current.acquire()) return
 
     if (!event || !profile?.id) {
+      rsvpRequestLockRef.current.release()
       setErrorMessage('Your member profile is not available. Please sign in again.')
       return
     }
 
     setErrorMessage('')
-    rsvpRequestInFlightRef.current = true
     setIsSubmitting(true)
 
     try {
@@ -133,16 +134,15 @@ export default function EventDetailPage() {
     } catch (error) {
       setErrorMessage(getRsvpErrorMessage(error, 'We could not register you for this event. Please try again.'))
     } finally {
-      rsvpRequestInFlightRef.current = false
+      rsvpRequestLockRef.current.release()
       setIsSubmitting(false)
     }
   }
 
   async function handleCancellation() {
-    if (!event || rsvpRequestInFlightRef.current) return
+    if (!event || !rsvpRequestLockRef.current.acquire()) return
 
     setErrorMessage('')
-    rsvpRequestInFlightRef.current = true
     setIsSubmitting(true)
 
     try {
@@ -158,7 +158,7 @@ export default function EventDetailPage() {
     } catch (error) {
       setErrorMessage(getRsvpErrorMessage(error, 'We could not cancel your RSVP. Please try again.'))
     } finally {
-      rsvpRequestInFlightRef.current = false
+      rsvpRequestLockRef.current.release()
       setIsSubmitting(false)
     }
   }

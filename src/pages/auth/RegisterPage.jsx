@@ -8,6 +8,7 @@ import AuthInput from '../../components/auth/AuthInput.jsx'
 import PasswordInput from '../../components/auth/PasswordInput.jsx'
 import { TIP_MANILA_COURSES, YEAR_LEVELS } from '../../constants/academics.js'
 import { supabase } from '../../services/supabase/client.js'
+import { getPasswordMatchState, validateRegistrationForm } from '../../utils/authValidation.js'
 import { getPasswordStrength, PASSWORD_REQUIREMENTS } from '../../utils/passwordStrength.js'
 
 const initialForm = {
@@ -19,22 +20,6 @@ const initialForm = {
   yearLevel: '',
   password: '',
   confirmPassword: '',
-}
-
-function validateForm(form) {
-  const errors = {}
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-  if (!form.studentNumber.trim()) errors.studentNumber = 'Student number is required.'
-  if (!form.firstName.trim()) errors.firstName = 'First name is required.'
-  if (!form.lastName.trim()) errors.lastName = 'Last name is required.'
-  if (!emailPattern.test(form.email.trim())) errors.email = 'Enter a valid email address.'
-  if (!form.course.trim()) errors.course = 'Course or program is required.'
-  if (!form.yearLevel) errors.yearLevel = 'Select a year level.'
-  if (getPasswordStrength(form.password).score < 4) errors.password = 'Password must meet every requirement below.'
-  if (form.password !== form.confirmPassword) errors.confirmPassword = 'Passwords do not match.'
-
-  return errors
 }
 
 export default function RegisterPage() {
@@ -61,7 +46,7 @@ export default function RegisterPage() {
   async function handleSubmit(event) {
     event.preventDefault()
 
-    const nextErrors = validateForm(form)
+    const nextErrors = validateRegistrationForm(form)
     setErrors(nextErrors)
     setSubmissionError('')
     setSuccessMessage('')
@@ -353,17 +338,16 @@ function PasswordStrength({ password }) {
 }
 
 function PasswordMatchStatus({ confirmPassword, password }) {
-  if (!confirmPassword) return null
-
-  const matches = password === confirmPassword
+  const matchState = getPasswordMatchState(password, confirmPassword)
+  if (!matchState) return null
 
   return (
     <p
-      className={`mt-2 text-xs font-semibold ${matches ? 'text-[var(--bp-success)]' : 'text-[var(--bp-danger)]'}`}
+      className={`mt-2 text-xs font-semibold ${matchState.matches ? 'text-[var(--bp-success)]' : 'text-[var(--bp-danger)]'}`}
       id="confirm-password-status"
       role="status"
     >
-      {matches ? '✓ Passwords match' : 'Passwords do not match'}
+      {matchState.message}
     </p>
   )
 }
