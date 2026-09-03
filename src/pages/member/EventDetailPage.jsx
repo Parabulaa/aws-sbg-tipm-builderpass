@@ -210,8 +210,8 @@ export default function EventDetailPage() {
         </div>
 
         <EventPoster
-          className="mt-8 aspect-video w-full"
-          imageClassName="object-cover"
+          className="mt-8 aspect-[4/3] w-full sm:aspect-video"
+          imageClassName="object-contain sm:object-cover"
           loading="eager"
           src={posterUrl}
           title={event.title}

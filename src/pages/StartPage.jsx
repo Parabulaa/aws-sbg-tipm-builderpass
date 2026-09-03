@@ -155,14 +155,15 @@ export default function StartPage() {
                   style={{ transform: `translateX(-${activeSlide * 100}%)` }}
                 >
                   {heroSlides.map((slide, index) => (
-                    <picture className="h-full w-full shrink-0" key={slide.src}>
+                    <picture className="block h-full w-full shrink-0" key={slide.src}>
                       <source media="(max-width: 1023px)" srcSet={slide.mobileSrc} />
                       <img
                         alt={slide.caption}
-                        className="h-full w-full object-cover"
+                        className="block h-full w-full object-cover object-center"
+                        decoding={index === 0 ? 'sync' : 'async'}
                         draggable="false"
                         fetchPriority={index === 0 ? 'high' : 'auto'}
-                        loading={index === 0 ? 'eager' : 'lazy'}
+                        loading="eager"
                         src={slide.src}
                       />
                     </picture>

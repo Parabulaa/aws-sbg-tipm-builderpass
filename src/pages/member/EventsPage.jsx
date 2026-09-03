@@ -180,8 +180,8 @@ export default function EventsPage() {
                     to={`/events/${event.id}`}
                   >
                     <EventPoster
-                      className="aspect-video w-full"
-                      imageClassName="object-cover"
+                      className="aspect-[4/3] w-full sm:aspect-video"
+                      imageClassName="object-contain sm:object-cover"
                       src={posterUrl}
                       title={event.title}
                     />
