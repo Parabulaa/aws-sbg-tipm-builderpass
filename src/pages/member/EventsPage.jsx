@@ -2,6 +2,7 @@ import { CalendarDays, MapPin } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import EventSearchControl from '../../components/EventSearchControl.jsx'
+import EventPoster from '../../components/EventPoster.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
@@ -178,15 +179,12 @@ export default function EventsPage() {
                     key={event.id}
                     to={`/events/${event.id}`}
                   >
-                    {posterUrl && (
-                      <img
-                        alt={`${event.title} poster`}
-                        className="aspect-video w-full border border-[var(--bp-border)] object-cover"
-                        draggable="false"
-                        loading="lazy"
-                        src={posterUrl}
-                      />
-                    )}
+                    <EventPoster
+                      className="aspect-video w-full"
+                      imageClassName="object-cover"
+                      src={posterUrl}
+                      title={event.title}
+                    />
 
                     <div className="mt-4 flex items-start justify-between gap-4">
                       <div className="flex-1">

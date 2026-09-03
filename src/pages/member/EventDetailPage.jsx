@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import BackLink from '../../components/BackLink.jsx'
 import Dialog from '../../components/Dialog.jsx'
+import EventPoster from '../../components/EventPoster.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrl } from '../../utils/eventPosters.js'
@@ -208,13 +209,13 @@ export default function EventDetailPage() {
           </span>
         </div>
 
-        {posterUrl && (
-          <img
-            alt={`${event.title} poster`}
-            className="mt-8 aspect-video w-full border border-[var(--bp-border)] object-cover"
-            src={posterUrl}
-          />
-        )}
+        <EventPoster
+          className="mt-8 aspect-video w-full"
+          imageClassName="object-cover"
+          loading="eager"
+          src={posterUrl}
+          title={event.title}
+        />
 
         <div className="mt-8 grid gap-6 border-t border-[var(--bp-border)] pt-8 sm:grid-cols-2">
           <div>

@@ -2,6 +2,7 @@ import { CalendarDays, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import EventSearchControl from '../../components/EventSearchControl.jsx'
+import EventPoster from '../../components/EventPoster.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrls } from '../../utils/eventPosters.js'
@@ -118,14 +119,12 @@ export default function AdminEventsPage() {
                   return (
                     <article className="flex flex-wrap items-center justify-between gap-4 p-5" key={event.id}>
                       <div className="flex min-w-0 items-center gap-4">
-                        {posterUrl && (
-                          <img
-                            alt={`${event.title} poster`}
-                            className="h-20 w-32 shrink-0 border border-slate-200 object-cover"
-                            loading="lazy"
-                            src={posterUrl}
-                          />
-                        )}
+                        <EventPoster
+                          className="h-20 w-32 shrink-0"
+                          imageClassName="object-cover"
+                          src={posterUrl}
+                          title={event.title}
+                        />
                         <div>
                           <h2 className="font-semibold text-slate-950">{event.title}</h2>
                           <p className="mt-1 flex items-center gap-2 text-sm text-slate-600">
