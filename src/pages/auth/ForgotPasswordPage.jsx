@@ -1,6 +1,8 @@
 import { CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import AuthField from '../../components/auth/AuthField.jsx'
+import AuthInput from '../../components/auth/AuthInput.jsx'
 import { supabase } from '../../services/supabase/client.js'
 
 export default function ForgotPasswordPage() {
@@ -67,18 +69,16 @@ export default function ForgotPasswordPage() {
             )}
 
             <form className="mt-8 space-y-5" noValidate onSubmit={handleSubmit}>
-              <div>
-                <label className="mb-2 block text-sm font-semibold text-[var(--bp-text-muted)]" htmlFor="reset-email">Email</label>
-                <input
+              <AuthField htmlFor="reset-email" label="Email">
+                <AuthInput
                   autoComplete="email"
                   autoFocus
-                  className="bp-control h-12 w-full bg-[var(--bp-bg-soft)] px-4 text-[var(--bp-text)] outline-none transition-colors"
                   id="reset-email"
                   onChange={(event) => setEmail(event.target.value)}
                   type="email"
                   value={email}
                 />
-              </div>
+              </AuthField>
               <button
                 className="w-full border-2 border-[var(--bp-amber)] bg-[var(--bp-amber)] px-4 py-3.5 font-bold uppercase tracking-wide text-black hover:bg-[var(--bp-amber-strong)] disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isSubmitting}

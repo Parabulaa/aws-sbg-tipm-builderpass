@@ -1,6 +1,8 @@
-import { Eye, EyeOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import AuthField from '../../components/auth/AuthField.jsx'
+import AuthInput from '../../components/auth/AuthInput.jsx'
+import PasswordInput from '../../components/auth/PasswordInput.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 
@@ -74,53 +76,34 @@ export default function LoginPage() {
         )}
 
         <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
-          <div>
-            <label className="mb-2 block text-sm font-semibold text-[var(--bp-text-muted)]" htmlFor="email">
-              Email
-            </label>
-            <input
+          <AuthField htmlFor="email" label="Email">
+            <AuthInput
               autoComplete="email"
-              className="bp-control h-12 w-full bg-[var(--bp-bg-soft)] px-4 text-[var(--bp-text)] outline-none transition-colors"
               id="email"
               onChange={(event) => setEmail(event.target.value)}
               type="email"
               value={email}
             />
-          </div>
+          </AuthField>
 
-          <div>
-            <div className="mb-2 flex items-center justify-between gap-4">
-              <label className="block text-sm font-semibold text-[var(--bp-text-muted)]" htmlFor="password">
-                Password
-              </label>
+          <AuthField
+            htmlFor="password"
+            label="Password"
+            labelAction={(
               <Link className="text-xs font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" to="/forgot-password">
                 Forgot password?
               </Link>
-            </div>
-            <div className="relative">
-              <input
-                autoComplete="current-password"
-                className="bp-control h-12 w-full bg-[var(--bp-bg-soft)] px-4 pr-12 text-[var(--bp-text)] outline-none transition-colors"
-                id="password"
-                onChange={(event) => setPassword(event.target.value)}
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-              />
-              <button
-                aria-label={`${showPassword ? 'Hide' : 'Show'} password`}
-                aria-pressed={showPassword}
-                className={`bp-password-visibility-toggle absolute right-0 top-0 flex h-full w-12 items-center justify-center transition-colors focus-visible:text-[var(--bp-text-muted)] ${
-                  showPassword
-                    ? 'text-[var(--bp-text-muted)] hover:text-[var(--bp-text)]'
-                    : 'text-[var(--bp-text-dim)] hover:text-[var(--bp-text-muted)]'
-                }`}
-                onClick={() => setShowPassword((current) => !current)}
-                type="button"
-              >
-                {showPassword ? <EyeOff aria-hidden="true" size={19} /> : <Eye aria-hidden="true" size={19} />}
-              </button>
-            </div>
-          </div>
+            )}
+          >
+            <PasswordInput
+              autoComplete="current-password"
+              id="password"
+              isVisible={showPassword}
+              onChange={(event) => setPassword(event.target.value)}
+              onToggleVisibility={() => setShowPassword((current) => !current)}
+              value={password}
+            />
+          </AuthField>
 
           <button
             className="w-full border-2 border-[var(--bp-amber)] bg-[var(--bp-amber)] px-4 py-3.5 font-bold uppercase tracking-wide text-black transition-colors duration-150 hover:bg-[var(--bp-amber-strong)] disabled:cursor-not-allowed disabled:opacity-60"

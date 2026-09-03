@@ -1,8 +1,11 @@
-import { CheckCircle2, Eye, EyeOff } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Dialog from '../../components/Dialog.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
+import AuthField from '../../components/auth/AuthField.jsx'
+import AuthInput from '../../components/auth/AuthInput.jsx'
+import PasswordInput from '../../components/auth/PasswordInput.jsx'
 import { TIP_MANILA_COURSES, YEAR_LEVELS } from '../../constants/academics.js'
 import { supabase } from '../../services/supabase/client.js'
 import { getPasswordStrength, PASSWORD_REQUIREMENTS } from '../../utils/passwordStrength.js'
@@ -142,51 +145,51 @@ export default function RegisterPage() {
               Student info
             </p>
 
-            <Field label="AWS SBG Member ID" error={errors.studentNumber}>
-              <input
+            <AuthField htmlFor="studentNumber" label="AWS SBG Member ID" error={errors.studentNumber}>
+              <AuthInput
                 autoComplete="off"
-                className={inputClassName(errors.studentNumber)}
+                error={errors.studentNumber}
                 id="studentNumber"
                 name="studentNumber"
                 onChange={handleChange}
                 value={form.studentNumber}
               />
-            </Field>
+            </AuthField>
 
             <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="First name" error={errors.firstName}>
-                <input
+              <AuthField htmlFor="firstName" label="First name" error={errors.firstName}>
+                <AuthInput
                   autoComplete="given-name"
-                  className={inputClassName(errors.firstName)}
+                  error={errors.firstName}
                   id="firstName"
                   name="firstName"
                   onChange={handleChange}
                   value={form.firstName}
                 />
-              </Field>
-              <Field label="Last name" error={errors.lastName}>
-                <input
+              </AuthField>
+              <AuthField htmlFor="lastName" label="Last name" error={errors.lastName}>
+                <AuthInput
                   autoComplete="family-name"
-                  className={inputClassName(errors.lastName)}
+                  error={errors.lastName}
                   id="lastName"
                   name="lastName"
                   onChange={handleChange}
                   value={form.lastName}
                 />
-              </Field>
+              </AuthField>
             </div>
 
-            <Field label="Email" error={errors.email}>
-              <input
+            <AuthField htmlFor="email" label="Email" error={errors.email}>
+              <AuthInput
                 autoComplete="email"
-                className={inputClassName(errors.email)}
+                error={errors.email}
                 id="email"
                 name="email"
                 onChange={handleChange}
                 type="email"
                 value={form.email}
               />
-            </Field>
+            </AuthField>
           </div>
 
           <div className="space-y-5 border-t border-[var(--bp-border)] pt-6">
@@ -194,7 +197,7 @@ export default function RegisterPage() {
               Academic details
             </p>
 
-            <Field label="Course or program" error={errors.course}>
+            <AuthField htmlFor="course" label="Course or program" error={errors.course}>
               <SelectControl
                 className="w-full"
                 id="course"
@@ -203,9 +206,9 @@ export default function RegisterPage() {
                 options={courseOptions}
                 value={form.course}
               />
-            </Field>
+            </AuthField>
 
-            <Field label="Year level" error={errors.yearLevel}>
+            <AuthField htmlFor="yearLevel" label="Year level" error={errors.yearLevel}>
               <SelectControl
                 className="w-full"
                 id="yearLevel"
@@ -214,12 +217,12 @@ export default function RegisterPage() {
                 options={yearOptions}
                 value={form.yearLevel}
               />
-            </Field>
+            </AuthField>
           </div>
 
           <div className="space-y-5 border-t border-[var(--bp-border)] pt-6">
             <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="Password" error={passwordError} htmlFor="password">
+              <AuthField label="Password" error={passwordError} htmlFor="password">
                 <div>
                   <PasswordInput
                     describedBy="password-requirements"
@@ -233,14 +236,15 @@ export default function RegisterPage() {
                   />
                   <PasswordStrength password={form.password} />
                 </div>
-              </Field>
-              <Field label="Confirm password" htmlFor="confirmPassword">
+              </AuthField>
+              <AuthField label="Confirm password" htmlFor="confirmPassword">
                 <div>
                   <PasswordInput
                     describedBy={hasConfirmPassword ? 'confirm-password-status' : undefined}
                     error={hasConfirmPassword && !passwordsMatch}
                     id="confirmPassword"
                     isVisible={showConfirmPassword}
+                    label="confirmation password"
                     name="confirmPassword"
                     onChange={handleChange}
                     onToggleVisibility={() => setShowConfirmPassword((current) => !current)}
@@ -248,7 +252,7 @@ export default function RegisterPage() {
                   />
                   <PasswordMatchStatus confirmPassword={form.confirmPassword} password={form.password} />
                 </div>
-              </Field>
+              </AuthField>
             </div>
           </div>
 
@@ -302,52 +306,6 @@ export default function RegisterPage() {
         </div>
       </Dialog>
     </section>
-  )
-}
-
-function Field({ children, error, htmlFor, label }) {
-  const inputId = htmlFor || children.props.id
-
-  return (
-    <div>
-      <label className="mb-2 block text-sm font-semibold text-[var(--bp-text-muted)]" htmlFor={inputId}>
-        {label}
-      </label>
-      {children}
-      {error && <p className="mt-2 text-sm text-[var(--bp-danger)]">{error}</p>}
-    </div>
-  )
-}
-
-function PasswordInput({ describedBy, error, id, isVisible, name, onChange, onToggleVisibility, value }) {
-  const VisibilityIcon = isVisible ? EyeOff : Eye
-
-  return (
-    <div className="relative">
-      <input
-        aria-describedby={describedBy}
-        autoComplete="new-password"
-        className={`${inputClassName(error)} pr-12`}
-        id={id}
-        name={name}
-        onChange={onChange}
-        type={isVisible ? 'text' : 'password'}
-        value={value}
-      />
-      <button
-        aria-label={`${isVisible ? 'Hide' : 'Show'} ${name === 'confirmPassword' ? 'confirmation password' : 'password'}`}
-        aria-pressed={isVisible}
-        className={`bp-password-visibility-toggle absolute right-0 top-0 flex h-full w-12 items-center justify-center transition-colors focus-visible:text-[var(--bp-text-muted)] ${
-          isVisible
-            ? 'text-[var(--bp-text-muted)] hover:text-[var(--bp-text)]'
-            : 'text-[var(--bp-text-dim)] hover:text-[var(--bp-text-muted)]'
-        }`}
-        onClick={onToggleVisibility}
-        type="button"
-      >
-        <VisibilityIcon aria-hidden="true" size={19} />
-      </button>
-    </div>
   )
 }
 
@@ -408,12 +366,6 @@ function PasswordMatchStatus({ confirmPassword, password }) {
       {matches ? '✓ Passwords match' : 'Passwords do not match'}
     </p>
   )
-}
-
-function inputClassName(error) {
-  return `bp-control h-12 w-full bg-[var(--bp-bg-soft)] px-4 text-[var(--bp-text)] outline-none transition-colors ${
-    error ? 'bp-control-error' : ''
-  }`
 }
 
 const courseOptions = [

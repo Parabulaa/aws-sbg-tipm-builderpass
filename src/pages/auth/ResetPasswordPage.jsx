@@ -1,6 +1,7 @@
-import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import AuthField from '../../components/auth/AuthField.jsx'
+import PasswordInput from '../../components/auth/PasswordInput.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getPasswordStrength, PASSWORD_REQUIREMENTS } from '../../utils/passwordStrength.js'
@@ -73,25 +74,27 @@ export default function ResetPasswordPage() {
               </p>
             )}
             <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
-              <PasswordField
-                autoComplete="new-password"
-                id="new-password"
-                isVisible={showPassword}
-                label="New password"
-                onChange={setPassword}
-                onToggle={() => setShowPassword((current) => !current)}
-                value={password}
-              />
+              <AuthField htmlFor="new-password" label="New password">
+                <PasswordInput
+                  id="new-password"
+                  isVisible={showPassword}
+                  label="new password"
+                  onChange={(event) => setPassword(event.target.value)}
+                  onToggleVisibility={() => setShowPassword((current) => !current)}
+                  value={password}
+                />
+              </AuthField>
               <p className="-mt-3 text-xs leading-relaxed text-[var(--bp-text-dim)]">{PASSWORD_REQUIREMENTS}</p>
-              <PasswordField
-                autoComplete="new-password"
-                id="confirm-new-password"
-                isVisible={showConfirmation}
-                label="Confirm new password"
-                onChange={setConfirmation}
-                onToggle={() => setShowConfirmation((current) => !current)}
-                value={confirmation}
-              />
+              <AuthField htmlFor="confirm-new-password" label="Confirm new password">
+                <PasswordInput
+                  id="confirm-new-password"
+                  isVisible={showConfirmation}
+                  label="new password confirmation"
+                  onChange={(event) => setConfirmation(event.target.value)}
+                  onToggleVisibility={() => setShowConfirmation((current) => !current)}
+                  value={confirmation}
+                />
+              </AuthField>
               <button
                 className="w-full border-2 border-[var(--bp-amber)] bg-[var(--bp-amber)] px-4 py-3.5 font-bold uppercase tracking-wide text-black hover:bg-[var(--bp-amber-strong)] disabled:cursor-not-allowed disabled:opacity-60"
                 disabled={isSubmitting}
@@ -104,34 +107,5 @@ export default function ResetPasswordPage() {
         )}
       </div>
     </section>
-  )
-}
-
-function PasswordField({ autoComplete, id, isVisible, label, onChange, onToggle, value }) {
-  const VisibilityIcon = isVisible ? EyeOff : Eye
-
-  return (
-    <div>
-      <label className="mb-2 block text-sm font-semibold text-[var(--bp-text-muted)]" htmlFor={id}>{label}</label>
-      <div className="relative">
-        <input
-          autoComplete={autoComplete}
-          className="bp-control h-12 w-full bg-[var(--bp-bg-soft)] px-4 pr-12 text-[var(--bp-text)] outline-none transition-colors"
-          id={id}
-          onChange={(event) => onChange(event.target.value)}
-          type={isVisible ? 'text' : 'password'}
-          value={value}
-        />
-        <button
-          aria-label={`${isVisible ? 'Hide' : 'Show'} ${label.toLowerCase()}`}
-          aria-pressed={isVisible}
-          className="bp-password-visibility-toggle absolute right-0 top-0 flex h-full w-12 items-center justify-center text-[var(--bp-text-dim)] transition-colors hover:text-[var(--bp-text-muted)]"
-          onClick={onToggle}
-          type="button"
-        >
-          <VisibilityIcon aria-hidden="true" size={19} />
-        </button>
-      </div>
-    </div>
   )
 }
