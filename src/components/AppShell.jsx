@@ -233,7 +233,6 @@ export default function AppShell({ children }) {
       </footer>
 
       <Dialog
-        icon={LogOut}
         isOpen={isLogoutDialogOpen}
         onClose={closeLogoutDialog}
         titleId="logout-confirmation-title"
@@ -260,11 +259,12 @@ export default function AppShell({ children }) {
             Stay signed in
           </button>
           <button
-            className="min-h-12 bg-[var(--bp-amber)] px-4 py-3 text-sm font-bold uppercase tracking-wide text-black transition-colors hover:bg-[var(--bp-amber-strong)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex min-h-12 items-center justify-center gap-2 bg-[var(--bp-amber)] px-4 py-3 text-sm font-bold uppercase tracking-wide text-black transition-colors hover:bg-[var(--bp-amber-strong)] disabled:cursor-not-allowed disabled:opacity-60"
             disabled={isSigningOut}
             onClick={handleSignOut}
             type="button"
           >
+            <LogOut aria-hidden="true" size={18} />
             {isSigningOut ? 'Logging out...' : 'Log out'}
           </button>
         </div>
