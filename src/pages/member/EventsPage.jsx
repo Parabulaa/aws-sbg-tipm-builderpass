@@ -162,7 +162,12 @@ export default function EventsPage() {
 
           {filteredEvents.length === 0 ? (
             <div className="mt-4 border border-[var(--bp-border)] bg-[var(--bp-surface)] px-6 py-5 text-[var(--bp-text-dim)]">
-              No events match the current filters.
+              <p className="font-semibold text-[var(--bp-text-muted)]">No matching events</p>
+              <p className="mt-1 text-sm">
+                {filters.search
+                  ? `No event names match “${filters.search.trim()}”. Clear the search or adjust the filters.`
+                  : 'Adjust or reset the current filters to see more events.'}
+              </p>
             </div>
           ) : (
             <div className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(min(100%,22rem),24rem))] justify-start gap-7 pb-1">

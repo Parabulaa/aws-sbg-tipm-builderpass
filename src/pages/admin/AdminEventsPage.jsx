@@ -109,7 +109,14 @@ export default function AdminEventsPage() {
           <p className="mt-6 text-sm text-slate-600" role="status">Showing {filteredEvents.length} of {events.length} events</p>
 
           {filteredEvents.length === 0 ? (
-            <p className="mt-4 rounded-lg border border-slate-200 bg-white px-5 py-4 text-slate-600">No events match the current filters.</p>
+            <div className="mt-4 rounded-lg border border-slate-200 bg-white px-5 py-4 text-slate-600">
+              <p className="font-semibold text-slate-800">No matching events</p>
+              <p className="mt-1 text-sm">
+                {filters.search
+                  ? `No event names match “${filters.search.trim()}”. Clear the search or adjust the filters.`
+                  : 'Adjust or reset the current filters to see more events.'}
+              </p>
+            </div>
           ) : (
             <div className="bp-panel-outline mt-4 overflow-hidden bg-white">
               <div className="bp-admin-event-list">
