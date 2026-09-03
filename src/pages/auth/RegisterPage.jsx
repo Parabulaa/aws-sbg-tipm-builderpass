@@ -213,8 +213,6 @@ export default function RegisterPage() {
           </div>
 
           <div className="space-y-5 border-t border-[var(--bp-border)] pt-6">
-            <p className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-muted)]">Password</p>
-
             <div className="grid gap-5 sm:grid-cols-2">
               <Field label="Password" error={passwordError} htmlFor="password">
                 <div>
@@ -265,12 +263,6 @@ export default function RegisterPage() {
           </Link>
           .
         </p>
-        <Link
-          className="mt-3 inline-block text-sm font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]"
-          to="/"
-        >
-          Return home →
-        </Link>
       </div>
 
       <Dialog
