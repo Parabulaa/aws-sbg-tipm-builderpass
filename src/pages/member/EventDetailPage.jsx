@@ -1,5 +1,5 @@
 import { AlertTriangle, CalendarDays, MapPin } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import BackLink from '../../components/BackLink.jsx'
 import Dialog from '../../components/Dialog.jsx'
@@ -26,6 +26,7 @@ export default function EventDetailPage() {
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const rsvpRequestInFlightRef = useRef(false)
 
   useEffect(() => {
     let isActive = true
@@ -108,12 +109,15 @@ export default function EventDetailPage() {
   }
 
   async function handleRegistration() {
+    if (rsvpRequestInFlightRef.current) return
+
     if (!event || !profile?.id) {
       setErrorMessage('Your member profile is not available. Please sign in again.')
       return
     }
 
     setErrorMessage('')
+    rsvpRequestInFlightRef.current = true
     setIsSubmitting(true)
 
     try {
@@ -128,14 +132,16 @@ export default function EventDetailPage() {
     } catch (error) {
       setErrorMessage(getRsvpErrorMessage(error, 'We could not register you for this event. Please try again.'))
     } finally {
+      rsvpRequestInFlightRef.current = false
       setIsSubmitting(false)
     }
   }
 
   async function handleCancellation() {
-    if (!event) return
+    if (!event || rsvpRequestInFlightRef.current) return
 
     setErrorMessage('')
+    rsvpRequestInFlightRef.current = true
     setIsSubmitting(true)
 
     try {
@@ -151,6 +157,7 @@ export default function EventDetailPage() {
     } catch (error) {
       setErrorMessage(getRsvpErrorMessage(error, 'We could not cancel your RSVP. Please try again.'))
     } finally {
+      rsvpRequestInFlightRef.current = false
       setIsSubmitting(false)
     }
   }
@@ -235,7 +242,11 @@ export default function EventDetailPage() {
           </div>
         )}
 
-        <div className="mt-8 border-t border-[var(--bp-border)] pt-8">
+        <div
+          aria-busy={isSubmitting}
+          aria-live="polite"
+          className="mt-8 border-t border-[var(--bp-border)] pt-8"
+        >
           <p className="mono mb-4 text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)]">
             Registration
           </p>
@@ -270,6 +281,7 @@ export default function EventDetailPage() {
               {event.registration_status === 'OPEN' && isCurrent ? (
                 <button
                   className="min-h-11 min-w-36 border border-[var(--bp-danger)] px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-[var(--bp-danger)] transition-colors hover:bg-[var(--bp-danger)] hover:text-white"
+                  disabled={isSubmitting}
                   onClick={() => setIsCancelDialogOpen(true)}
                   type="button"
                 >
