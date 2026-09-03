@@ -15,7 +15,9 @@ const EventRegistrationsPage = lazy(() => import('./pages/admin/EventRegistratio
 const MemberImportPage = lazy(() => import('./pages/admin/MemberImportPage.jsx'))
 const MembersPage = lazy(() => import('./pages/admin/MembersPage.jsx'))
 const LoginPage = lazy(() => import('./pages/auth/LoginPage.jsx'))
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage.jsx'))
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage.jsx'))
+const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage.jsx'))
 const EventDetailPage = lazy(() => import('./pages/member/EventDetailPage.jsx'))
 const EventsPage = lazy(() => import('./pages/member/EventsPage.jsx'))
 const MemberDashboardPage = lazy(() => import('./pages/member/MemberDashboardPage.jsx'))
@@ -44,6 +46,22 @@ export default function App() {
             element={
               <PageTransition key={location.pathname}>
                 <RegisterPage />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <PageTransition key={location.pathname}>
+                <ForgotPasswordPage />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/reset-password"
+            element={
+              <PageTransition key={location.pathname}>
+                <ResetPasswordPage />
               </PageTransition>
             }
           />

@@ -58,6 +58,12 @@ export default function LoginPage() {
           Sign in with the email and password you used to register.
         </p>
 
+        {location.state?.notice && (
+          <div className="mt-6 border border-[var(--bp-success)]/40 bg-[var(--bp-success)]/10 px-4 py-3 text-sm text-[var(--bp-success)]" role="status">
+            {location.state.notice}
+          </div>
+        )}
+
         {errorMessage && (
           <div
             className="mt-6 animate-[bp-page-in_220ms_ease-out_both] border border-[var(--bp-danger)]/30 bg-[var(--bp-danger)]/10 px-4 py-3 text-sm text-[var(--bp-danger)]"
@@ -83,9 +89,14 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-semibold text-[var(--bp-text-muted)]" htmlFor="password">
-              Password
-            </label>
+            <div className="mb-2 flex items-center justify-between gap-4">
+              <label className="block text-sm font-semibold text-[var(--bp-text-muted)]" htmlFor="password">
+                Password
+              </label>
+              <Link className="text-xs font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" to="/forgot-password">
+                Forgot password?
+              </Link>
+            </div>
             <div className="relative">
               <input
                 autoComplete="current-password"
