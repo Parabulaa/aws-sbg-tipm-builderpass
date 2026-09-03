@@ -13,6 +13,9 @@
   --bp-amber-muted: #8f681d;
   --bp-border: #39362f;
   --bp-border-strong: #554d3d;
+  --bp-card-border: #3a3a3a;
+  --bp-control-border: #555555;
+  --bp-control-border-hover: #6a6a6a;
   --bp-success: #42b96b;
   --bp-danger: #d96767;
 
@@ -249,20 +252,23 @@ main input:focus, main select:focus, main textarea:focus {
   outline: none;
 }
 main .bp-control {
-  border: 1px solid var(--bp-amber) !important;
+  border: 1px solid var(--bp-control-border) !important;
 }
-main .bp-control:hover,
+main .bp-control:hover {
+  border-color: var(--bp-control-border-hover) !important;
+}
 main .bp-control:focus,
 main .bp-control:focus-within {
   border-color: var(--bp-amber) !important;
   outline: none;
+  box-shadow: 0 0 0 1px rgba(255, 179, 26, 0.16);
 }
-main .bp-control-accent,
-main .bp-select-trigger {
+main .bp-control-accent {
   border-color: var(--bp-amber) !important;
 }
 main .bp-select-trigger[aria-expanded="true"] {
   border-color: var(--bp-amber) !important;
+  box-shadow: 0 0 0 1px rgba(255, 179, 26, 0.16);
 }
 main .bp-control input {
   border: 0 !important;
@@ -279,7 +285,8 @@ main .bp-date-time-input::-webkit-calendar-picker-indicator {
   filter: invert(76%) sepia(88%) saturate(1022%) hue-rotate(344deg) brightness(104%);
   opacity: 1;
 }
-main .bp-control-error {
+main .bp-control-error,
+main .bp-control-error:hover {
   border-color: var(--bp-danger) !important;
 }
 main .bp-panel-outline {

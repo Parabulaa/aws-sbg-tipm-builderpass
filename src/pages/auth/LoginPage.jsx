@@ -50,7 +50,7 @@ export default function LoginPage() {
 
   return (
     <section className="mx-auto max-w-lg px-5 py-12 sm:py-20">
-      <div className="border border-[var(--bp-border)] bg-[var(--bp-surface)] p-6 sm:p-10">
+      <div className="border border-[var(--bp-card-border)] bg-[var(--bp-surface)] p-6 sm:p-10">
         <p className="mono text-xs font-bold uppercase tracking-[.18em] text-[var(--bp-amber)]">Member login</p>
         <h1 className="mt-4 text-3xl font-black tracking-tight text-[var(--bp-text)]">Welcome back</h1>
         <div className="mt-4 h-[1px] w-16 bg-[var(--bp-border-strong)]" />
@@ -74,7 +74,7 @@ export default function LoginPage() {
             </label>
             <input
               autoComplete="email"
-              className="bp-control w-full bg-[var(--bp-bg-soft)] px-4 py-3 text-[var(--bp-text)] outline-none transition-colors focus:ring-1 focus:ring-[var(--bp-amber)]"
+              className="bp-control h-12 w-full bg-[var(--bp-bg-soft)] px-4 text-[var(--bp-text)] outline-none transition-colors"
               id="email"
               onChange={(event) => setEmail(event.target.value)}
               type="email"
@@ -89,7 +89,7 @@ export default function LoginPage() {
             <div className="relative">
               <input
                 autoComplete="current-password"
-                className="bp-control w-full bg-[var(--bp-bg-soft)] px-4 py-3 pr-12 text-[var(--bp-text)] outline-none transition-colors focus:ring-1 focus:ring-[var(--bp-amber)]"
+                className="bp-control h-12 w-full bg-[var(--bp-bg-soft)] px-4 pr-12 text-[var(--bp-text)] outline-none transition-colors"
                 id="password"
                 onChange={(event) => setPassword(event.target.value)}
                 type={showPassword ? 'text' : 'password'}
@@ -98,10 +98,10 @@ export default function LoginPage() {
               <button
                 aria-label={`${showPassword ? 'Hide' : 'Show'} password`}
                 aria-pressed={showPassword}
-                className={`bp-password-visibility-toggle absolute right-0 top-0 flex h-full w-12 items-center justify-center transition-colors focus-visible:text-[var(--bp-amber)] ${
+                className={`bp-password-visibility-toggle absolute right-0 top-0 flex h-full w-12 items-center justify-center transition-colors focus-visible:text-[var(--bp-text-muted)] ${
                   showPassword
-                    ? 'text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]'
-                    : 'text-[var(--bp-text-dim)] hover:text-[var(--bp-amber)]'
+                    ? 'text-[var(--bp-text-muted)] hover:text-[var(--bp-text)]'
+                    : 'text-[var(--bp-text-dim)] hover:text-[var(--bp-text-muted)]'
                 }`}
                 onClick={() => setShowPassword((current) => !current)}
                 type="button"

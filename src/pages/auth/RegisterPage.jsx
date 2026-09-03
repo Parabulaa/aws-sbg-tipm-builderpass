@@ -114,7 +114,7 @@ export default function RegisterPage() {
 
   return (
     <section className="mx-auto max-w-2xl px-5 py-12 sm:py-20">
-      <div className="bp-panel-outline bg-[var(--bp-surface)] p-6 sm:p-10">
+      <div className="border border-[var(--bp-card-border)] bg-[var(--bp-surface)] p-6 sm:p-10">
         <p className="mono text-xs font-bold uppercase tracking-[.18em] text-[var(--bp-amber)]">
           Member registration
         </p>
@@ -332,10 +332,10 @@ function PasswordInput({ describedBy, error, id, isVisible, name, onChange, onTo
       <button
         aria-label={`${isVisible ? 'Hide' : 'Show'} ${name === 'confirmPassword' ? 'confirmation password' : 'password'}`}
         aria-pressed={isVisible}
-        className={`bp-password-visibility-toggle absolute right-0 top-0 flex h-full w-12 items-center justify-center transition-colors focus-visible:text-[var(--bp-amber)] ${
+        className={`bp-password-visibility-toggle absolute right-0 top-0 flex h-full w-12 items-center justify-center transition-colors focus-visible:text-[var(--bp-text-muted)] ${
           isVisible
-            ? 'text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]'
-            : 'text-[var(--bp-text-dim)] hover:text-[var(--bp-amber)]'
+            ? 'text-[var(--bp-text-muted)] hover:text-[var(--bp-text)]'
+            : 'text-[var(--bp-text-dim)] hover:text-[var(--bp-text-muted)]'
         }`}
         onClick={onToggleVisibility}
         type="button"
@@ -406,7 +406,7 @@ function PasswordMatchStatus({ confirmPassword, password }) {
 }
 
 function inputClassName(error) {
-  return `bp-control w-full bg-[var(--bp-bg-soft)] px-4 py-3 text-[var(--bp-text)] outline-none transition-colors focus:ring-1 focus:ring-[var(--bp-amber)] ${
+  return `bp-control h-12 w-full bg-[var(--bp-bg-soft)] px-4 text-[var(--bp-text)] outline-none transition-colors ${
     error ? 'bp-control-error' : ''
   }`
 }
