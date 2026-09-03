@@ -1,4 +1,4 @@
-import { CalendarDays, Plus } from 'lucide-react'
+import { CalendarDays, MoreHorizontal, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import EventSearchControl from '../../components/EventSearchControl.jsx'
@@ -155,20 +155,7 @@ export default function AdminEventsPage() {
                         >
                           {eventRegistrationLabel(event)}
                         </span>
-                        <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-4 lg:w-auto">
-                          <Link className={eventActionClassName} to={`/events/${event.id}`}>
-                            Details
-                          </Link>
-                          <Link className={eventActionClassName} to={`/admin/events/${event.id}/edit`}>
-                            Edit
-                          </Link>
-                          <Link className={eventActionClassName} to={`/admin/events/${event.id}/registrations`}>
-                            Registrations
-                          </Link>
-                          <Link className={eventActionClassName} to={`/admin/events/${event.id}/attendance`}>
-                            Attendance
-                          </Link>
-                        </div>
+                        <EventActions eventId={event.id} />
                       </div>
                     </article>
                   )
@@ -185,6 +172,35 @@ export default function AdminEventsPage() {
     const { name, value } = event.target
     setSearchParams(createEventFilterParams({ ...filters, [name]: value }, filterConfig), { replace: true })
   }
+}
+
+function EventActions({ eventId }) {
+  const actions = [
+    { label: 'Details', to: `/events/${eventId}` },
+    { label: 'Edit', to: `/admin/events/${eventId}/edit` },
+    { label: 'Registrations', to: `/admin/events/${eventId}/registrations` },
+    { label: 'Attendance', to: `/admin/events/${eventId}/attendance` },
+  ]
+
+  return (
+    <>
+      <details className="w-full sm:hidden">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-center gap-2 border border-[var(--bp-amber-muted)] px-4 text-sm font-bold text-[var(--bp-amber)] transition-colors hover:border-[var(--bp-amber)] [&::-webkit-details-marker]:hidden">
+          <MoreHorizontal aria-hidden="true" size={18} /> Event actions
+        </summary>
+        <div className="mt-2 grid gap-2 border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] p-2">
+          {actions.map((action) => (
+            <Link className={eventActionClassName} key={action.to} to={action.to}>{action.label}</Link>
+          ))}
+        </div>
+      </details>
+      <div className="hidden w-full grid-cols-4 gap-2 sm:grid lg:w-auto">
+        {actions.map((action) => (
+          <Link className={eventActionClassName} key={action.to} to={action.to}>{action.label}</Link>
+        ))}
+      </div>
+    </>
+  )
 }
 
 function filterEvents(events, filters) {
