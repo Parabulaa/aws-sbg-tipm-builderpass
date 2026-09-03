@@ -1,12 +1,13 @@
 import { CalendarDays, MapPin } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import EventSearchControl from '../../components/EventSearchControl.jsx'
 import EventPoster from '../../components/EventPoster.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrls } from '../../utils/eventPosters.js'
+import { createEventFilterParams, parseEventFilters } from '../../utils/eventFilters.js'
 import { eventWithOptionalEndTime, queryWithOptionalEventEndTime } from '../../utils/supabaseCompatibility.js'
 import {
   eventIsCurrent,
@@ -16,7 +17,13 @@ import {
   formatEventTimeRange,
 } from '../../utils/events.js'
 
-const initialFilters = { search: '', time: 'ALL', registrationStatus: 'ALL', participation: 'ALL' }
+const filterConfig = {
+  search: { defaultValue: '', param: 'q' },
+  time: { defaultValue: 'ALL', param: 'time', values: ['ALL', 'CURRENT', 'UPCOMING', 'PAST'] },
+  participation: { defaultValue: 'ALL', param: 'activity', values: ['ALL', 'RESERVED', 'ATTENDED'] },
+  registrationStatus: { defaultValue: 'ALL', param: 'registration', values: ['ALL', 'OPEN', 'CLOSED'] },
+}
+const initialFilters = Object.fromEntries(Object.entries(filterConfig).map(([name, settings]) => [name, settings.defaultValue]))
 
 export default function EventsPage() {
   const { profile } = useAuth()
@@ -24,7 +31,7 @@ export default function EventsPage() {
   const [rsvpSummariesByEvent, setRsvpSummariesByEvent] = useState({})
   const [posterUrlsByPath, setPosterUrlsByPath] = useState({})
   const [memberStateByEvent, setMemberStateByEvent] = useState({})
-  const [filters, setFilters] = useState(initialFilters)
+  const [searchParams, setSearchParams] = useSearchParams()
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
@@ -97,6 +104,7 @@ export default function EventsPage() {
     }
   }, [profile?.id])
 
+  const filters = parseEventFilters(searchParams, filterConfig)
   const filteredEvents = filterEvents(events, filters, memberStateByEvent)
   const hasActiveFilters = Object.entries(filters).some(([key, value]) => value !== initialFilters[key])
   const eventsById = new Map(events.map((event) => [event.id, event]))
@@ -121,7 +129,7 @@ export default function EventsPage() {
             <div className="mb-3 flex items-center justify-between gap-4">
               <p className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-amber)]">Filter events</p>
               {hasActiveFilters && (
-                <button className="text-sm font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" onClick={() => setFilters(initialFilters)} type="button">
+                <button className="text-sm font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" onClick={() => setSearchParams({}, { replace: true })} type="button">
                   Reset
                 </button>
               )}
@@ -257,7 +265,7 @@ export default function EventsPage() {
 
   function handleFilterChange(event) {
     const { name, value } = event.target
-    setFilters((current) => ({ ...current, [name]: value }))
+    setSearchParams(createEventFilterParams({ ...filters, [name]: value }, filterConfig), { replace: true })
   }
 }
 

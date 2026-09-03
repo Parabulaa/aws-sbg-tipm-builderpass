@@ -1,21 +1,27 @@
 import { CalendarDays, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import EventSearchControl from '../../components/EventSearchControl.jsx'
 import EventPoster from '../../components/EventPoster.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrls } from '../../utils/eventPosters.js'
+import { createEventFilterParams, parseEventFilters } from '../../utils/eventFilters.js'
 import { eventIsCurrent, eventMatchesFilters, eventRegistrationLabel, formatEventDate, formatEventTimeRange } from '../../utils/events.js'
 import { eventWithOptionalEndTime, queryWithOptionalEventEndTime } from '../../utils/supabaseCompatibility.js'
 
-const initialFilters = { search: '', time: 'ALL', registrationStatus: 'ALL' }
+const filterConfig = {
+  search: { defaultValue: '', param: 'q' },
+  time: { defaultValue: 'ALL', param: 'time', values: ['ALL', 'CURRENT', 'UPCOMING', 'PAST'] },
+  registrationStatus: { defaultValue: 'ALL', param: 'registration', values: ['ALL', 'OPEN', 'CLOSED'] },
+}
+const initialFilters = Object.fromEntries(Object.entries(filterConfig).map(([name, settings]) => [name, settings.defaultValue]))
 const eventActionClassName = 'inline-flex min-h-10 items-center justify-center border border-[var(--bp-amber-muted)] px-3 text-center text-sm font-semibold text-[var(--bp-amber)] transition-colors hover:border-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]'
 
 export default function AdminEventsPage() {
   const [events, setEvents] = useState([])
   const [posterUrlsByPath, setPosterUrlsByPath] = useState({})
-  const [filters, setFilters] = useState(initialFilters)
+  const [searchParams, setSearchParams] = useSearchParams()
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
@@ -57,6 +63,7 @@ export default function AdminEventsPage() {
     }
   }, [])
 
+  const filters = parseEventFilters(searchParams, filterConfig)
   const filteredEvents = filterEvents(events, filters)
   const hasActiveFilters = Object.keys(initialFilters).some((key) => filters[key] !== initialFilters[key])
 
@@ -91,7 +98,7 @@ export default function AdminEventsPage() {
             </Link>
           </div>
           {hasActiveFilters && (
-            <button className="mt-3 text-sm font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" onClick={() => setFilters(initialFilters)} type="button">
+            <button className="mt-3 text-sm font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" onClick={() => setSearchParams({}, { replace: true })} type="button">
               Reset filters
             </button>
           )}
@@ -176,7 +183,7 @@ export default function AdminEventsPage() {
 
   function handleFilterChange(event) {
     const { name, value } = event.target
-    setFilters((current) => ({ ...current, [name]: value }))
+    setSearchParams(createEventFilterParams({ ...filters, [name]: value }, filterConfig), { replace: true })
   }
 }
 
