@@ -72,6 +72,7 @@ export default function RegisterPage() {
         email: form.email.trim().toLowerCase(),
         password: form.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/login`,
           data: {
             student_number: form.studentNumber.trim(),
             first_name: form.firstName.trim(),
@@ -99,12 +100,16 @@ export default function RegisterPage() {
         if (signOutError) throw signOutError
       }
 
+      const registeredEmail = form.email.trim().toLowerCase()
       setForm(initialForm)
-      setSuccessMessage(
-        requiresEmailConfirmation
-          ? 'Your account was created. Check your email to confirm it before signing in.'
-          : 'Your BuilderPass account was created successfully. Sign in manually to continue.',
-      )
+
+      if (requiresEmailConfirmation) {
+        sessionStorage.setItem('builderpass.pendingVerificationEmail', registeredEmail)
+        navigate('/verify-email', { replace: true, state: { email: registeredEmail } })
+        return
+      }
+
+      setSuccessMessage('Your BuilderPass account was created successfully. Sign in manually to continue.')
     } catch (error) {
       setSubmissionError(error.message || 'We could not create your account. Please try again.')
     } finally {

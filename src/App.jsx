@@ -18,6 +18,7 @@ const LoginPage = lazy(() => import('./pages/auth/LoginPage.jsx'))
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage.jsx'))
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage.jsx'))
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage.jsx'))
+const VerifyEmailPage = lazy(() => import('./pages/auth/VerifyEmailPage.jsx'))
 const EventDetailPage = lazy(() => import('./pages/member/EventDetailPage.jsx'))
 const EventsPage = lazy(() => import('./pages/member/EventsPage.jsx'))
 const MemberDashboardPage = lazy(() => import('./pages/member/MemberDashboardPage.jsx'))
@@ -62,6 +63,14 @@ export default function App() {
             element={
               <PageTransition key={location.pathname}>
                 <ResetPasswordPage />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/verify-email"
+            element={
+              <PageTransition key={location.pathname}>
+                <VerifyEmailPage />
               </PageTransition>
             }
           />
