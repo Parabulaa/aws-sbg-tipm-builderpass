@@ -19,6 +19,12 @@ export function isMissingProfileUpdateFunction(error) {
   )
 }
 
+export function isMissingBatchSummaryFunction(error) {
+  const message = String(error?.message || '').toLowerCase()
+  return error?.code === 'PGRST202'
+    || (message.includes('get_events_rsvp_summaries') && message.includes('schema cache'))
+}
+
 export async function queryWithOptionalEventEndTime(runQuery) {
   const result = await runQuery(true)
 

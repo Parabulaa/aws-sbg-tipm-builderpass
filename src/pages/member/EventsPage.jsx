@@ -6,6 +6,7 @@ import EventPoster from '../../components/EventPoster.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
+import { getRsvpSummaries } from '../../services/supabase/rsvpSummaries.js'
 import { getEventPosterUrls } from '../../utils/eventPosters.js'
 import { createEventFilterParams, parseEventFilters } from '../../utils/eventFilters.js'
 import { eventWithOptionalEndTime, queryWithOptionalEventEndTime } from '../../utils/supabaseCompatibility.js'
@@ -86,21 +87,15 @@ export default function EventsPage() {
         warnings.push('some event posters')
         return {}
       })
-      const summaryResults = await Promise.all(
-        data.map(async (event) => {
-          const { data: summaryData, error: summaryError } = await supabase.rpc('get_event_rsvp_summary', {
-            p_event_id: event.id,
-          })
-
-          return [event.id, summaryError ? null : summaryData?.[0] ?? null]
-        }),
-      )
-      const posterUrls = await posterUrlsPromise
-      if (summaryResults.some(([, summary]) => !summary)) warnings.push('some RSVP totals')
+      const [posterUrls, summaryResult] = await Promise.all([
+        posterUrlsPromise,
+        getRsvpSummaries(data.map((event) => event.id)),
+      ])
+      if (summaryResult.hadFailures) warnings.push('some RSVP totals')
 
       if (!isActive) return
 
-      setRsvpSummariesByEvent(Object.fromEntries(summaryResults.filter(([, summary]) => summary)))
+      setRsvpSummariesByEvent(summaryResult.summariesByEvent)
       setPosterUrlsByPath(posterUrls)
       if (warnings.length > 0) setWarningMessage(`Events loaded, but ${warnings.join(', ')} are temporarily unavailable.`)
       setIsLoading(false)
