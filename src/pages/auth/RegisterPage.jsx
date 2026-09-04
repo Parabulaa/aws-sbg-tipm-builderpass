@@ -9,6 +9,7 @@ import PasswordInput from '../../components/auth/PasswordInput.jsx'
 import { TIP_MANILA_COURSES, YEAR_LEVELS } from '../../constants/academics.js'
 import { supabase } from '../../services/supabase/client.js'
 import { getPasswordMatchState, validateRegistrationForm } from '../../utils/authValidation.js'
+import { getAuthErrorMessage } from '../../utils/authErrors.js'
 import { getPasswordStrength, PASSWORD_REQUIREMENTS } from '../../utils/passwordStrength.js'
 
 const initialForm = {
@@ -99,7 +100,7 @@ export default function RegisterPage() {
 
       setSuccessMessage('Your BuilderPass account was created successfully. Sign in manually to continue.')
     } catch (error) {
-      setSubmissionError(error.message || 'We could not create your account. Please try again.')
+      setSubmissionError(getAuthErrorMessage(error, 'register'))
     } finally {
       setIsSubmitting(false)
     }

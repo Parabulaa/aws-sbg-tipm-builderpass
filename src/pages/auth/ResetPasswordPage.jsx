@@ -5,6 +5,7 @@ import PasswordInput from '../../components/auth/PasswordInput.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getPasswordStrength, PASSWORD_REQUIREMENTS } from '../../utils/passwordStrength.js'
+import { getAuthErrorMessage } from '../../utils/authErrors.js'
 
 export default function ResetPasswordPage() {
   const { isLoading, session } = useAuth()
@@ -42,7 +43,7 @@ export default function ResetPasswordPage() {
         state: { notice: 'Your password was updated. Sign in with your new password.' },
       })
     } catch (error) {
-      setErrorMessage(error.message || 'We could not update your password. Request a new reset link and try again.')
+      setErrorMessage(getAuthErrorMessage(error, 'reset'))
     } finally {
       setIsSubmitting(false)
     }

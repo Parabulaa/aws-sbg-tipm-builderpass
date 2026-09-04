@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import AuthField from '../../components/auth/AuthField.jsx'
 import AuthInput from '../../components/auth/AuthInput.jsx'
 import { supabase } from '../../services/supabase/client.js'
+import { getAuthErrorMessage } from '../../utils/authErrors.js'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -30,7 +31,7 @@ export default function ForgotPasswordPage() {
       if (error) throw error
       setIsSent(true)
     } catch (error) {
-      setErrorMessage(error.message || 'We could not send the reset email. Please try again.')
+      setErrorMessage(getAuthErrorMessage(error, 'recovery'))
     } finally {
       setIsSubmitting(false)
     }

@@ -5,6 +5,7 @@ import AuthInput from '../../components/auth/AuthInput.jsx'
 import PasswordInput from '../../components/auth/PasswordInput.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
+import { getAuthErrorMessage } from '../../utils/authErrors.js'
 
 export default function LoginPage() {
   const { isLoading, profile, session } = useAuth()
@@ -44,7 +45,7 @@ export default function LoginPage() {
 
       if (error) throw error
     } catch (error) {
-      setErrorMessage(error.message || 'We could not sign you in. Please try again.')
+      setErrorMessage(getAuthErrorMessage(error, 'login'))
     } finally {
       setIsSubmitting(false)
     }

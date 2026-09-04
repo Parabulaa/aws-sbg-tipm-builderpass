@@ -2,6 +2,7 @@ import { CheckCircle2, Mail } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { supabase } from '../../services/supabase/client.js'
+import { getAuthErrorMessage } from '../../utils/authErrors.js'
 
 const pendingEmailKey = 'builderpass.pendingVerificationEmail'
 
@@ -29,7 +30,7 @@ export default function VerifyEmailPage() {
       if (error) throw error
       setResendComplete(true)
     } catch (error) {
-      setErrorMessage(error.message || 'We could not resend the verification email. Please try again shortly.')
+      setErrorMessage(getAuthErrorMessage(error, 'verification'))
     } finally {
       setIsResending(false)
     }
