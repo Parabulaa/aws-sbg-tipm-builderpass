@@ -2,11 +2,15 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { supabase } from '../services/supabase/client.js'
 
 const AuthContext = createContext(null)
+const recoveryStorageKey = 'builderpass.passwordRecoveryActive'
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(
+    () => sessionStorage.getItem(recoveryStorageKey) === 'true',
+  )
   const activeUserIdRef = useRef(null)
   const profileRequestIdRef = useRef(0)
 
@@ -69,7 +73,11 @@ export function AuthProvider({ children }) {
       setActiveSession(data.session)
     })
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        sessionStorage.setItem(recoveryStorageKey, 'true')
+        setIsPasswordRecovery(true)
+      }
       setActiveSession(nextSession)
     })
 
@@ -83,17 +91,26 @@ export function AuthProvider({ children }) {
     const { error } = await supabase.auth.signOut()
 
     if (error) throw error
+    sessionStorage.removeItem(recoveryStorageKey)
+    setIsPasswordRecovery(false)
   }
+
+  const clearPasswordRecovery = useCallback(() => {
+    sessionStorage.removeItem(recoveryStorageKey)
+    setIsPasswordRecovery(false)
+  }, [])
 
   const value = useMemo(
     () => ({
       isLoading,
+      isPasswordRecovery,
+      clearPasswordRecovery,
       profile,
       refreshProfile,
       session,
       signOut,
     }),
-    [isLoading, profile, refreshProfile, session],
+    [clearPasswordRecovery, isLoading, isPasswordRecovery, profile, refreshProfile, session],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

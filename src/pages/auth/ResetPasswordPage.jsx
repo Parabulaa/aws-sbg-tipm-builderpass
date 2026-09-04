@@ -1,14 +1,15 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthField from '../../components/auth/AuthField.jsx'
 import PasswordInput from '../../components/auth/PasswordInput.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getPasswordStrength, PASSWORD_REQUIREMENTS } from '../../utils/passwordStrength.js'
 import { getAuthErrorMessage } from '../../utils/authErrors.js'
+import { getRecoveryLinkError } from '../../utils/authRecovery.js'
 
 export default function ResetPasswordPage() {
-  const { isLoading, session } = useAuth()
+  const { clearPasswordRecovery, isLoading, isPasswordRecovery, session } = useAuth()
   const [password, setPassword] = useState('')
   const [confirmation, setConfirmation] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -16,6 +17,9 @@ export default function ResetPasswordPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
+  const recoveryLinkError = getRecoveryLinkError(location.search, location.hash)
+  const canResetPassword = Boolean(session && isPasswordRecovery && !recoveryLinkError)
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -37,6 +41,7 @@ export default function ResetPasswordPage() {
       const { error } = await supabase.auth.updateUser({ password })
       if (error) throw error
 
+      clearPasswordRecovery()
       await supabase.auth.signOut({ scope: 'local' })
       navigate('/login', {
         replace: true,
@@ -60,9 +65,11 @@ export default function ResetPasswordPage() {
         <h1 className="mt-4 text-3xl font-black tracking-tight text-[var(--bp-text)]">Choose a new password</h1>
         <div className="mt-4 h-px w-16 bg-[var(--bp-border-strong)]" />
 
-        {!session ? (
+        {!canResetPassword ? (
           <div className="mt-7">
-            <p className="text-sm leading-relaxed text-[var(--bp-danger)]">This reset link is invalid or has expired.</p>
+            <p className="text-sm leading-relaxed text-[var(--bp-danger)]">
+              {recoveryLinkError || 'This password-reset session is invalid or has already been used.'}
+            </p>
             <Link className="mt-5 inline-block font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" to="/forgot-password">
               Request a new link →
             </Link>
