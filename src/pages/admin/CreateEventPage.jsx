@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext.jsx'
 import { useObjectUrl } from '../../hooks/useObjectUrl.js'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterValidationMessage, removeEventPoster, uploadEventPoster } from '../../utils/eventPosters.js'
-import { isValidEventDate, isValidEventTime } from '../../utils/events.js'
+import { getEventScheduleError } from '../../utils/events.js'
 import { getDatabaseFeatureMessage } from '../../utils/supabaseCompatibility.js'
 
 const initialForm = {
@@ -63,13 +63,9 @@ export default function CreateEventPage() {
       return
     }
 
-    if (!isValidEventDate(form.eventDate) || !isValidEventTime(form.startTime) || !isValidEventTime(form.endTime)) {
-      setErrorMessage('Use YYYY-MM-DD for the date and 24-hour HH:MM for both times.')
-      return
-    }
-
-    if (form.endTime <= form.startTime) {
-      setErrorMessage('End time must be later than start time.')
+    const scheduleError = getEventScheduleError(form)
+    if (scheduleError) {
+      setErrorMessage(scheduleError)
       return
     }
 

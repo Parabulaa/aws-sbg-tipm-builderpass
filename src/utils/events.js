@@ -48,6 +48,19 @@ export function isValidEventTime(value) {
   return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59
 }
 
+export function getEventScheduleError({ eventDate, startTime, endTime }, { allowPastStart = false, now = new Date() } = {}) {
+  if (!isValidEventDate(eventDate)) return 'Enter a valid event date.'
+  if (!isValidEventTime(startTime) || !isValidEventTime(endTime)) return 'Enter valid start and end times.'
+
+  const start = new Date(`${eventDate}T${startTime}:00`)
+  const end = new Date(`${eventDate}T${endTime}:00`)
+
+  if (end <= start) return 'End time must be later than start time.'
+  if (!allowPastStart && start < now) return 'Event start time cannot be in the past.'
+
+  return ''
+}
+
 export function getEventLifecycle(event, now = new Date()) {
   const start = new Date(`${event.event_date}T${event.start_time}`)
   const end = new Date(`${event.event_date}T${event.end_time || event.start_time}`)

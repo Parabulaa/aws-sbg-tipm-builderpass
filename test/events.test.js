@@ -6,6 +6,7 @@ import {
   eventRegistrationLabel,
   eventStatusLabel,
   formatEventTimeRange,
+  getEventScheduleError,
   getEventLifecycle,
   getLocalDateKey,
   getLocalTimeValue,
@@ -28,6 +29,15 @@ test('event form helpers format local time and reject invalid manual values', ()
   assert.equal(isValidEventTime('23:59'), true)
   assert.equal(isValidEventTime('24:00'), false)
   assert.equal(isValidEventTime('7:05'), false)
+})
+
+test('event schedule validation rejects past starts and invalid ranges', () => {
+  const now = new Date('2026-09-04T10:00:00')
+
+  assert.equal(getEventScheduleError({ eventDate: '2026-09-04', startTime: '09:00', endTime: '11:00' }, { now }), 'Event start time cannot be in the past.')
+  assert.equal(getEventScheduleError({ eventDate: '2026-09-05', startTime: '11:00', endTime: '11:00' }, { now }), 'End time must be later than start time.')
+  assert.equal(getEventScheduleError({ eventDate: '2026-09-05', startTime: '11:00', endTime: '12:00' }, { now }), '')
+  assert.equal(getEventScheduleError({ eventDate: '2026-09-04', startTime: '09:00', endTime: '11:00' }, { allowPastStart: true, now }), '')
 })
 
 test('eventMatchesFilters treats today as upcoming and applies registration status', () => {
