@@ -2,7 +2,7 @@ import { Check, ChevronDown } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import { getNextOptionIndex } from '../utils/selectNavigation.js'
 
-export default function SelectControl({ className = '', id, name, onChange, options, value }) {
+export default function SelectControl({ className = '', error, id, name, onChange, options, value }) {
   const generatedId = useId()
   const controlId = id || `bp-select-${generatedId}`
   const listboxId = `${controlId}-listbox`
@@ -76,10 +76,12 @@ export default function SelectControl({ className = '', id, name, onChange, opti
     <div className={`relative ${className}`} ref={rootRef}>
       <button
         aria-controls={listboxId}
+        aria-describedby={error ? `${controlId}-error` : undefined}
         aria-activedescendant={isOpen && highlightedIndex >= 0 ? `${listboxId}-option-${highlightedIndex}` : undefined}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        className={`bp-control bp-select-trigger flex h-12 w-full items-center justify-between gap-4 bg-[var(--bp-bg-soft)] px-4 text-left text-[var(--bp-text)] transition-colors ${
+        aria-invalid={Boolean(error)}
+        className={`bp-control bp-select-trigger flex h-12 w-full items-center justify-between gap-4 bg-[var(--bp-bg-soft)] px-4 text-left text-[var(--bp-text)] transition-colors ${error ? 'bp-control-error' : ''} ${
           isOpen ? 'ring-1 ring-inset ring-[var(--bp-amber)]' : ''
         }`}
         id={controlId}

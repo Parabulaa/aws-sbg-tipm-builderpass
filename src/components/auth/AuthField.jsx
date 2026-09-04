@@ -8,7 +8,7 @@ export default function AuthField({ children, error, htmlFor, label, labelAction
         {labelAction}
       </div>
       {children}
-      {error && <p className="mt-2 text-sm text-[var(--bp-danger)]">{error}</p>}
+      {error && <p className="mt-2 text-sm text-[var(--bp-danger)]" id={`${htmlFor}-error`} role="alert">{error}</p>}
     </div>
   )
 }

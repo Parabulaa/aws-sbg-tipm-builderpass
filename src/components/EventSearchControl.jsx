@@ -27,7 +27,7 @@ export default function EventSearchControl({ id, onChange, value }) {
       {value && (
         <button
           aria-label="Clear event search"
-          className="-mr-2 grid h-8 w-8 shrink-0 place-items-center text-[var(--bp-text-dim)] transition-colors hover:text-[var(--bp-amber)] focus-visible:text-[var(--bp-amber)]"
+          className="-my-1.5 -mr-3 grid h-11 w-11 shrink-0 place-items-center text-[var(--bp-text-dim)] transition-colors hover:text-[var(--bp-amber)] focus-visible:text-[var(--bp-amber)]"
           onClick={clearSearch}
           type="button"
         >

@@ -4,9 +4,12 @@ export const authInputClassName = (error, className = '') =>
   } ${className}`
 
 export default function AuthInput({ className = '', error, ...props }) {
+  const describedBy = props['aria-describedby'] || (error && props.id ? `${props.id}-error` : undefined)
+
   return (
     <input
       {...props}
+      aria-describedby={describedBy}
       aria-invalid={Boolean(error)}
       className={authInputClassName(error, className)}
     />

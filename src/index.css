@@ -7,7 +7,7 @@
   --bp-surface-raised: #191a19;
   --bp-text: #f2eee6;
   --bp-text-muted: #aaa49a;
-  --bp-text-dim: #77736c;
+  --bp-text-dim: #8c877e;
   --bp-amber: #ffb31a;
   --bp-amber-strong: #ffc247;
   --bp-amber-muted: #8f681d;
@@ -29,6 +29,23 @@
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; background: var(--bp-bg); }
 button, input, select, textarea { font: inherit; }
+
+.bp-skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 200;
+  transform: translateY(-200%);
+  border: 2px solid var(--bp-amber);
+  background: var(--bp-bg);
+  padding: 0.75rem 1rem;
+  color: var(--bp-amber);
+  font-weight: 700;
+}
+
+.bp-skip-link:focus {
+  transform: translateY(0);
+}
 
 .mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
@@ -299,6 +316,10 @@ main .bp-event-card {
 }
 main .bp-event-card:hover {
   border-color: var(--bp-amber) !important;
+}
+main .bp-event-card h2,
+main .bp-admin-event-list h2 {
+  overflow-wrap: anywhere;
 }
 main .bp-admin-event-list > article + article {
   border-top: 1px solid var(--bp-amber-muted);

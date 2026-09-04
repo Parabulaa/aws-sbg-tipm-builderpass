@@ -187,6 +187,7 @@ export default function RegisterPage() {
             <AuthField htmlFor="course" label="Course or program" error={errors.course}>
               <SelectControl
                 className="w-full"
+                error={errors.course}
                 id="course"
                 name="course"
                 onChange={handleChange}
@@ -198,6 +199,7 @@ export default function RegisterPage() {
             <AuthField htmlFor="yearLevel" label="Year level" error={errors.yearLevel}>
               <SelectControl
                 className="w-full"
+                error={errors.yearLevel}
                 id="yearLevel"
                 name="yearLevel"
                 onChange={handleChange}
@@ -212,7 +214,7 @@ export default function RegisterPage() {
               <AuthField label="Password" error={passwordError} htmlFor="password">
                 <div>
                   <PasswordInput
-                    describedBy="password-requirements"
+                    describedBy={['password-requirements', passwordError && 'password-error'].filter(Boolean).join(' ')}
                     error={passwordError}
                     id="password"
                     isVisible={showPassword}

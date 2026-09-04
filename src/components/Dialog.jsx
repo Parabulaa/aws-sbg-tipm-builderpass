@@ -102,11 +102,11 @@ export default function Dialog({ children, icon: Icon, isOpen, onClose, titleId,
       >
         <button
           aria-label="Close dialog"
-          className="absolute right-4 top-4 border border-[var(--bp-border)] p-1.5 text-[var(--bp-text-dim)] transition-colors duration-150 hover:border-[var(--bp-amber)] hover:text-[var(--bp-amber)]"
+          className="absolute right-3 top-3 grid min-h-11 min-w-11 place-items-center border border-[var(--bp-border)] text-[var(--bp-text-dim)] transition-colors duration-150 hover:border-[var(--bp-amber)] hover:text-[var(--bp-amber)] sm:right-4 sm:top-4"
           onClick={onClose}
           type="button"
         >
-          <X size={16} />
+          <X aria-hidden="true" size={18} />
         </button>
 
         {Icon && (

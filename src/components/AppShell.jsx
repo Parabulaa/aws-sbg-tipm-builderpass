@@ -19,6 +19,7 @@ export default function AppShell({ children }) {
   // Every route change should land the user at the top of the new page —
   // the browser does not do this automatically for client-side navigation.
   useEffect(() => {
+    setIsMenuOpen(false)
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' })
   }, [location.pathname])
@@ -91,6 +92,7 @@ export default function AppShell({ children }) {
 
   return (
     <div className="relative isolate min-h-screen text-[var(--bp-text)]">
+      <a className="bp-skip-link" href="#main-content">Skip to main content</a>
       <GridBackground muted={isDataDensePage} />
       <div className="relative z-10 flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 border-b border-[var(--bp-border)] bg-[var(--bp-bg)]/95 backdrop-blur">
@@ -111,7 +113,7 @@ export default function AppShell({ children }) {
             aria-controls="site-navigation"
             aria-expanded={isMenuOpen}
             aria-label="Toggle navigation"
-            className="border border-[var(--bp-border-strong)] p-2 text-[var(--bp-amber)] hover:bg-[var(--bp-amber)] hover:text-black transition-colors md:hidden"
+            className="grid min-h-11 min-w-11 place-items-center border border-[var(--bp-border-strong)] text-[var(--bp-amber)] transition-colors hover:bg-[var(--bp-amber)] hover:text-black md:hidden"
             onClick={() => setIsMenuOpen((v) => !v)}
             type="button"
           >
@@ -178,7 +180,7 @@ export default function AppShell({ children }) {
 
       </header>
 
-      <main className="flex-1">{children}</main>
+      <main className="min-w-0 flex-1" id="main-content" tabIndex={-1}>{children}</main>
 
       <footer className="mt-16 border-t border-[var(--bp-border)] bg-[var(--bp-bg)]">
         <div className="mx-auto flex max-w-[90rem] flex-col gap-8 px-6 py-8 lg:flex-row lg:items-center lg:justify-between lg:gap-6 lg:px-10">
@@ -197,7 +199,7 @@ export default function AppShell({ children }) {
           <div className="flex items-center gap-3">
             <a
               aria-label="Email AWS SBG TIP Manila"
-              className="grid h-10 w-10 place-items-center border border-[var(--bp-border-strong)] text-[var(--bp-amber)] transition-colors duration-150 hover:border-[var(--bp-amber)] hover:bg-[var(--bp-amber)] hover:text-black"
+              className="grid h-11 w-11 place-items-center border border-[var(--bp-border-strong)] text-[var(--bp-amber)] transition-colors duration-150 hover:border-[var(--bp-amber)] hover:bg-[var(--bp-amber)] hover:text-black"
               href="mailto:aws.mnl@tip.edu.ph"
               title="aws.mnl@tip.edu.ph"
             >
@@ -205,7 +207,7 @@ export default function AppShell({ children }) {
             </a>
             <a
               aria-label="AWS SBG TIP Manila on Facebook"
-              className="grid h-10 w-10 place-items-center border border-[var(--bp-border-strong)] text-sm font-black text-[var(--bp-amber)] transition-colors duration-150 hover:border-[var(--bp-amber)] hover:bg-[var(--bp-amber)] hover:text-black"
+              className="grid h-11 w-11 place-items-center border border-[var(--bp-border-strong)] text-sm font-black text-[var(--bp-amber)] transition-colors duration-150 hover:border-[var(--bp-amber)] hover:bg-[var(--bp-amber)] hover:text-black"
               href="https://www.facebook.com/awssbgtip"
               rel="noreferrer"
               target="_blank"
@@ -215,7 +217,7 @@ export default function AppShell({ children }) {
             </a>
             <a
               aria-label="AWS SBG TIP Manila on LinkedIn"
-              className="grid h-10 w-10 place-items-center border border-[var(--bp-border-strong)] text-xs font-black text-[var(--bp-amber)] transition-colors duration-150 hover:border-[var(--bp-amber)] hover:bg-[var(--bp-amber)] hover:text-black"
+              className="grid h-11 w-11 place-items-center border border-[var(--bp-border-strong)] text-xs font-black text-[var(--bp-amber)] transition-colors duration-150 hover:border-[var(--bp-amber)] hover:bg-[var(--bp-amber)] hover:text-black"
               href="https://www.linkedin.com/company/aws-cloud-clubs-tip-manila"
               rel="noreferrer"
               target="_blank"
