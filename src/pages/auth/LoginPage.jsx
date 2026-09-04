@@ -1,30 +1,18 @@
-import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import AuthField from '../../components/auth/AuthField.jsx'
 import AuthInput from '../../components/auth/AuthInput.jsx'
 import PasswordInput from '../../components/auth/PasswordInput.jsx'
-import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getAuthErrorMessage } from '../../utils/authErrors.js'
 
 export default function LoginPage() {
-  const { isLoading, profile, session } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const location = useLocation()
-  const navigate = useNavigate()
-
-  useEffect(() => {
-    if (isLoading || !session || !profile) return
-
-    const requestedPath = location.state?.from?.pathname
-    const destination = profile.role === 'ADMIN' ? '/admin' : requestedPath || '/dashboard'
-
-    navigate(destination, { replace: true })
-  }, [isLoading, location.state, navigate, profile, session])
 
   async function handleSubmit(event) {
     event.preventDefault()

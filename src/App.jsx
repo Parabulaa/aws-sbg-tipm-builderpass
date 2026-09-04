@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import AppShell from './components/AppShell.jsx'
 import PageTransition from './components/PageTransition.jsx'
-import { RequireAdmin, RequireAuth, RequireOfficer } from './components/RequireAuth.jsx'
+import { RequireAdmin, RequireAuth, RequireGuest, RequireOfficer } from './components/RequireAuth.jsx'
 import RouteErrorBoundary from './components/RouteErrorBoundary.jsx'
 import StartPage from './pages/StartPage.jsx'
 
@@ -38,7 +38,7 @@ export default function App() {
             path="/login"
             element={
               <PageTransition key={location.pathname}>
-                <LoginPage />
+                <RequireGuest><LoginPage /></RequireGuest>
               </PageTransition>
             }
           />
@@ -46,7 +46,7 @@ export default function App() {
             path="/register"
             element={
               <PageTransition key={location.pathname}>
-                <RegisterPage />
+                <RequireGuest><RegisterPage /></RequireGuest>
               </PageTransition>
             }
           />
@@ -54,7 +54,7 @@ export default function App() {
             path="/forgot-password"
             element={
               <PageTransition key={location.pathname}>
-                <ForgotPasswordPage />
+                <RequireGuest><ForgotPasswordPage /></RequireGuest>
               </PageTransition>
             }
           />
@@ -70,7 +70,7 @@ export default function App() {
             path="/verify-email"
             element={
               <PageTransition key={location.pathname}>
-                <VerifyEmailPage />
+                <RequireGuest><VerifyEmailPage /></RequireGuest>
               </PageTransition>
             }
           />

@@ -14,6 +14,21 @@ export function RequireAuth({ children }) {
   return children
 }
 
+export function RequireGuest({ children }) {
+  const { isLoading, profile, session } = useAuth()
+  const location = useLocation()
+
+  if (isLoading) return <LoadingScreen />
+
+  if (session && profile) {
+    const requestedPath = location.state?.from?.pathname
+    const destination = profile.role === 'ADMIN' ? '/admin' : requestedPath || '/dashboard'
+    return <Navigate replace to={destination} />
+  }
+
+  return children
+}
+
 export function RequireAdmin({ children }) {
   const { isLoading, profile, session } = useAuth()
 
