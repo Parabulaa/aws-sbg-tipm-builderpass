@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import EventSearchControl from '../../components/EventSearchControl.jsx'
 import EventPoster from '../../components/EventPoster.jsx'
+import { EventCardSkeletons } from '../../components/LoadingSkeleton.jsx'
 import RetryNotice from '../../components/RetryNotice.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
 import { supabase } from '../../services/supabase/client.js'
@@ -112,7 +113,7 @@ export default function AdminEventsPage() {
         </div>
       </div>
 
-      {isLoading && <p className="mt-8 text-slate-600">Loading events...</p>}
+      {isLoading && <EventCardSkeletons compact />}
       {errorMessage && (
         <div className="mt-8 max-w-xl">
           <RetryNotice isRetrying={isLoading} message={errorMessage} onRetry={() => setReloadKey((key) => key + 1)} />

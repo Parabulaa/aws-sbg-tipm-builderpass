@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import BackLink from '../../components/BackLink.jsx'
 import Dialog from '../../components/Dialog.jsx'
 import EventPoster from '../../components/EventPoster.jsx'
+import { EventDetailSkeleton } from '../../components/LoadingSkeleton.jsx'
 import RetryNotice from '../../components/RetryNotice.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
@@ -170,9 +171,7 @@ export default function EventDetailPage() {
   }
 
   if (isLoading) {
-    return (
-      <section className="mx-auto max-w-4xl px-5 py-12 text-[var(--bp-text-dim)]">Loading event...</section>
-    )
+    return <EventDetailSkeleton />
   }
 
   if (!event) {

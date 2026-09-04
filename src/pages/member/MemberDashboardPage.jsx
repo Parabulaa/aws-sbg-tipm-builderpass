@@ -2,6 +2,7 @@ import { ArrowRight, CalendarDays, MapPin } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import RetryNotice from '../../components/RetryNotice.jsx'
+import { DashboardSkeleton } from '../../components/LoadingSkeleton.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { eventIsCurrent, eventRegistrationLabel, formatEventDate, formatEventTimeRange } from '../../utils/events.js'
@@ -124,7 +125,7 @@ export default function MemberDashboardPage() {
         <p className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)]">Member activity</p>
         <h2 className="mt-2 text-2xl font-black text-[var(--bp-text)]" id="member-activity-heading">Your event progress</h2>
 
-        {isLoading && <p className="mt-6 text-[var(--bp-text-dim)]">Loading your event activity...</p>}
+        {isLoading && <DashboardSkeleton />}
         {errorMessage && (
           <div className="mt-6 max-w-xl">
             <RetryNotice isRetrying={isLoading} message={errorMessage} onRetry={() => setReloadKey((key) => key + 1)} />
