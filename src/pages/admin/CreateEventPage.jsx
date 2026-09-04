@@ -6,6 +6,7 @@ import EventDateTimeField from '../../components/EventDateTimeField.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { useObjectUrl } from '../../hooks/useObjectUrl.js'
+import { useUnsavedChanges } from '../../hooks/useUnsavedChanges.js'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterValidationMessage, removeEventPoster, uploadEventPoster } from '../../utils/eventPosters.js'
 import { getEventScheduleError } from '../../utils/events.js'
@@ -31,6 +32,8 @@ export default function CreateEventPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
   const posterPreviewUrl = useObjectUrl(posterFile)
+  const hasUnsavedChanges = !createdEventId && (posterFile !== null || JSON.stringify(form) !== JSON.stringify(initialForm))
+  const allowNavigation = useUnsavedChanges(hasUnsavedChanges && !isSubmitting)
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -121,6 +124,7 @@ export default function CreateEventPage() {
         }
       }
 
+      allowNavigation()
       navigate(`/events/${data.id}`)
     } catch (error) {
       setErrorMessage(getDatabaseFeatureMessage(error, 'We could not create the event. Please try again.'))

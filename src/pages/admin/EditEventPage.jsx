@@ -5,6 +5,7 @@ import BackLink from '../../components/BackLink.jsx'
 import EventDateTimeField from '../../components/EventDateTimeField.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
 import { useObjectUrl } from '../../hooks/useObjectUrl.js'
+import { useUnsavedChanges } from '../../hooks/useUnsavedChanges.js'
 import { supabase } from '../../services/supabase/client.js'
 import {
   getEventPosterUrl,
@@ -34,6 +35,7 @@ export default function EditEventPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const posterInputRef = useRef(null)
+  const loadedFormRef = useRef(null)
   const [form, setForm] = useState(initialForm)
   const [posterPath, setPosterPath] = useState(null)
   const [posterUrl, setPosterUrl] = useState(null)
@@ -45,12 +47,19 @@ export default function EditEventPage() {
   const [isUnavailable, setIsUnavailable] = useState(false)
   const posterPreviewUrl = useObjectUrl(posterFile)
   const displayedPosterUrl = posterPreviewUrl || (!shouldRemovePoster ? posterUrl : '')
+  const hasUnsavedChanges = Boolean(loadedFormRef.current) && (
+    posterFile !== null
+    || shouldRemovePoster
+    || JSON.stringify(form) !== JSON.stringify(loadedFormRef.current)
+  )
+  const allowNavigation = useUnsavedChanges(hasUnsavedChanges && !isSubmitting)
 
   useEffect(() => {
     let isActive = true
 
     async function loadEvent() {
       setIsLoading(true)
+      loadedFormRef.current = null
       setErrorMessage('')
       setIsUnavailable(false)
       setPosterFile(null)
@@ -72,7 +81,7 @@ export default function EditEventPage() {
         setErrorMessage(error?.message || 'This event is not available.')
         setIsUnavailable(true)
       } else {
-        setForm({
+        const loadedForm = {
           title: data.title,
           description: data.description,
           eventDate: data.event_date,
@@ -81,7 +90,9 @@ export default function EditEventPage() {
           venue: data.venue,
           capacity: data.capacity == null ? '' : String(data.capacity),
           registrationStatus: data.registration_status,
-        })
+        }
+        setForm(loadedForm)
+        loadedFormRef.current = loadedForm
         setPosterPath(data.poster_path)
 
         if (data.poster_path) {
@@ -192,6 +203,7 @@ export default function EditEventPage() {
         await removeEventPoster(posterPath).catch(() => {})
       }
 
+      allowNavigation()
       navigate('/admin/events')
     } catch (error) {
       if (uploadedPosterPath) await removeEventPoster(uploadedPosterPath).catch(() => {})
