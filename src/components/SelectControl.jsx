@@ -1,11 +1,14 @@
 import { Check, ChevronDown } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
+import { getNextOptionIndex } from '../utils/selectNavigation.js'
 
 export default function SelectControl({ className = '', id, name, onChange, options, value }) {
   const generatedId = useId()
   const controlId = id || `bp-select-${generatedId}`
   const listboxId = `${controlId}-listbox`
   const rootRef = useRef(null)
+  const triggerRef = useRef(null)
+  const optionRefs = useRef([])
   const [isOpen, setIsOpen] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState(0)
   const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value))
@@ -22,6 +25,12 @@ export default function SelectControl({ className = '', id, name, onChange, opti
     return () => document.removeEventListener('pointerdown', handlePointerDown)
   }, [isOpen])
 
+  useEffect(() => {
+    if (isOpen && highlightedIndex >= 0) {
+      optionRefs.current[highlightedIndex]?.scrollIntoView({ block: 'nearest' })
+    }
+  }, [highlightedIndex, isOpen])
+
   function openMenu(index = selectedIndex) {
     setHighlightedIndex(index)
     setIsOpen(true)
@@ -34,24 +43,32 @@ export default function SelectControl({ className = '', id, name, onChange, opti
 
   function handleKeyDown(event) {
     if (event.key === 'Escape') {
+      if (!isOpen) return
+      event.preventDefault()
       setIsOpen(false)
+      triggerRef.current?.focus()
       return
     }
 
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
       event.preventDefault()
-      const direction = event.key === 'ArrowDown' ? 1 : -1
       if (!isOpen) {
-        openMenu(selectedIndex)
+        openMenu(getNextOptionIndex(selectedIndex, event.key, options.length))
       } else {
-        setHighlightedIndex((current) => (current + direction + options.length) % options.length)
+        setHighlightedIndex((current) => getNextOptionIndex(current, event.key, options.length))
       }
       return
     }
 
-    if ((event.key === 'Enter' || event.key === ' ') && isOpen) {
+    if (event.key === 'Tab') {
+      setIsOpen(false)
+      return
+    }
+
+    if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
-      selectOption(options[highlightedIndex])
+      if (isOpen && highlightedIndex >= 0) selectOption(options[highlightedIndex])
+      else openMenu()
     }
   }
 
@@ -59,6 +76,7 @@ export default function SelectControl({ className = '', id, name, onChange, opti
     <div className={`relative ${className}`} ref={rootRef}>
       <button
         aria-controls={listboxId}
+        aria-activedescendant={isOpen && highlightedIndex >= 0 ? `${listboxId}-option-${highlightedIndex}` : undefined}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         className={`bp-control bp-select-trigger flex h-12 w-full items-center justify-between gap-4 bg-[var(--bp-bg-soft)] px-4 text-left text-[var(--bp-text)] transition-colors ${
@@ -68,6 +86,7 @@ export default function SelectControl({ className = '', id, name, onChange, opti
         onClick={() => (isOpen ? setIsOpen(false) : openMenu())}
         onKeyDown={handleKeyDown}
         role="combobox"
+        ref={triggerRef}
         type="button"
       >
         <span className="truncate">{selectedOption?.label || 'Select an option'}</span>
@@ -95,10 +114,13 @@ export default function SelectControl({ className = '', id, name, onChange, opti
                       ? 'bg-[var(--bp-amber)]/15 text-[var(--bp-amber)]'
                       : 'text-[var(--bp-text)] hover:bg-[var(--bp-amber)]/10 hover:text-[var(--bp-amber)]'
                 }`}
+                id={`${listboxId}-option-${index}`}
                 key={option.value}
                 onClick={() => selectOption(option)}
                 onMouseEnter={() => setHighlightedIndex(index)}
                 role="option"
+                ref={(element) => { optionRefs.current[index] = element }}
+                tabIndex={-1}
                 type="button"
               >
                 <span>{option.label}</span>
