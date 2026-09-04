@@ -94,6 +94,7 @@ export default function RegisterPage() {
 
       if (requiresEmailConfirmation) {
         sessionStorage.setItem('builderpass.pendingVerificationEmail', registeredEmail)
+        sessionStorage.setItem('builderpass.verificationResendAfter', String(Date.now() + 60_000))
         navigate('/verify-email', { replace: true, state: { email: registeredEmail } })
         return
       }

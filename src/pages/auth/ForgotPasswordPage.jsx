@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import AuthField from '../../components/auth/AuthField.jsx'
 import AuthInput from '../../components/auth/AuthInput.jsx'
+import useResendCooldown from '../../hooks/useResendCooldown.js'
 import { supabase } from '../../services/supabase/client.js'
 import { getAuthErrorMessage } from '../../utils/authErrors.js'
 
@@ -11,6 +12,7 @@ export default function ForgotPasswordPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSent, setIsSent] = useState(false)
+  const { isCoolingDown, remainingSeconds, startCooldown } = useResendCooldown('builderpass.recoveryResendAfter')
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -30,6 +32,7 @@ export default function ForgotPasswordPage() {
 
       if (error) throw error
       setIsSent(true)
+      startCooldown()
     } catch (error) {
       setErrorMessage(getAuthErrorMessage(error, 'recovery'))
     } finally {
@@ -52,11 +55,12 @@ export default function ForgotPasswordPage() {
               If a BuilderPass account exists for that address, a password-reset link has been sent.
             </p>
             <button
-              className="mt-6 text-sm font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]"
+              className="mt-6 text-sm font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)] disabled:cursor-not-allowed disabled:text-[var(--bp-text-dim)]"
+              disabled={isCoolingDown}
               onClick={() => setIsSent(false)}
               type="button"
             >
-              Send another link
+              {isCoolingDown ? `Send another link in ${remainingSeconds}s` : 'Send another link'}
             </button>
           </div>
         ) : (

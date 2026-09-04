@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { supabase } from '../../services/supabase/client.js'
 import { getAuthErrorMessage } from '../../utils/authErrors.js'
+import useResendCooldown from '../../hooks/useResendCooldown.js'
 
 const pendingEmailKey = 'builderpass.pendingVerificationEmail'
 
@@ -12,9 +13,10 @@ export default function VerifyEmailPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [isResending, setIsResending] = useState(false)
   const [resendComplete, setResendComplete] = useState(false)
+  const { isCoolingDown, remainingSeconds, startCooldown } = useResendCooldown('builderpass.verificationResendAfter')
 
   async function handleResend() {
-    if (!email || isResending) return
+    if (!email || isResending || isCoolingDown) return
 
     setErrorMessage('')
     setResendComplete(false)
@@ -29,6 +31,7 @@ export default function VerifyEmailPage() {
 
       if (error) throw error
       setResendComplete(true)
+      startCooldown()
     } catch (error) {
       setErrorMessage(getAuthErrorMessage(error, 'verification'))
     } finally {
@@ -65,11 +68,15 @@ export default function VerifyEmailPage() {
         {email ? (
           <button
             className="mt-7 w-full border border-[var(--bp-amber)] px-4 py-3 text-sm font-bold uppercase tracking-wide text-[var(--bp-amber)] transition-colors hover:bg-[var(--bp-amber)]/10 disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={isResending}
+            disabled={isResending || isCoolingDown}
             onClick={handleResend}
             type="button"
           >
-            {isResending ? 'Resending...' : 'Resend verification email'}
+            {isResending
+              ? 'Resending...'
+              : isCoolingDown
+                ? `Resend available in ${remainingSeconds}s`
+                : 'Resend verification email'}
           </button>
         ) : (
           <Link className="mt-7 inline-block font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" to="/register">
