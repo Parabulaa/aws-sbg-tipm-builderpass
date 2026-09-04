@@ -217,6 +217,7 @@ export default function EventDetailPage() {
           className="mt-8 aspect-[4/3] w-full sm:aspect-video"
           imageClassName="object-contain sm:object-cover"
           loading="eager"
+          onRetry={event.poster_path ? refreshPoster : undefined}
           src={posterUrl}
           title={event.title}
         />
@@ -373,6 +374,12 @@ export default function EventDetailPage() {
       </Dialog>
     </section>
   )
+
+  async function refreshPoster() {
+    const nextUrl = await getEventPosterUrl(event.poster_path)
+    setPosterUrl(nextUrl)
+    setWarningMessage('')
+  }
 }
 
 function getRsvpErrorMessage(error, fallback) {

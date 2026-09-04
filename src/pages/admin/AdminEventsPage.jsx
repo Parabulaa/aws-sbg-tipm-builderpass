@@ -5,7 +5,7 @@ import EventSearchControl from '../../components/EventSearchControl.jsx'
 import EventPoster from '../../components/EventPoster.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
 import { supabase } from '../../services/supabase/client.js'
-import { getEventPosterUrls } from '../../utils/eventPosters.js'
+import { getEventPosterUrl, getEventPosterUrls } from '../../utils/eventPosters.js'
 import { createEventFilterParams, parseEventFilters } from '../../utils/eventFilters.js'
 import { eventIsCurrent, eventMatchesFilters, eventRegistrationLabel, formatEventDate, formatEventTimeRange } from '../../utils/events.js'
 import { eventWithOptionalEndTime, queryWithOptionalEventEndTime } from '../../utils/supabaseCompatibility.js'
@@ -142,6 +142,7 @@ export default function AdminEventsPage() {
                         <EventPoster
                           className="h-20 w-32 shrink-0"
                           imageClassName="object-cover"
+                          onRetry={event.poster_path ? () => refreshPoster(event.poster_path) : undefined}
                           src={posterUrl}
                           title={event.title}
                         />
@@ -177,6 +178,11 @@ export default function AdminEventsPage() {
   function handleFilterChange(event) {
     const { name, value } = event.target
     setSearchParams(createEventFilterParams({ ...filters, [name]: value }, filterConfig), { replace: true })
+  }
+
+  async function refreshPoster(posterPath) {
+    const nextUrl = await getEventPosterUrl(posterPath)
+    setPosterUrlsByPath((current) => ({ ...current, [posterPath]: nextUrl }))
   }
 }
 
