@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import BackLink from '../../components/BackLink.jsx'
 import Dialog from '../../components/Dialog.jsx'
 import EventPoster from '../../components/EventPoster.jsx'
+import RetryNotice from '../../components/RetryNotice.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrl } from '../../utils/eventPosters.js'
@@ -29,6 +30,7 @@ export default function EventDetailPage() {
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
   const rsvpRequestLockRef = useRef(createActionLock())
 
   useEffect(() => {
@@ -104,7 +106,7 @@ export default function EventDetailPage() {
     return () => {
       isActive = false
     }
-  }, [id, profile?.id])
+  }, [id, profile?.id, reloadKey])
 
   async function refreshRsvpSummary() {
     const { data, error } = await supabase.rpc('get_event_rsvp_summary', { p_event_id: id })
@@ -176,7 +178,7 @@ export default function EventDetailPage() {
   if (!event) {
     return (
       <section className="mx-auto max-w-4xl px-5 py-12">
-        <p className="text-sm text-[var(--bp-danger)]">{errorMessage}</p>
+        <RetryNotice isRetrying={isLoading} message={errorMessage} onRetry={() => setReloadKey((key) => key + 1)} />
         <div className="mt-5">
           <BackLink to="/events">Back to events</BackLink>
         </div>

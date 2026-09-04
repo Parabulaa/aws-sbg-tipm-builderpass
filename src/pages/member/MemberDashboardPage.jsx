@@ -1,6 +1,7 @@
 import { ArrowRight, CalendarDays, MapPin } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import RetryNotice from '../../components/RetryNotice.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { eventIsCurrent, eventRegistrationLabel, formatEventDate, formatEventTimeRange } from '../../utils/events.js'
@@ -12,6 +13,7 @@ export default function MemberDashboardPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [warningMessage, setWarningMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [reloadKey, setReloadKey] = useState(0)
   const terminalWelcome = useTerminalWelcome(profile?.first_name)
 
   useEffect(() => {
@@ -80,7 +82,7 @@ export default function MemberDashboardPage() {
     return () => {
       isActive = false
     }
-  }, [profile?.id])
+  }, [profile?.id, reloadKey])
 
   return (
     <section className="mx-auto max-w-[90rem] px-6 py-12 sm:py-20 lg:px-10">
@@ -123,7 +125,11 @@ export default function MemberDashboardPage() {
         <h2 className="mt-2 text-2xl font-black text-[var(--bp-text)]" id="member-activity-heading">Your event progress</h2>
 
         {isLoading && <p className="mt-6 text-[var(--bp-text-dim)]">Loading your event activity...</p>}
-        {errorMessage && <p className="mt-6 text-sm text-[var(--bp-danger)]">{errorMessage}</p>}
+        {errorMessage && (
+          <div className="mt-6 max-w-xl">
+            <RetryNotice isRetrying={isLoading} message={errorMessage} onRetry={() => setReloadKey((key) => key + 1)} />
+          </div>
+        )}
         {warningMessage && <p className="mt-6 border border-[var(--bp-amber-muted)] bg-[var(--bp-amber)]/5 px-4 py-3 text-sm text-[var(--bp-text-muted)]" role="status">{warningMessage}</p>}
 
         {dashboard && (

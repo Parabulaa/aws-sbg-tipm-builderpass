@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import EventSearchControl from '../../components/EventSearchControl.jsx'
 import EventPoster from '../../components/EventPoster.jsx'
+import RetryNotice from '../../components/RetryNotice.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
 import { useAuth } from '../../context/AuthContext.jsx'
 import { supabase } from '../../services/supabase/client.js'
@@ -36,6 +37,7 @@ export default function EventsPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [warningMessage, setWarningMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     let isActive = true
@@ -106,7 +108,7 @@ export default function EventsPage() {
     return () => {
       isActive = false
     }
-  }, [profile?.id])
+  }, [profile?.id, reloadKey])
 
   const filters = parseEventFilters(searchParams, filterConfig)
   const filteredEvents = filterEvents(events, filters, memberStateByEvent)
@@ -157,7 +159,11 @@ export default function EventsPage() {
       </div>
 
       {isLoading && <p className="mt-8 text-[var(--bp-text-dim)]">Loading events...</p>}
-      {errorMessage && <p className="mt-8 text-sm text-[var(--bp-danger)]">{errorMessage}</p>}
+      {errorMessage && (
+        <div className="mt-8 max-w-xl">
+          <RetryNotice isRetrying={isLoading} message={errorMessage} onRetry={() => setReloadKey((key) => key + 1)} />
+        </div>
+      )}
       {warningMessage && <p className="mt-6 border border-[var(--bp-amber-muted)] bg-[var(--bp-amber)]/5 px-4 py-3 text-sm text-[var(--bp-text-muted)]" role="status">{warningMessage}</p>}
 
       {!isLoading && !errorMessage && events.length === 0 && (

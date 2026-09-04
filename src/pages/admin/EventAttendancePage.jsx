@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import BackLink from '../../components/BackLink.jsx'
+import RetryNotice from '../../components/RetryNotice.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { formatEventDate, formatEventTime } from '../../utils/events.js'
 
@@ -18,6 +19,7 @@ export default function EventAttendancePage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [savingUserId, setSavingUserId] = useState('')
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     async function loadAttendance() {
@@ -48,7 +50,7 @@ export default function EventAttendancePage() {
     }
 
     loadAttendance()
-  }, [id])
+  }, [id, reloadKey])
 
   async function recordAttendance(userId, status) {
     setErrorMessage('')
@@ -86,7 +88,7 @@ export default function EventAttendancePage() {
   if (!event) {
     return (
       <section className="mx-auto max-w-6xl px-5 py-12">
-        <p className="text-sm text-red-700">{errorMessage}</p>
+        <RetryNotice isRetrying={isLoading} message={errorMessage} onRetry={() => setReloadKey((key) => key + 1)} />
         <div className="mt-5">
           <BackLink to="/admin/events">Back to events</BackLink>
         </div>
