@@ -23,6 +23,7 @@ const EventDetailPage = lazy(() => import('./pages/member/EventDetailPage.jsx'))
 const EventsPage = lazy(() => import('./pages/member/EventsPage.jsx'))
 const MemberDashboardPage = lazy(() => import('./pages/member/MemberDashboardPage.jsx'))
 const ProfilePage = lazy(() => import('./pages/member/ProfilePage.jsx'))
+const ProfileRecoveryPage = lazy(() => import('./pages/auth/ProfileRecoveryPage.jsx'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage.jsx'))
 
 export default function App() {
@@ -106,6 +107,7 @@ export default function App() {
               </RequireAuth>
             }
           />
+          <Route path="/account-recovery" element={<ProfileRecoveryPage />} />
           <Route
             path="/admin"
             element={

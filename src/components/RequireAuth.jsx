@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 
 export function RequireAuth({ children }) {
-  const { isLoading, session } = useAuth()
+  const { isLoading, profile, session } = useAuth()
   const location = useLocation()
 
   if (isLoading) return <LoadingScreen />
@@ -10,6 +10,8 @@ export function RequireAuth({ children }) {
   if (!session) {
     return <Navigate replace state={{ from: location }} to="/login" />
   }
+
+  if (!profile) return <Navigate replace to="/account-recovery" />
 
   return children
 }
@@ -19,6 +21,8 @@ export function RequireGuest({ children }) {
   const location = useLocation()
 
   if (isLoading) return <LoadingScreen />
+
+  if (session && !profile) return <Navigate replace to="/account-recovery" />
 
   if (session && profile) {
     const requestedPath = location.state?.from?.pathname
@@ -36,6 +40,8 @@ export function RequireAdmin({ children }) {
 
   if (!session) return <Navigate replace to="/login" />
 
+  if (!profile) return <Navigate replace to="/account-recovery" />
+
   if (profile?.role !== 'ADMIN') return <Navigate replace to="/dashboard" />
 
   return children
@@ -47,6 +53,8 @@ export function RequireOfficer({ children }) {
   if (isLoading) return <LoadingScreen />
 
   if (!session) return <Navigate replace to="/login" />
+
+  if (!profile) return <Navigate replace to="/account-recovery" />
 
   if (!['OFFICER', 'ADMIN'].includes(profile?.role)) {
     return <Navigate replace to="/dashboard" />

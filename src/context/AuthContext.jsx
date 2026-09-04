@@ -7,6 +7,7 @@ const recoveryStorageKey = 'builderpass.passwordRecoveryActive'
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
+  const [profileError, setProfileError] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(
     () => sessionStorage.getItem(recoveryStorageKey) === 'true',
@@ -24,8 +25,12 @@ export function AuthProvider({ children }) {
       .eq('auth_user_id', userId)
       .maybeSingle()
 
-    if (error) throw error
+    if (error) {
+      setProfileError(true)
+      throw error
+    }
 
+    setProfileError(false)
     setProfile(data)
     return data
   }, [])
@@ -43,6 +48,7 @@ export function AuthProvider({ children }) {
         activeUserIdRef.current = null
         profileRequestIdRef.current += 1
         setProfile(null)
+        setProfileError(false)
         setIsLoading(false)
         return
       }
@@ -65,6 +71,7 @@ export function AuthProvider({ children }) {
 
       if (!isActive || requestId !== profileRequestIdRef.current) return
 
+      setProfileError(Boolean(error))
       setProfile(error ? null : data)
       setIsLoading(false)
     }
@@ -106,11 +113,12 @@ export function AuthProvider({ children }) {
       isPasswordRecovery,
       clearPasswordRecovery,
       profile,
+      profileError,
       refreshProfile,
       session,
       signOut,
     }),
-    [clearPasswordRecovery, isLoading, isPasswordRecovery, profile, refreshProfile, session],
+    [clearPasswordRecovery, isLoading, isPasswordRecovery, profile, profileError, refreshProfile, session],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
