@@ -1,5 +1,5 @@
 import { CalendarDays, MoreHorizontal, Plus } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import EventSearchControl from '../../components/EventSearchControl.jsx'
 import EventPoster from '../../components/EventPoster.jsx'
@@ -28,6 +28,7 @@ export default function AdminEventsPage() {
   const [warningMessage, setWarningMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [reloadKey, setReloadKey] = useState(0)
+  const [openActionsId, setOpenActionsId] = useState(null)
 
   useEffect(() => {
     let isActive = true
@@ -169,7 +170,11 @@ export default function AdminEventsPage() {
                         >
                           {eventRegistrationLabel(event)}
                         </span>
-                        <EventActions eventId={event.id} />
+                        <EventActions
+                          eventId={event.id}
+                          isOpen={openActionsId === event.id}
+                          setOpenActionsId={setOpenActionsId}
+                        />
                       </div>
                     </article>
                   )
@@ -184,6 +189,7 @@ export default function AdminEventsPage() {
 
   function handleFilterChange(event) {
     const { name, value } = event.target
+    setOpenActionsId(null)
     setSearchParams(createEventFilterParams({ ...filters, [name]: value }, filterConfig), { replace: true })
   }
 
@@ -193,7 +199,9 @@ export default function AdminEventsPage() {
   }
 }
 
-function EventActions({ eventId }) {
+function EventActions({ eventId, isOpen, setOpenActionsId }) {
+  const rootRef = useRef(null)
+  const menuId = `event-${eventId}-actions`
   const actions = [
     { label: 'Details', to: `/events/${eventId}` },
     { label: 'Edit', to: `/admin/events/${eventId}/edit` },
@@ -201,18 +209,45 @@ function EventActions({ eventId }) {
     { label: 'Attendance', to: `/admin/events/${eventId}/attendance` },
   ]
 
+  useEffect(() => {
+    if (!isOpen) return undefined
+
+    function closeOutside(event) {
+      if (!rootRef.current?.contains(event.target)) setOpenActionsId(null)
+    }
+
+    function closeOnEscape(event) {
+      if (event.key === 'Escape') setOpenActionsId(null)
+    }
+
+    document.addEventListener('pointerdown', closeOutside)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('pointerdown', closeOutside)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [isOpen, setOpenActionsId])
+
   return (
     <>
-      <details className="w-full sm:hidden">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-center gap-2 border border-[var(--bp-amber-muted)] px-4 text-sm font-bold text-[var(--bp-amber)] transition-colors hover:border-[var(--bp-amber)] [&::-webkit-details-marker]:hidden">
+      <div className="w-full sm:hidden" ref={rootRef}>
+        <button
+          aria-controls={menuId}
+          aria-expanded={isOpen}
+          className="flex min-h-11 w-full items-center justify-center gap-2 border border-[var(--bp-amber-muted)] px-4 text-sm font-bold text-[var(--bp-amber)] transition-colors hover:border-[var(--bp-amber)]"
+          onClick={() => setOpenActionsId(isOpen ? null : eventId)}
+          type="button"
+        >
           <MoreHorizontal aria-hidden="true" size={18} /> Event actions
-        </summary>
-        <div className="mt-2 grid gap-2 border border-[var(--bp-border)] bg-[var(--bp-bg-soft)] p-2">
-          {actions.map((action) => (
-            <Link className={eventActionClassName} key={action.to} to={action.to}>{action.label}</Link>
-          ))}
-        </div>
-      </details>
+        </button>
+        {isOpen && (
+          <div className="mt-2 grid gap-2 border border-[var(--bp-amber-muted)] bg-[var(--bp-bg-soft)] p-2" id={menuId}>
+            {actions.map((action) => (
+              <Link className={eventActionClassName} key={action.to} onClick={() => setOpenActionsId(null)} to={action.to}>{action.label}</Link>
+            ))}
+          </div>
+        )}
+      </div>
       <div className="hidden w-full grid-cols-4 gap-2 sm:grid lg:w-auto">
         {actions.map((action) => (
           <Link className={eventActionClassName} key={action.to} to={action.to}>{action.label}</Link>
