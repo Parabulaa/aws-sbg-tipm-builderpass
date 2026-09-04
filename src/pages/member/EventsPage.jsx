@@ -33,6 +33,7 @@ export default function EventsPage() {
   const [memberStateByEvent, setMemberStateByEvent] = useState({})
   const [searchParams, setSearchParams] = useSearchParams()
   const [errorMessage, setErrorMessage] = useState('')
+  const [warningMessage, setWarningMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export default function EventsPage() {
       }
 
       setErrorMessage('')
+      setWarningMessage('')
       setIsLoading(true)
       const [eventsResult, registrationsResult, attendanceResult] = await Promise.all([
         queryWithOptionalEventEndTime((includeEndTime) => supabase
@@ -67,18 +69,23 @@ export default function EventsPage() {
 
       if (!isActive) return
 
-      const error = eventsResult.error || registrationsResult.error || attendanceResult.error
-      if (error) {
-        setErrorMessage(error.message || 'We could not load events. Please try again.')
+      if (eventsResult.error) {
+        setErrorMessage('We could not load events. Please try again.')
         setIsLoading(false)
         return
       }
 
       const data = eventsResult.data.map(eventWithOptionalEndTime)
+      const warnings = []
+      if (registrationsResult.error) warnings.push('reservation indicators')
+      if (attendanceResult.error) warnings.push('attendance indicators')
       setEvents(data)
-      setMemberStateByEvent(buildMemberState(registrationsResult.data, attendanceResult.data))
+      setMemberStateByEvent(buildMemberState(registrationsResult.data ?? [], attendanceResult.data ?? []))
 
-      const posterUrlsPromise = getEventPosterUrls(data.map((event) => event.poster_path)).catch(() => ({}))
+      const posterUrlsPromise = getEventPosterUrls(data.map((event) => event.poster_path)).catch(() => {
+        warnings.push('some event posters')
+        return {}
+      })
       const summaryResults = await Promise.all(
         data.map(async (event) => {
           const { data: summaryData, error: summaryError } = await supabase.rpc('get_event_rsvp_summary', {
@@ -89,11 +96,13 @@ export default function EventsPage() {
         }),
       )
       const posterUrls = await posterUrlsPromise
+      if (summaryResults.some(([, summary]) => !summary)) warnings.push('some RSVP totals')
 
       if (!isActive) return
 
       setRsvpSummariesByEvent(Object.fromEntries(summaryResults.filter(([, summary]) => summary)))
       setPosterUrlsByPath(posterUrls)
+      if (warnings.length > 0) setWarningMessage(`Events loaded, but ${warnings.join(', ')} are temporarily unavailable.`)
       setIsLoading(false)
     }
 
@@ -154,6 +163,7 @@ export default function EventsPage() {
 
       {isLoading && <p className="mt-8 text-[var(--bp-text-dim)]">Loading events...</p>}
       {errorMessage && <p className="mt-8 text-sm text-[var(--bp-danger)]">{errorMessage}</p>}
+      {warningMessage && <p className="mt-6 border border-[var(--bp-amber-muted)] bg-[var(--bp-amber)]/5 px-4 py-3 text-sm text-[var(--bp-text-muted)]" role="status">{warningMessage}</p>}
 
       {!isLoading && !errorMessage && events.length === 0 && (
         <div className="mt-8 border border-[var(--bp-border)] bg-[var(--bp-surface)] px-6 py-5 text-[var(--bp-text-dim)]">

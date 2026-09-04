@@ -23,12 +23,14 @@ export default function AdminEventsPage() {
   const [posterUrlsByPath, setPosterUrlsByPath] = useState({})
   const [searchParams, setSearchParams] = useSearchParams()
   const [errorMessage, setErrorMessage] = useState('')
+  const [warningMessage, setWarningMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     let isActive = true
 
     async function loadEvents() {
+      setWarningMessage('')
       const { data, error } = await queryWithOptionalEventEndTime((includeEndTime) => supabase
         .from('events')
         .select(includeEndTime
@@ -49,7 +51,10 @@ export default function AdminEventsPage() {
           const posterUrls = await getEventPosterUrls(compatibleEvents.map((event) => event.poster_path))
           if (isActive) setPosterUrlsByPath(posterUrls)
         } catch {
-          if (isActive) setPosterUrlsByPath({})
+          if (isActive) {
+            setPosterUrlsByPath({})
+            setWarningMessage('Events loaded, but some posters are temporarily unavailable.')
+          }
         }
       }
 
@@ -107,6 +112,7 @@ export default function AdminEventsPage() {
 
       {isLoading && <p className="mt-8 text-slate-600">Loading events...</p>}
       {errorMessage && <p className="mt-8 text-sm text-red-700">{errorMessage}</p>}
+      {warningMessage && <p className="mt-6 border border-[var(--bp-amber-muted)] bg-[var(--bp-amber)]/5 px-4 py-3 text-sm text-[var(--bp-text-muted)]" role="status">{warningMessage}</p>}
       {!isLoading && !errorMessage && events.length === 0 && (
         <p className="mt-8 rounded-lg border border-slate-200 bg-white px-5 py-4 text-slate-600">No events have been created yet.</p>
       )}

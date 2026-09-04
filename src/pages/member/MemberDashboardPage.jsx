@@ -10,6 +10,7 @@ export default function MemberDashboardPage() {
   const { profile } = useAuth()
   const [dashboard, setDashboard] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
+  const [warningMessage, setWarningMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const terminalWelcome = useTerminalWelcome(profile?.first_name)
 
@@ -25,6 +26,7 @@ export default function MemberDashboardPage() {
 
       setDashboard(null)
       setErrorMessage('')
+      setWarningMessage('')
       setIsLoading(true)
 
       const [attendanceResult, registrationsResult] = await Promise.all([
@@ -43,13 +45,13 @@ export default function MemberDashboardPage() {
 
       if (!isActive) return
 
-      if (attendanceResult.error || registrationsResult.error) {
-        setErrorMessage(attendanceResult.error?.message || registrationsResult.error?.message || 'We could not load your dashboard data.')
+      if (attendanceResult.error && registrationsResult.error) {
+        setErrorMessage('We could not load your dashboard activity. Please try again.')
         setIsLoading(false)
         return
       }
 
-      const registrations = registrationsResult.data.map((registration) => ({
+      const registrations = (registrationsResult.data ?? []).map((registration) => ({
         ...registration,
         events: Array.isArray(registration.events)
           ? registration.events.map(eventWithOptionalEndTime)
@@ -63,11 +65,13 @@ export default function MemberDashboardPage() {
         .sort((left, right) => `${left.event_date}T${left.start_time}`.localeCompare(`${right.event_date}T${right.start_time}`))
 
       setDashboard({
-        eventsAttended: attendanceResult.count ?? 0,
-        totalRsvps: registrations.length,
-        currentReservations: currentReservations.length,
+        eventsAttended: attendanceResult.error ? null : attendanceResult.count ?? 0,
+        totalRsvps: registrationsResult.error ? null : registrations.length,
+        currentReservations: registrationsResult.error ? null : currentReservations.length,
         nextEvent: currentReservations[0] ?? null,
       })
+      if (attendanceResult.error) setWarningMessage('RSVP activity loaded, but attendance totals are temporarily unavailable.')
+      if (registrationsResult.error) setWarningMessage('Attendance loaded, but RSVP activity is temporarily unavailable.')
       setIsLoading(false)
     }
 
@@ -120,6 +124,7 @@ export default function MemberDashboardPage() {
 
         {isLoading && <p className="mt-6 text-[var(--bp-text-dim)]">Loading your event activity...</p>}
         {errorMessage && <p className="mt-6 text-sm text-[var(--bp-danger)]">{errorMessage}</p>}
+        {warningMessage && <p className="mt-6 border border-[var(--bp-amber-muted)] bg-[var(--bp-amber)]/5 px-4 py-3 text-sm text-[var(--bp-text-muted)]" role="status">{warningMessage}</p>}
 
         {dashboard && (
           <>
@@ -232,7 +237,7 @@ function MetricCard({ label, value }) {
   return (
     <div className="border border-[var(--bp-border)] bg-[var(--bp-surface)] p-6">
       <p className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)]">{label}</p>
-      <p className="mt-4 text-5xl font-black tracking-tight text-[var(--bp-amber)]">{String(value).padStart(2, '0')}</p>
+      <p className="mt-4 text-5xl font-black tracking-tight text-[var(--bp-amber)]">{value == null ? '--' : String(value).padStart(2, '0')}</p>
     </div>
   )
 }

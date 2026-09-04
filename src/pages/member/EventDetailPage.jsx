@@ -25,6 +25,7 @@ export default function EventDetailPage() {
   const [registration, setRegistration] = useState(null)
   const [rsvpSummary, setRsvpSummary] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
+  const [warningMessage, setWarningMessage] = useState('')
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -36,6 +37,7 @@ export default function EventDetailPage() {
     async function loadEvent() {
       setIsLoading(true)
       setErrorMessage('')
+      setWarningMessage('')
       setPosterUrl(null)
       setRegistration(null)
       setRsvpSummary(null)
@@ -66,11 +68,13 @@ export default function EventDetailPage() {
           .then((url) => {
             if (isActive) setPosterUrl(url)
           })
-          .catch(() => {})
+          .catch(() => {
+            if (isActive) setWarningMessage('The event poster is temporarily unavailable.')
+          })
       }
 
       if (summaryResult.error) {
-        setErrorMessage(summaryResult.error.message || 'We could not check RSVP availability.')
+        setWarningMessage('Event details loaded, but RSVP availability is temporarily unavailable.')
       } else {
         setRsvpSummary(summaryResult.data?.[0] ?? null)
       }
@@ -86,7 +90,7 @@ export default function EventDetailPage() {
         if (!isActive) return
 
         if (registrationError) {
-          setErrorMessage(registrationError.message || 'We could not check your RSVP.')
+          setWarningMessage('Event details loaded, but your reservation status is temporarily unavailable.')
         } else {
           setRegistration(registrationData)
         }
@@ -271,6 +275,9 @@ export default function EventDetailPage() {
 
           {errorMessage && (
             <p className="mb-4 border border-[var(--bp-danger)]/60 bg-[var(--bp-danger)]/10 px-4 py-3 text-sm text-[var(--bp-danger)]" role="alert">{errorMessage}</p>
+          )}
+          {warningMessage && (
+            <p className="mb-4 border border-[var(--bp-amber-muted)] bg-[var(--bp-amber)]/5 px-4 py-3 text-sm text-[var(--bp-text-muted)]" role="status">{warningMessage}</p>
           )}
 
           {hasActiveRsvp ? (
