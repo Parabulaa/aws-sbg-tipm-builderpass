@@ -5,6 +5,7 @@ import AuthInput from '../../components/auth/AuthInput.jsx'
 import PasswordInput from '../../components/auth/PasswordInput.jsx'
 import { supabase } from '../../services/supabase/client.js'
 import { getAuthErrorMessage } from '../../utils/authErrors.js'
+import { authLink, getAuthDestination } from '../../utils/authDestination.js'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -105,7 +106,7 @@ export default function LoginPage() {
 
         <p className="mt-6 text-sm text-[var(--bp-text-dim)]">
           Need an account?{' '}
-          <Link className="font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" to="/register">
+          <Link className="font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" to={authLink('/register', getAuthDestination(location))}>
             Register here
           </Link>
           .

@@ -1,3 +1,4 @@
+import EventPublicationFields from '../../components/EventPublicationFields.jsx'
 import { ImagePlus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -29,6 +30,9 @@ const initialForm = {
   venue: '',
   capacity: '',
   registrationStatus: 'OPEN',
+  publicationStatus: 'DRAFT',
+  visibility: 'MEMBERS',
+  recap: '',
 }
 
 export default function EditEventPage() {
@@ -69,8 +73,8 @@ export default function EditEventPage() {
       const { data: rawData, error } = await queryWithOptionalEventEndTime((includeEndTime) => supabase
         .from('events')
         .select(includeEndTime
-          ? 'id, title, description, event_date, start_time, end_time, venue, capacity, registration_status, poster_path'
-          : 'id, title, description, event_date, start_time, venue, capacity, registration_status, poster_path')
+          ? 'id, title, description, event_date, start_time, end_time, venue, capacity, registration_status, poster_path, publication_status, visibility, recap'
+          : 'id, title, description, event_date, start_time, venue, capacity, registration_status, poster_path, publication_status, visibility, recap')
         .eq('id', id)
         .maybeSingle())
       const data = eventWithOptionalEndTime(rawData)
@@ -90,6 +94,9 @@ export default function EditEventPage() {
           venue: data.venue,
           capacity: data.capacity == null ? '' : String(data.capacity),
           registrationStatus: data.registration_status,
+          publicationStatus: data.publication_status,
+          visibility: data.visibility,
+          recap: data.recap,
         }
         setForm(loadedForm)
         loadedFormRef.current = loadedForm
@@ -186,6 +193,9 @@ export default function EditEventPage() {
         venue: form.venue.trim(),
         capacity,
         registration_status: form.registrationStatus,
+        publication_status: form.publicationStatus,
+        visibility: form.visibility,
+        recap: form.recap.trim(),
       }
 
       if (nextPosterPath !== posterPath) update.poster_path = nextPosterPath
@@ -336,6 +346,8 @@ export default function EditEventPage() {
             />
             <p className="mt-1.5 text-xs text-slate-500">Set the maximum number of active reservations.</p>
           </FormField>
+
+          <EventPublicationFields form={form} onChange={handleChange} />
 
           <FormField label="Registration status" htmlFor="registrationStatus">
             <SelectControl

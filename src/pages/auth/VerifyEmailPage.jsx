@@ -4,11 +4,14 @@ import { Link, useLocation } from 'react-router-dom'
 import { supabase } from '../../services/supabase/client.js'
 import { getAuthErrorMessage } from '../../utils/authErrors.js'
 import useResendCooldown from '../../hooks/useResendCooldown.js'
+import { authLink, getAuthDestination } from '../../utils/authDestination.js'
 
 const pendingEmailKey = 'builderpass.pendingVerificationEmail'
 
 export default function VerifyEmailPage() {
   const location = useLocation()
+  const destination = getAuthDestination(location)
+  const loginPath = authLink('/login', destination)
   const email = location.state?.email || sessionStorage.getItem(pendingEmailKey) || ''
   const [errorMessage, setErrorMessage] = useState('')
   const [isResending, setIsResending] = useState(false)
@@ -25,7 +28,7 @@ export default function VerifyEmailPage() {
     try {
       const { error } = await supabase.auth.resend({
         email,
-        options: { emailRedirectTo: `${window.location.origin}/login` },
+        options: { emailRedirectTo: `${window.location.origin}${loginPath}` },
         type: 'signup',
       })
 
@@ -79,13 +82,13 @@ export default function VerifyEmailPage() {
                 : 'Resend verification email'}
           </button>
         ) : (
-          <Link className="mt-7 inline-block font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" to="/register">
+          <Link className="mt-7 inline-block font-bold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" to={authLink('/register', destination)}>
             Return to registration →
           </Link>
         )}
 
         <p className="mt-6 text-sm text-[var(--bp-text-dim)]">
-          Already verified? <Link className="font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" to="/login">Sign in</Link>.
+          Already verified? <Link className="font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" to={loginPath}>Sign in</Link>.
         </p>
       </div>
     </section>

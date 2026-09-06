@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react'
  * or accessibility tree. Respects prefers-reduced-motion by rendering the
  * content already visible.
  */
-export default function ScrollReveal({ as: Tag = 'div', children, className = '', delay = 0 }) {
+export default function ScrollReveal({ as: Tag = 'div', children, className = '', delay = 0, ...props }) {
   const ref = useRef(null)
   const [isVisible, setIsVisible] = useState(false)
 
@@ -41,6 +41,7 @@ export default function ScrollReveal({ as: Tag = 'div', children, className = ''
 
   return (
     <Tag
+      {...props}
       className={`bp-reveal ${isVisible ? 'bp-reveal-visible' : ''} ${className}`}
       ref={ref}
       style={delay ? { transitionDelay: `${delay}ms` } : undefined}

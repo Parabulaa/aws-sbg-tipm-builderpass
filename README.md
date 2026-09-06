@@ -38,6 +38,13 @@ Requirements: Node.js 20.19+ or 22.12+, npm, and a Supabase project.
    4. `supabase/migrations/phase-6-event-posters.sql`
    5. `supabase/migrations/phase-7-attendance-workflow.sql`
    6. `supabase/migrations/phase-8-event-lifecycle-member-profile.sql`
+   7. `supabase/migrations/phase-9-batch-rsvp-summaries.sql`
+   8. `supabase/migrations/phase-10-public-events.sql`
+
+   For an existing database, apply only pending migrations in this order. Phase 10
+   preserves existing events as published to members only; new events default to
+   draft and members only. An officer or admin must explicitly select **Published**
+   and **Public** in the event editor for a guest announcement to appear.
 
 4. Start the development server.
 
@@ -54,7 +61,27 @@ npm test
 npm run build
 ```
 
-The test command covers pure event-date and member-import rules. The production build writes deployable files to `dist/`.
+The test command covers authentication, filtering, event dates, imports, public
+content, and database publication permissions. Browser checks run with
+`npm run test:e2e` (install Chromium first with `npx playwright install chromium`).
+Browser checks use stubbed API data, never a live member database. The production
+build writes deployable files to `dist/`.
+
+## Public homepage and event announcements
+
+The homepage includes student benefits, joining steps, upcoming and previous
+public events, FAQs, and a final signup link. Guests can browse `/events` and
+`/events/:id`; reservations and member activity still require sign-in. Search
+updates the URL without remounting the page or interrupting typing.
+
+Publication, audience, and registration status are independent. Drafts are visible
+only to officers/admins. Public poster access is restricted by Storage policies
+to published public events; the bucket remains private. Guest poster URLs expire
+after five minutes, although images already downloaded cannot be recalled.
+
+See [public content maintenance](docs/public-content.md) for recaps, testimonials,
+membership-policy copy, and the release checklist. Apply the database migrations
+before releasing this frontend. A Git push does not apply Supabase migrations.
 
 ## Roles
 

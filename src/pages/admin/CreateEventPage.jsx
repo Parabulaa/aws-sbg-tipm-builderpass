@@ -1,3 +1,4 @@
+import EventPublicationFields from '../../components/EventPublicationFields.jsx'
 import { ImagePlus } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -21,6 +22,9 @@ const initialForm = {
   venue: '',
   capacity: '50',
   registrationStatus: 'OPEN',
+  publicationStatus: 'DRAFT',
+  visibility: 'MEMBERS',
+  recap: '',
 }
 
 export default function CreateEventPage() {
@@ -94,6 +98,9 @@ export default function CreateEventPage() {
           venue: form.venue.trim(),
           capacity,
           registration_status: form.registrationStatus,
+          publication_status: form.publicationStatus,
+          visibility: form.visibility,
+          recap: form.recap.trim(),
           created_by: session.user.id,
         })
         .select('id')
@@ -233,6 +240,8 @@ export default function CreateEventPage() {
             />
             <p className="mt-1.5 text-xs text-slate-500">Set the maximum number of active reservations.</p>
           </FormField>
+
+          <EventPublicationFields form={form} onChange={handleChange} />
 
           <FormField label="Registration status" htmlFor="registrationStatus">
             <SelectControl

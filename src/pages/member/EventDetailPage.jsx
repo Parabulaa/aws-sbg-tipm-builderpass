@@ -49,8 +49,8 @@ export default function EventDetailPage() {
         queryWithOptionalEventEndTime((includeEndTime) => supabase
           .from('events')
           .select(includeEndTime
-            ? 'id, title, description, event_date, start_time, end_time, venue, capacity, registration_status, poster_path'
-            : 'id, title, description, event_date, start_time, venue, capacity, registration_status, poster_path')
+            ? 'id, title, description, event_date, start_time, end_time, venue, capacity, registration_status, poster_path, publication_status, visibility, recap'
+            : 'id, title, description, event_date, start_time, venue, capacity, registration_status, poster_path, publication_status, visibility, recap')
           .eq('id', id)
           .maybeSingle()),
         supabase.rpc('get_event_rsvp_summary', { p_event_id: id }),
@@ -275,6 +275,8 @@ export default function EventDetailPage() {
             </div>
           )}
 
+          {event.recap && !isCurrent && <div className="mb-6"><h2 className="text-xl font-bold">What happened</h2><p className="mt-3 whitespace-pre-wrap break-words leading-7">{event.recap}</p></div>}
+
           {errorMessage && (
             <p className="mb-4 border border-[var(--bp-danger)]/60 bg-[var(--bp-danger)]/10 px-4 py-3 text-sm text-[var(--bp-danger)]" role="alert">{errorMessage}</p>
           )}
@@ -282,7 +284,9 @@ export default function EventDetailPage() {
             <p className="mb-4 border border-[var(--bp-amber-muted)] bg-[var(--bp-amber)]/5 px-4 py-3 text-sm text-[var(--bp-text-muted)]" role="status">{warningMessage}</p>
           )}
 
-          {hasActiveRsvp ? (
+          {event.publication_status === 'DRAFT' ? (
+            <p className="font-semibold text-[var(--bp-amber)]">Draft preview — publish this event before accepting reservations.</p>
+          ) : hasActiveRsvp ? (
             <div className="flex flex-col gap-4 border border-[var(--bp-success)]/70 bg-[var(--bp-success)]/10 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="font-bold text-[var(--bp-success)]">RSVP confirmed</p>
@@ -326,6 +330,10 @@ export default function EventDetailPage() {
                 {isSubmitting ? 'Reserving...' : rsvpSummary ? 'Reserve a spot' : 'Checking availability...'}
               </button>
             </div>
+          )}
+
+          {isEventManager && (
+            <Link className="mt-5 inline-block font-bold text-[var(--bp-amber)]" to={`/admin/events/${event.id}/edit`}>Edit publication and details →</Link>
           )}
 
           {isEventManager && (
@@ -386,6 +394,7 @@ export default function EventDetailPage() {
 function getRsvpErrorMessage(error, fallback) {
   const messages = {
     EVENT_FULL: 'This event is full.',
+    EVENT_NOT_PUBLISHED: 'This event is a draft. Reservations are not available.',
     EVENT_ENDED: 'This event has ended. Reservations are no longer available.',
     REGISTRATION_CLOSED: 'Registration is closed for this event.',
     PROFILE_NOT_FOUND: 'Your member profile is not available. Please sign in again.',

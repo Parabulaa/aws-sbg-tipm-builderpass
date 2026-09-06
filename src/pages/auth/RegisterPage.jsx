@@ -1,6 +1,7 @@
 import { CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { authLink, getAuthDestination } from '../../utils/authDestination.js'
 import Dialog from '../../components/Dialog.jsx'
 import SelectControl from '../../components/SelectControl.jsx'
 import AuthField from '../../components/auth/AuthField.jsx'
@@ -32,6 +33,8 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const navigate = useNavigate()
+  const destination = getAuthDestination(useLocation())
+  const loginPath = authLink('/login', destination)
   const passwordError = form.password ? errors.password : ''
   const hasConfirmPassword = Boolean(form.confirmPassword)
   const passwordsMatch = hasConfirmPassword && form.password === form.confirmPassword
@@ -61,7 +64,7 @@ export default function RegisterPage() {
         email: form.email.trim().toLowerCase(),
         password: form.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/login`,
+          emailRedirectTo: `${window.location.origin}${loginPath}`,
           data: {
             student_number: form.studentNumber.trim(),
             first_name: form.firstName.trim(),
@@ -95,7 +98,7 @@ export default function RegisterPage() {
       if (requiresEmailConfirmation) {
         sessionStorage.setItem('builderpass.pendingVerificationEmail', registeredEmail)
         sessionStorage.setItem('builderpass.verificationResendAfter', String(Date.now() + 60_000))
-        navigate('/verify-email', { replace: true, state: { email: registeredEmail } })
+        navigate(authLink('/verify-email', destination), { replace: true, state: { email: registeredEmail } })
         return
       }
 
@@ -256,7 +259,7 @@ export default function RegisterPage() {
 
         <p className="mt-6 text-sm text-[var(--bp-text-dim)]">
           Already registered?{' '}
-          <Link className="font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" to="/login">
+          <Link className="font-semibold text-[var(--bp-amber)] hover:text-[var(--bp-amber-strong)]" to={loginPath}>
             Sign in
           </Link>
           .
@@ -279,7 +282,7 @@ export default function RegisterPage() {
             className="border-2 border-[var(--bp-amber)] bg-[var(--bp-amber)] px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-black transition-colors duration-150 hover:bg-[var(--bp-amber-strong)]"
             onClick={() => {
               setSuccessMessage('')
-              navigate('/login')
+              navigate(loginPath)
             }}
             type="button"
           >

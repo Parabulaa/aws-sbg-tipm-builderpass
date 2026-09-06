@@ -5,6 +5,10 @@ import PageTransition from './components/PageTransition.jsx'
 import { RequireAdmin, RequireAuth, RequireGuest, RequireOfficer } from './components/RequireAuth.jsx'
 import RouteErrorBoundary from './components/RouteErrorBoundary.jsx'
 import StartPage from './pages/StartPage.jsx'
+import { useAuth } from './context/AuthContext.jsx'
+
+const PublicEventsPage = lazy(() => import('./pages/PublicEventsPage.jsx'))
+const PublicEventDetailPage = lazy(() => import('./pages/PublicEventDetailPage.jsx'))
 
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage.jsx'))
 const AdminEventsPage = lazy(() => import('./pages/admin/AdminEventsPage.jsx'))
@@ -31,7 +35,7 @@ export default function App() {
 
   return (
     <AppShell>
-      <RouteErrorBoundary key={location.key}>
+      <RouteErrorBoundary key={location.pathname}>
         <Suspense fallback={<RouteLoadingScreen />}>
           <Routes>
           <Route path="/" element={<StartPage />} />
@@ -86,17 +90,17 @@ export default function App() {
           <Route
             path="/events"
             element={
-              <RequireAuth>
+              <EventAccess publicPage={<PublicEventsPage />}>
                 <EventsPage />
-              </RequireAuth>
+              </EventAccess>
             }
           />
           <Route
             path="/events/:id"
             element={
-              <RequireAuth>
+              <EventAccess publicPage={<PublicEventDetailPage />}>
                 <EventDetailPage />
-              </RequireAuth>
+              </EventAccess>
             }
           />
           <Route
@@ -170,6 +174,12 @@ export default function App() {
       </RouteErrorBoundary>
     </AppShell>
   )
+}
+
+function EventAccess({ children, publicPage }) {
+  const { session, isLoading } = useAuth()
+  if (isLoading) return <RouteLoadingScreen />
+  return session ? <RequireAuth>{children}</RequireAuth> : publicPage
 }
 
 function RouteLoadingScreen() {

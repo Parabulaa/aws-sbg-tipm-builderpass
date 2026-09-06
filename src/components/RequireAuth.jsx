@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
+import { getAuthDestination } from '../utils/authDestination.js'
 
 export function RequireAuth({ children }) {
   const { isLoading, profile, session } = useAuth()
@@ -25,8 +26,8 @@ export function RequireGuest({ children }) {
   if (session && !profile) return <Navigate replace to="/account-recovery" />
 
   if (session && profile) {
-    const requestedPath = location.state?.from?.pathname
-    const destination = profile.role === 'ADMIN' ? '/admin' : requestedPath || '/dashboard'
+    const requestedPath = getAuthDestination(location)
+    const destination = requestedPath || (profile.role === 'ADMIN' ? '/admin' : '/dashboard')
     return <Navigate replace to={destination} />
   }
 

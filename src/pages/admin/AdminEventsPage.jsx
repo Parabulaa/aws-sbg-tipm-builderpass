@@ -38,8 +38,8 @@ export default function AdminEventsPage() {
       const { data, error } = await queryWithOptionalEventEndTime((includeEndTime) => supabase
         .from('events')
         .select(includeEndTime
-          ? 'id, title, event_date, start_time, end_time, venue, registration_status, poster_path'
-          : 'id, title, event_date, start_time, venue, registration_status, poster_path')
+          ? 'id, title, event_date, start_time, end_time, venue, registration_status, poster_path, publication_status, visibility, recap'
+          : 'id, title, event_date, start_time, venue, registration_status, poster_path, publication_status, visibility, recap')
         .order('event_date', { ascending: true })
         .order('start_time', { ascending: true }))
 
@@ -156,6 +156,7 @@ export default function AdminEventsPage() {
                         />
                         <div>
                           <h2 className="font-semibold text-slate-950">{event.title}</h2>
+                          <p className="mt-2 text-xs font-bold text-[var(--bp-amber)]">{event.publication_status === 'DRAFT' ? 'Draft' : 'Published'} · {event.visibility === 'PUBLIC' ? 'Public' : 'Members only'}</p>
                           <p className="mt-1 flex items-center gap-2 text-sm text-slate-600">
                             <CalendarDays size={16} /> {formatEventDate(event.event_date)} // {formatEventTimeRange(event.start_time, event.end_time)}
                           </p>

@@ -1,13 +1,8 @@
-import { ArrowLeft, ArrowRight, CalendarDays, CheckCircle2, ChevronDown, CircleCheck, Users } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { ArrowLeft, ArrowRight, Pause, Play } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import ScrollReveal from '../components/ScrollReveal.jsx'
-
-const learnMoreDetails = [
-  'Every TIPian gets a single profile that tracks membership info, event registrations, and attendance history in one place.',
-  'Admins can create events, open or close registration, and review who signed up without juggling spreadsheets.',
-  'Attendance check-ins are recorded per event, giving officers an accurate, exportable record for every session.',
-]
+import LandingSections from '../components/LandingSections.jsx'
+import useReducedMotion from '../hooks/useReducedMotion.js'
 
 const terminalText = '> builderpass.init("tip-manila")'
 
@@ -31,35 +26,14 @@ const heroSlides = [
 
 const HERO_AUTOPLAY_DELAY = 5500
 
-const features = [
-  {
-    icon: Users,
-    title: 'Manage members',
-    description: 'Keep the AWS SBG TIP Manila community organized in one dedicated member space for TIPians.',
-  },
-  {
-    icon: CalendarDays,
-    title: 'Run events',
-    description: 'Discover and manage AWS SBG TIP Manila workshops, sessions, and builder activities in one place.',
-  },
-  {
-    icon: CircleCheck,
-    title: 'Track attendance',
-    description: 'Keep check-ins simple and accurate for TIPians joining AWS SBG events and community sessions.',
-  },
-]
-
 export default function StartPage() {
   const [displayedText, setDisplayedText] = useState('')
-  const [showCursor, setShowCursor] = useState(true)
+  const reducedMotion = useReducedMotion()
+  const [paused, setPaused] = useState(false)
   const [activeSlide, setActiveSlide] = useState(0)
-  const [isLearnMoreOpen, setIsLearnMoreOpen] = useState(false)
-  const heroTimerRef = useRef(null)
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-    if (prefersReducedMotion) {
+    if (reducedMotion) {
       setDisplayedText(terminalText)
       return
     }
@@ -77,25 +51,19 @@ export default function StartPage() {
     }, typingSpeed)
 
     return () => clearInterval(timer)
-  }, [])
-
-  function resetHeroAutoplay() {
-    if (heroTimerRef.current) window.clearInterval(heroTimerRef.current)
-    heroTimerRef.current = window.setInterval(() => {
-      setActiveSlide((current) => (current + 1) % heroSlides.length)
-    }, HERO_AUTOPLAY_DELAY)
-  }
+  }, [reducedMotion])
 
   useEffect(() => {
-    resetHeroAutoplay()
-    return () => {
-      if (heroTimerRef.current) window.clearInterval(heroTimerRef.current)
-    }
-  }, [])
+    if (paused || reducedMotion) return
+    const timer = window.setInterval(() => {
+      setActiveSlide((current) => (current + 1) % heroSlides.length)
+    }, HERO_AUTOPLAY_DELAY)
+    return () => window.clearInterval(timer)
+  }, [paused, reducedMotion])
 
   function goToHeroSlide(index) {
     setActiveSlide(index)
-    resetHeroAutoplay()
+    setPaused(true)
   }
 
   function previousHeroSlide() {
@@ -120,17 +88,17 @@ export default function StartPage() {
 
             <div className="bp-hero-in-terminal mono mb-8 mt-6 text-[clamp(1.15rem,1.9vw,1.75rem)] text-[var(--bp-amber)]">
               {displayedText}
-              {showCursor && <span className="terminal-cursor" />}
+              {!reducedMotion && <span className="terminal-cursor" />}
             </div>
 
             <h1 className="bp-hero-in-headline text-[clamp(2.75rem,5.4vw,4.75rem)] font-black leading-[1.05] tracking-[-0.02em] text-[var(--bp-text)]">
-              Build the room.
+              Find your next event.
               <br />
-              <span className="text-[var(--bp-amber)]">Show up for it.</span>
+              <span className="text-[var(--bp-amber)]">Be part of it.</span>
             </h1>
 
             <p className="bp-hero-in-copy mt-8 max-w-xl text-[clamp(1.05rem,1.15vw,1.25rem)] leading-relaxed text-[var(--bp-text-dim)]">
-              BuilderPass keeps your group's members, events, registrations, and attendance in one practical workspace.
+              Discover AWS SBG TIP Manila events, reserve your spot, and track your community participation in one place.
             </p>
 
             <div className="bp-hero-in-cta mt-10 flex flex-wrap items-center gap-6">
@@ -141,9 +109,7 @@ export default function StartPage() {
                 Join BuilderPass
                 <ArrowRight size={18} />
               </Link>
-              <span className="mono text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)]">
-                For AWS SBG TIP Manila members
-              </span>
+              <Link className="inline-flex min-h-12 items-center gap-2 border border-[var(--bp-border-strong)] px-6 font-bold text-[var(--bp-text)] hover:border-[var(--bp-amber)]" to="/events">Explore events <ArrowRight size={18} /></Link>
             </div>
           </div>
 
@@ -151,7 +117,7 @@ export default function StartPage() {
             <div className="group relative overflow-hidden border-2 border-[var(--bp-border-strong)] bg-[var(--bp-surface)]">
               <div className="relative h-56 w-full overflow-hidden sm:h-72 lg:h-80 xl:h-96 2xl:h-[26rem]">
                 <div
-                  className="flex h-full w-full transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                  className="flex h-full w-full transition-transform duration-700 motion-reduce:transition-none ease-[cubic-bezier(0.4,0,0.2,1)]"
                   style={{ transform: `translateX(-${activeSlide * 100}%)` }}
                 >
                   {heroSlides.map((slide, index) => (
@@ -163,7 +129,7 @@ export default function StartPage() {
                         decoding={index === 0 ? 'sync' : 'async'}
                         draggable="false"
                         fetchPriority={index === 0 ? 'high' : 'auto'}
-                        loading="eager"
+                        loading={index === 0 ? 'eager' : 'lazy'}
                         src={slide.src}
                       />
                     </picture>
@@ -193,7 +159,8 @@ export default function StartPage() {
                   <span className="h-2 w-2 bg-[var(--bp-amber)]" />
                   {currentHeroSlide.caption}
                 </p>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  {reducedMotion ? <span className="text-xs text-[var(--bp-text-dim)]">Autoplay off</span> : <button aria-label={paused ? 'Play community slideshow' : 'Pause community slideshow'} className="grid min-h-11 min-w-11 place-items-center border border-[var(--bp-border)] text-[var(--bp-amber)]" onClick={() => setPaused((current) => !current)} type="button">{paused ? <Play size={16} /> : <Pause size={16} />}</button>}
                   <div className="flex gap-1.5">
                     {heroSlides.map((slide, index) => (
                       <button
@@ -216,88 +183,7 @@ export default function StartPage() {
         </div>
       </section>
 
-      <ScrollReveal as="section" className="mx-auto max-w-6xl px-6 py-16 text-center lg:px-10 lg:py-20">
-        <p className="mono text-xs font-bold uppercase tracking-[.2em] text-[var(--bp-amber)]">
-          [ 01 ] BUILDERPASS FOR TIPIANS
-        </p>
-        <h2 className="mx-auto mt-4 max-w-xl text-[clamp(1.875rem,2.8vw,2.75rem)] font-black leading-tight tracking-tight text-[var(--bp-text)]">
-          One space for the builder community.
-        </h2>
-        <p className="mx-auto mt-5 max-w-lg text-base leading-relaxed text-[var(--bp-text-dim)]">
-          BuilderPass gives AWS Student Builder Group - TIP Manila one practical place for members, events, registrations, and attendance.
-        </p>
-
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature) => (
-            <div
-              className="group relative overflow-hidden border border-[var(--bp-border)] bg-[var(--bp-surface)]/60 p-8 text-center transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[var(--bp-amber)]"
-              key={feature.title}
-            >
-              {/* Sparse amber corner markers — decorative only, brighten on hover. */}
-              <span
-                aria-hidden="true"
-                className="absolute left-3 top-3 h-1.5 w-1.5 bg-[var(--bp-amber)]/30 transition-colors duration-200 group-hover:bg-[var(--bp-amber)]"
-              />
-              <span
-                aria-hidden="true"
-                className="absolute bottom-3 right-3 h-1.5 w-1.5 bg-[var(--bp-amber)]/30 transition-colors duration-200 group-hover:bg-[var(--bp-amber)]"
-              />
-
-              <div className="mx-auto grid h-16 w-16 place-items-center border border-[var(--bp-border-strong)] text-[var(--bp-amber)] transition-colors duration-200 group-hover:border-[var(--bp-amber)] group-hover:bg-[var(--bp-amber)]/10">
-                <feature.icon size={26} />
-              </div>
-
-              <h3 className="mt-6 text-lg font-bold text-[var(--bp-text)] transition-colors duration-200 group-hover:text-[var(--bp-amber)]">
-                {feature.title}
-              </h3>
-
-              <div className="mx-auto mt-3 flex items-center justify-center gap-2" aria-hidden="true">
-                <span className="h-px w-6 bg-[var(--bp-border-strong)]" />
-                <span className="h-1.5 w-1.5 bg-[var(--bp-amber)]" />
-                <span className="h-px w-6 bg-[var(--bp-border-strong)]" />
-              </div>
-
-              <p className="mt-3 text-sm leading-relaxed text-[var(--bp-text-dim)]">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-10 flex justify-center">
-          <button
-            aria-controls="tipians-learn-more"
-            aria-expanded={isLearnMoreOpen}
-            className="mono inline-flex items-center gap-2 border border-[var(--bp-border-strong)] px-5 py-2.5 text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-text-dim)] transition-all duration-200 ease-out hover:border-[var(--bp-amber)] hover:text-[var(--bp-amber)]"
-            onClick={() => setIsLearnMoreOpen((current) => !current)}
-            type="button"
-          >
-            Learn more
-            <ChevronDown
-              className={`transition-transform duration-200 ease-out ${isLearnMoreOpen ? 'rotate-180' : ''}`}
-              size={16}
-            />
-          </button>
-        </div>
-
-        <div
-          className={`grid transition-all duration-300 ease-out ${
-            isLearnMoreOpen ? 'mt-8 grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-          }`}
-          id="tipians-learn-more"
-        >
-          <div className="overflow-hidden">
-            <div className="mx-auto max-w-2xl border-t border-[var(--bp-border)] pt-8 text-left">
-              <ul className="space-y-4">
-                {learnMoreDetails.map((detail) => (
-                  <li className="flex items-start gap-3" key={detail}>
-                    <CheckCircle2 className="mt-0.5 shrink-0 text-[var(--bp-amber)]" size={18} />
-                    <span className="text-sm leading-relaxed text-[var(--bp-text-dim)]">{detail}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </ScrollReveal>
+      <LandingSections />
     </>
   )
 }

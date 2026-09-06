@@ -57,13 +57,13 @@ export async function getEventPosterUrl(posterPath) {
   return data?.signedUrl ?? null
 }
 
-export async function getEventPosterUrls(posterPaths) {
+export async function getEventPosterUrls(posterPaths, expiresIn = 60 * 60) {
   const uniquePosterPaths = [...new Set(posterPaths.filter(Boolean))]
   if (uniquePosterPaths.length === 0) return {}
 
   const { data, error } = await supabase.storage
     .from(EVENT_POSTER_BUCKET)
-    .createSignedUrls(uniquePosterPaths, 60 * 60)
+    .createSignedUrls(uniquePosterPaths, expiresIn)
 
   if (error) throw error
 

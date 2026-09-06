@@ -38,6 +38,9 @@ export function eventWithOptionalEndTime(event) {
 }
 
 export function getDatabaseFeatureMessage(error, fallback) {
+  if (/publication_status|visibility|recap/.test(error?.message || '') && ['42703', 'PGRST204'].includes(error?.code)) {
+    return 'Event publishing needs the pending database update. Ask an administrator to apply the Phase 10 Supabase migration.'
+  }
   if (isMissingEventEndTime(error) || isMissingProfileUpdateFunction(error)) {
     return 'This feature needs the pending BuilderPass database update. Ask an administrator to apply the Phase 8 Supabase migration.'
   }
