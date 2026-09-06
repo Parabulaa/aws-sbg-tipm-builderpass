@@ -85,6 +85,9 @@ See [public content maintenance](docs/public-content.md) for recaps, testimonial
 membership-policy copy, and the release checklist. Apply the database migrations
 before releasing this frontend. A Git push does not apply Supabase migrations.
 
+The [original 16-fix audit](docs/original-16-fixes-audit.md) records completed work,
+later changes to the requirements, and remaining content/deployment setup.
+
 ## Roles
 
 New accounts are members by default. Promote test accounts from the Supabase SQL editor after registration:
