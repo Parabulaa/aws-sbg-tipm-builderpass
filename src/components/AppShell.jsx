@@ -47,7 +47,6 @@ export default function AppShell({ children }) {
     : [
         { to: '/', label: 'Home' },
         { to: '/events', label: 'Events' },
-        { to: '/register', label: 'Register' },
         { to: '/login', label: 'Login' },
       ]
 

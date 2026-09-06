@@ -124,7 +124,7 @@ test('public event signup and verification preserve the intended event', async (
   await page.goto(`/events/${eventId}`)
   await page.getByRole('link', { name: 'Sign in to reserve' }).click()
   await expect(page).toHaveURL(/\/login\?next=/)
-  await page.getByRole('link', { name: 'Register here', exact: true }).click()
+  await page.getByRole('link', { name: 'Sign up', exact: true }).click()
   await expect(page).toHaveURL(/\/register\?next=/)
   await page.getByLabel('AWS SBG Member ID', { exact: true }).fill('123456')
   await page.getByLabel('First name', { exact: true }).fill('Test')
