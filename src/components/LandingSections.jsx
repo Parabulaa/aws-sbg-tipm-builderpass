@@ -1,12 +1,6 @@
 import { CalendarDays, CircleCheck, Users } from 'lucide-react'
-import { useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import CommunityGallery from './CommunityGallery.jsx'
 import ScrollReveal from './ScrollReveal.jsx'
-import PublicEventCard from './PublicEventCard.jsx'
-import RetryNotice from './RetryNotice.jsx'
-import { EventCardSkeletons } from './LoadingSkeleton.jsx'
-import usePublicEvents from '../hooks/usePublicEvents.js'
-import { selectPublicEvents } from '../utils/publicEvents.js'
 import { approvedTestimonials, testimonials } from '../content/testimonials.js'
 
 const benefits = [
@@ -35,31 +29,7 @@ function Section({ id, eyebrow, title, children }) {
 }
 
 export default function LandingSections() {
-  const data = usePublicEvents()
-  const { hash } = useLocation()
-  useEffect(() => {
-    if (data.loading || !hash) return
-    // Event cards replace skeletons with different heights. Re-align a section
-    // link once that layout settles, including links from the login page.
-    const frame = window.requestAnimationFrame(() => {
-      document.getElementById(hash.slice(1))?.scrollIntoView({
-        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-        block: 'start',
-      })
-    })
-    return () => window.cancelAnimationFrame(frame)
-  }, [data.loading, hash])
   const quotes = approvedTestimonials(testimonials)
-  function eventSection(period) {
-    const events = selectPublicEvents(data.events, { period, limit: 3, now: data.now })
-    return <>
-      {data.loading ? <EventCardSkeletons /> : data.error ? <div className="mt-6"><RetryNotice message={data.error} onRetry={data.retry} /></div> : events.length ?
-        <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">{events.map((event) => <PublicEventCard key={event.id} event={event} now={data.now} poster={data.posters[event.poster_path]} onRetry={event.poster_path ? () => data.refreshPoster(event.poster_path) : undefined} />)}</div>
-        : <div className="mt-8 border border-[var(--bp-border)] bg-[var(--bp-surface)] p-7"><p className="font-bold">{period === 'PAST' ? 'Community moments will appear here.' : 'The next session is on its way.'}</p><p className="mt-2 text-sm leading-6 text-[var(--bp-text-dim)]">{period === 'PAST' ? 'Explore previous public events and their recaps once the organizers publish them.' : 'No upcoming public events are posted yet. Check back for the next announcement, or sign in to see member events.'}</p></div>}
-      {data.posterWarning && <p className="mt-4 text-sm" role="status">{data.posterWarning}</p>}
-      <Link className="mt-5 inline-flex min-h-11 items-center font-bold text-[var(--bp-amber)]" to={`/events?time=${period}`}>{period === 'PAST' ? 'Browse previous events' : 'Explore events'} →</Link>
-    </>
-  }
   return <>
     <Section id="why-join" eyebrow="01 / Why join" title="Make room for your next builder experience.">
       <div className="mt-7 grid gap-8 md:grid-cols-2">
@@ -72,15 +42,8 @@ export default function LandingSections() {
       <div className="mt-10 border-t border-[var(--bp-border)] pt-8"><h3 className="text-xl font-bold">Start in three steps</h3><ol className="mt-6 grid gap-6 md:grid-cols-3">{[['Create your account', 'Use your email, AWS SBG Member ID, and academic details.'], ['Verify your email', 'Follow the inbox link if prompted, then sign in.'], ['Find an event & reserve', 'Choose a session and confirm your RSVP while spots are available.']].map(([title, text], i) => <li key={title}><span className="mono text-sm font-bold text-[var(--bp-amber)]">0{i + 1}</span><h4 className="mt-2 font-bold">{title}</h4><p className="mt-2 text-sm leading-6 text-[var(--bp-text-dim)]">{text}</p></li>)}</ol></div>
     {quotes.length > 0 && <div id="member-stories" className="mt-10"><h3 className="text-2xl font-bold">In our members’ words.</h3><div className="mt-8 grid gap-6 md:grid-cols-3">{quotes.map((quote) => <figure key={quote.id} className="border border-[var(--bp-border)] bg-[var(--bp-surface)] p-7"><blockquote className="text-lg leading-8">“{quote.quote}”</blockquote><figcaption className="mt-5 text-sm text-[var(--bp-text-dim)]"><strong>{quote.name}</strong>{quote.attribution && <span className="mt-1 block">{quote.attribution}</span>}</figcaption></figure>)}</div></div>}
     </Section>
-    <Section id="events" eyebrow="02 / Events" title="Find your next session.">
-      <div className="mt-8" aria-labelledby="upcoming-events-title">
-        <h3 className="text-2xl font-bold" id="upcoming-events-title">Upcoming Events</h3>
-        {eventSection('UPCOMING')}
-      </div>
-      <div className="mt-10 border-t border-[var(--bp-border)] pt-8" aria-labelledby="past-events-title">
-        <h3 className="text-2xl font-bold" id="past-events-title">Past Events</h3>
-        {eventSection('PAST')}
-      </div>
+    <Section id="events" eyebrow="02 / Events" title="Community in pictures.">
+      <CommunityGallery />
     </Section>
 
     <Section id="faq" eyebrow="03 / FAQ" title="Before you join."><div className="mt-8 divide-y divide-[var(--bp-border)] border-y border-[var(--bp-border)]">{faqs.map(({ question, answer }) => <details className="group py-5" key={question}><summary className="cursor-pointer py-2 pr-4 text-lg font-bold marker:text-[var(--bp-amber)]">{question}</summary><p className="mt-3 max-w-3xl leading-7 text-[var(--bp-text-dim)]">{answer}</p></details>)}</div><a className="mt-6 inline-flex min-h-11 items-center font-bold text-[var(--bp-amber)]" href="mailto:aws.mnl@tip.edu.ph">Still have a question? Contact the group →</a></Section>

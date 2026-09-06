@@ -1,6 +1,19 @@
 # Public content maintenance
 
-## Events and recaps
+## Homepage photo gallery
+
+The homepage Events section is an image gallery, independent of event postings.
+To add photos later:
+
+1. Upload approved JPG, PNG, or WebP files to `public/images/community/` in this repository.
+2. Add an entry to `src/content/communityImages.js` for each file:
+   `{ id: 'community-day', src: '/images/community/community-day.jpg', alt: 'Describe the real photo', caption: 'Optional approved caption' }`.
+3. Commit and deploy the files. The responsive gallery displays those photos.
+
+Until photos are added, one clean placeholder is shown. This is repository-based
+content editing; it does not add an in-app uploader or fabricated event imagery.
+
+## Event directory and recaps
 
 Officers and admins use **Manage events → Create/Edit event → Publication & audience**.
 New events default to Draft and Members only. Existing events remain Published and
@@ -8,9 +21,7 @@ Members only when Phase 10 runs. Set both Published and Public to make an event
 discoverable to guests. Closed registration does not hide an announcement.
 
 Use real event titles, dates, venues, descriptions, and approved posters. After an
-event ends, fill in its optional recap (up to 1,500 characters). The homepage shows
-up to three upcoming/live events and three most recent previous events, using
-Manila time. Empty lists show an honest empty state; no sample events are seeded.
+event ends, fill in its optional recap (up to 1,500 characters). The separate event directory remains at `/events`; public visibility and recap features still work there. No sample events are seeded.
 
 ## Testimonials
 

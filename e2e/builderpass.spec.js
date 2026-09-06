@@ -82,7 +82,7 @@ for (const role of [undefined, 'MEMBER', 'OFFICER']) {
   })
 }
 
-test('homepage sections, real recaps, FAQ, and anchors work on mobile', async ({ page }) => {
+test('homepage gallery, FAQ, and anchors work on mobile', async ({ page }) => {
   await setup(page)
   await page.setViewportSize({ width: 390, height: 844 })
   await page.emulateMedia({ reducedMotion: 'reduce' })
@@ -98,7 +98,7 @@ test('homepage sections, real recaps, FAQ, and anchors work on mobile', async ({
   await expect(page.getByRole('heading', { name: 'Before you join.' })).toBeInViewport()
   await page.getByText('Can I browse events before creating an account?', { exact: true }).click()
   await expect(page.getByText('Yes. Publicly published events are available to everyone.', { exact: false })).toBeVisible()
-  await expect(page.getByText('Members built a demo together.', { exact: true })).toBeAttached()
+  await expect(page.getByText('Community photos coming soon.', { exact: true })).toBeAttached()
   await expect(page.locator('#member-stories')).toHaveCount(0)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await page.screenshot({ path: 'test-results/homepage-mobile.png', fullPage: true })
@@ -115,8 +115,8 @@ test('landing navbar and hero target consolidated sections and preserve active i
   await page.locator('#home').getByRole('link', { name: 'Explore Events' }).click()
   await expect(page).toHaveURL(/\/#events$/)
   await expect(nav.getByRole('link', { name: 'Events', exact: true })).toHaveAttribute('aria-current', 'location')
-  await expect(page.locator('#events').getByRole('heading', { name: 'Upcoming Events', exact: true })).toBeAttached()
-  await expect(page.locator('#events').getByRole('heading', { name: 'Past Events', exact: true })).toBeAttached()
+  await expect(page.locator('#events').getByText('Community photos coming soon.')).toBeVisible()
+  await expect(page.locator('#events').getByRole('heading', { name: /Upcoming Events|Past Events/ })).toHaveCount(0)
   await nav.getByRole('link', { name: 'Why Join', exact: true }).click()
   await expect(nav.getByRole('link', { name: 'Why Join', exact: true })).toHaveAttribute('aria-current', 'location')
   await expect(page.locator('#why-join').getByRole('heading', { name: 'Membership benefits' })).toBeAttached()
