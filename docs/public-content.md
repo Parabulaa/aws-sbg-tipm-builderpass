@@ -48,7 +48,8 @@ The sample shape above is documentation, not a testimonial to publish.
 ## Membership questions
 
 The FAQ distinguishes an app account from official organization membership and
-directs fee/eligibility questions to the group's existing contact address. No
+directs concerns and fee/eligibility questions to the group's official Facebook page,
+https://www.facebook.com/awssbgtip, using the clickable FAQ link. No
 unverified promises of free membership, certificates, reminders, or job outcomes
 are made. Update answers in `src/components/LandingSections.jsx` when the group
 provides confirmed policies.
