@@ -34,6 +34,8 @@ export default function AdminEventsPage() {
     let isActive = true
 
     async function loadEvents() {
+      setIsLoading(true)
+      setErrorMessage('')
       setWarningMessage('')
       const { data, error } = await queryWithOptionalEventEndTime((includeEndTime) => supabase
         .from('events')
