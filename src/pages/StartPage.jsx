@@ -166,13 +166,13 @@ export default function StartPage() {
                       <button
                         aria-current={index === activeSlide}
                         aria-label={`Go to slide ${index + 1}`}
-                        className={`h-1.5 w-6 transition-all duration-300 ease-out ${
-                          index === activeSlide ? 'bg-[var(--bp-amber)]' : 'bg-[var(--bp-text-dim)]/60 hover:bg-[var(--bp-text-muted)]'
-                        }`}
+                        className="grid min-h-11 min-w-11 place-items-center focus-visible:outline-2 focus-visible:outline-[var(--bp-amber)]"
                         key={slide.src}
                         onClick={() => goToHeroSlide(index)}
                         type="button"
-                      />
+                      >
+                        <span aria-hidden="true" className={`h-1.5 w-6 transition-colors ${index === activeSlide ? 'bg-[var(--bp-amber)]' : 'bg-[var(--bp-text-dim)]/60'}`} />
+                      </button>
                     ))}
                   </div>
                   <p className="mono hidden text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-amber)] sm:block">TIP Manila</p>
