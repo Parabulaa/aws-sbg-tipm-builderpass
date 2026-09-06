@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Pause, Play } from 'lucide-react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import LandingSections from '../components/LandingSections.jsx'
@@ -24,12 +24,9 @@ const heroSlides = [
   },
 ]
 
-const HERO_AUTOPLAY_DELAY = 5500
-
 export default function StartPage() {
   const [displayedText, setDisplayedText] = useState('')
   const reducedMotion = useReducedMotion()
-  const [paused, setPaused] = useState(false)
   const [activeSlide, setActiveSlide] = useState(0)
 
   useEffect(() => {
@@ -53,17 +50,8 @@ export default function StartPage() {
     return () => clearInterval(timer)
   }, [reducedMotion])
 
-  useEffect(() => {
-    if (paused || reducedMotion) return
-    const timer = window.setInterval(() => {
-      setActiveSlide((current) => (current + 1) % heroSlides.length)
-    }, HERO_AUTOPLAY_DELAY)
-    return () => window.clearInterval(timer)
-  }, [paused, reducedMotion])
-
   function goToHeroSlide(index) {
     setActiveSlide(index)
-    setPaused(true)
   }
 
   function previousHeroSlide() {
@@ -160,7 +148,6 @@ export default function StartPage() {
                   {currentHeroSlide.caption}
                 </p>
                 <div className="flex flex-wrap items-center gap-3">
-                  {reducedMotion ? <span className="text-xs text-[var(--bp-text-dim)]">Autoplay off</span> : <button aria-label={paused ? 'Play community slideshow' : 'Pause community slideshow'} className="grid min-h-11 min-w-11 place-items-center border border-[var(--bp-border)] text-[var(--bp-amber)]" onClick={() => setPaused((current) => !current)} type="button">{paused ? <Play size={16} /> : <Pause size={16} />}</button>}
                   <div className="flex gap-1.5">
                     {heroSlides.map((slide, index) => (
                       <button
