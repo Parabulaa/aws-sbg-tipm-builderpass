@@ -1,5 +1,5 @@
 import { LogOut, Mail, Menu, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import Dialog from './Dialog.jsx'
@@ -14,14 +14,41 @@ export default function AppShell({ children }) {
   const [logoutError, setLogoutError] = useState('')
   const navigate = useNavigate()
   const location = useLocation()
+  const menuButtonRef = useRef(null)
+  const [activeSection, setActiveSection] = useState('home')
+
+  function scrollToSection(id) {
+    window.requestAnimationFrame(() => {
+      document.getElementById(id)?.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+        block: 'start',
+      })
+    })
+  }
   const isDataDensePage = location.pathname.startsWith('/admin') || location.pathname.startsWith('/dashboard')
 
   // Every route change should land the user at the top of the new page —
   // the browser does not do this automatically for client-side navigation.
   useEffect(() => {
     setIsMenuOpen(false)
+    if (location.pathname === '/' && location.hash) {
+      scrollToSection(location.hash.slice(1))
+      return
+    }
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' })
+  }, [location.pathname, location.hash])
+
+  useEffect(() => {
+    if (location.pathname !== '/') return
+    function updateActiveSection() {
+      const ids = ['home', 'why-join', 'events', 'faq']
+      const current = ids.filter((id) => document.getElementById(id)?.getBoundingClientRect().top <= 130).at(-1)
+      setActiveSection(current || 'home')
+    }
+    updateActiveSection()
+    window.addEventListener('scroll', updateActiveSection, { passive: true })
+    return () => window.removeEventListener('scroll', updateActiveSection)
   }, [location.pathname])
 
   // Clicking a nav link/logo that points at the page you're already on
@@ -36,7 +63,7 @@ export default function AppShell({ children }) {
 
   const isEventManager = ['OFFICER', 'ADMIN'].includes(profile?.role)
 
-  const navItems = session
+  const navItems = session && location.pathname !== '/'
     ? [
         { to: '/dashboard', label: 'Dashboard' },
         { to: '/events', label: 'Events' },
@@ -45,8 +72,10 @@ export default function AppShell({ children }) {
         ...(profile?.role === 'ADMIN' ? [{ to: '/admin', label: 'Admin', end: true }] : []),
       ]
     : [
-        { to: '/', label: 'Home' },
-        { to: '/events', label: 'Events' },
+        { to: '/#home', label: 'Home', section: 'home' },
+        { to: '/#why-join', label: 'Why Join', section: 'why-join' },
+        { to: '/#events', label: 'Events', section: 'events' },
+        { to: '/#faq', label: 'FAQ', section: 'faq' },
         { to: '/login', label: 'Login' },
       ]
 
@@ -79,11 +108,24 @@ export default function AppShell({ children }) {
   }
 
   const linkClass = ({ isActive }) =>
-    `mono text-sm font-bold uppercase tracking-[.16em] transition-colors duration-150 relative ${
+    `mono inline-flex min-h-11 items-center text-sm font-bold uppercase tracking-[.16em] transition-colors duration-150 relative ${
       isActive
         ? 'text-[var(--bp-amber)] after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-[2px] after:bg-[var(--bp-amber)]'
         : 'text-[var(--bp-text-dim)] hover:text-[var(--bp-text)]'
     }`
+
+  function navigationItem(item) {
+    function handleClick() {
+      closeMenu()
+      if (item.section && location.pathname === '/') scrollToSection(item.section)
+      else if (!item.section) scrollToTopIfSamePath(item.to)
+    }
+    if (item.section) {
+      const isActive = location.pathname === '/' && activeSection === item.section
+      return <Link key={item.to} to={item.to} onClick={handleClick} className={linkClass({ isActive })} aria-current={isActive ? 'location' : undefined}>{item.label}</Link>
+    }
+    return <NavLink key={item.to} to={item.to} end={item.end} className={linkClass} onClick={handleClick}>{item.label}</NavLink>
+  }
 
   // Signed-in users land on their dashboard when they click the logo;
   // guests go to the public landing page. Avoids bouncing an authenticated
@@ -95,7 +137,12 @@ export default function AppShell({ children }) {
       <a className="bp-skip-link" href="#main-content">Skip to main content</a>
       <GridBackground muted={isDataDensePage} />
       <div className="relative z-10 flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 border-b border-[var(--bp-border)] bg-[var(--bp-bg)]/95 backdrop-blur">
+      <header onKeyDown={(event) => {
+        if (event.key === 'Escape' && isMenuOpen) {
+          closeMenu()
+          menuButtonRef.current?.focus()
+        }
+      }} className="sticky top-0 z-50 border-b border-[var(--bp-border)] bg-[var(--bp-bg)]/95 backdrop-blur">
         <div className="mx-auto flex h-20 max-w-[90rem] items-center justify-between px-6 lg:px-10">
           <Link
             className="flex items-center gap-3 text-xl font-black tracking-tight text-[var(--bp-text)] hover:text-[var(--bp-amber)] transition-colors"
@@ -110,29 +157,20 @@ export default function AppShell({ children }) {
           </Link>
 
           <button
-            aria-controls="site-navigation"
+            ref={menuButtonRef}
+            aria-controls={isMenuOpen ? 'site-navigation' : undefined}
             aria-expanded={isMenuOpen}
             aria-label="Toggle navigation"
-            className="grid min-h-11 min-w-11 place-items-center border border-[var(--bp-border-strong)] text-[var(--bp-amber)] transition-colors hover:bg-[var(--bp-amber)] hover:text-black md:hidden"
+            className="grid min-h-11 min-w-11 place-items-center border border-[var(--bp-border-strong)] text-[var(--bp-amber)] transition-colors hover:bg-[var(--bp-amber)] hover:text-black lg:hidden"
             onClick={() => setIsMenuOpen((v) => !v)}
             type="button"
           >
             {isMenuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
 
-          <div className="hidden items-center gap-8 md:flex">
+          <div className="hidden items-center gap-8 lg:flex">
             <nav className="flex items-center gap-7" aria-label="Main navigation">
-              {navItems.map((item) => (
-                <NavLink
-                  className={linkClass}
-                  end={item.end}
-                  key={item.to}
-                  onClick={() => scrollToTopIfSamePath(item.to)}
-                  to={item.to}
-                >
-                  {item.label}
-                </NavLink>
-              ))}
+              {navItems.map(navigationItem)}
             </nav>
             {session && (
               <button
@@ -148,22 +186,9 @@ export default function AppShell({ children }) {
         </div>
 
         {isMenuOpen && (
-          <div className="border-t border-[var(--bp-border)] px-5 py-4 md:hidden">
-            <nav id="site-navigation" className="grid gap-4" aria-label="Mobile navigation">
-              {navItems.map((item) => (
-                <NavLink
-                  className={linkClass}
-                  end={item.end}
-                  key={item.to}
-                  onClick={() => {
-                    closeMenu()
-                    scrollToTopIfSamePath(item.to)
-                  }}
-                  to={item.to}
-                >
-                  {item.label}
-                </NavLink>
-              ))}
+          <div className="max-h-[calc(100dvh-5rem)] overflow-y-auto border-t border-[var(--bp-border)] px-5 py-4 lg:hidden">
+            <nav id="site-navigation" className="grid gap-2" aria-label="Mobile navigation">
+              {navItems.map(navigationItem)}
             </nav>
             {session && (
               <button

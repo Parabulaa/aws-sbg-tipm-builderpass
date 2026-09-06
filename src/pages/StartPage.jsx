@@ -78,7 +78,7 @@ export default function StartPage() {
 
   return (
     <>
-      <section className="bp-hero-viewport mx-auto flex max-w-[80rem] items-center px-6 py-8 sm:py-12 lg:px-10">
+      <section id="home" className="scroll-mt-24 bp-hero-viewport mx-auto flex max-w-[80rem] items-center px-6 py-8 sm:py-12 lg:px-10">
         <div className="grid w-full items-center gap-10 lg:grid-cols-[1fr_1fr] lg:gap-6">
           <div className="max-w-2xl">
             <p className="bp-hero-in-eyebrow mono mb-2 flex items-center gap-3 text-[clamp(0.7rem,0.85vw,0.9rem)] font-bold uppercase tracking-[.2em] text-[var(--bp-text-dim)]">
@@ -109,7 +109,7 @@ export default function StartPage() {
                 Join BuilderPass
                 <ArrowRight size={18} />
               </Link>
-              <Link className="inline-flex min-h-12 items-center gap-2 border border-[var(--bp-border-strong)] px-6 font-bold text-[var(--bp-text)] hover:border-[var(--bp-amber)]" to="/events">Explore events <ArrowRight size={18} /></Link>
+              <Link className="inline-flex min-h-12 items-center gap-2 border border-[var(--bp-border-strong)] px-6 font-bold text-[var(--bp-text)] hover:border-[var(--bp-amber)]" to="/#events">Explore Events <ArrowRight size={18} /></Link>
             </div>
           </div>
 

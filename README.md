@@ -69,8 +69,11 @@ build writes deployable files to `dist/`.
 
 ## Public homepage and event announcements
 
-The homepage includes student benefits, joining steps, upcoming and previous
-public events, FAQs, and a final signup link. Guests can browse `/events` and
+The homepage groups benefits and joining steps under Why Join, upcoming and past
+public events under Events, and membership questions under FAQ. The landing navbar
+scrolls to these sections; Login opens the login page. The hero's Join BuilderPass
+button opens signup, and Explore Events scrolls to the Events section.
+Guests can browse `/events` and
 `/events/:id`; reservations and member activity still require sign-in. Search
 updates the URL without remounting the page or interrupting typing.
 

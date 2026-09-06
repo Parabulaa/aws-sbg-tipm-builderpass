@@ -5,7 +5,7 @@ const event = { id: eventId, title: 'Cloud workshop', description: 'Learn with t
 const pastEvent = { ...event, id: '20000000-0000-4000-8000-000000000002', title: 'Community recap', event_date: '2020-01-01', recap: 'Members built a demo together.' }
 const user = { id: '10000000-0000-4000-8000-000000000001', email: 'member@example.test', aud: 'authenticated', role: 'authenticated', user_metadata: {}, app_metadata: {}, identities: [{ id: 'test' }] }
 
-async function setup(page, { role, events = [event, pastEvent], failEvents = false } = {}) {
+async function setup(page, { role, events = [event, pastEvent], failEvents = false, eventDelay = 0 } = {}) {
   let eventReads = 0
   const writes = []
   await page.route('https://builderpass.test/**', async route => {
@@ -18,6 +18,7 @@ async function setup(page, { role, events = [event, pastEvent], failEvents = fal
         body = [{ id: eventId }]
       } else {
         eventReads += 1
+        if (eventDelay) await new Promise(resolve => setTimeout(resolve, eventDelay))
         if (failEvents) return route.fulfill({ status: 503, json: { message: 'Temporary failure' } })
         body = url.searchParams.has('id') ? events.filter(e => `eq.${e.id}` === url.searchParams.get('id')) : events
       }
@@ -87,7 +88,12 @@ test('homepage sections, real recaps, FAQ, and anchors work on mobile', async ({
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/')
   await expect(page.getByRole('heading', { name: /Find your next event/, level: 1 })).toBeVisible()
-  await page.getByRole('navigation', { name: 'On this page' }).getByRole('link', { name: 'FAQ', exact: true }).click()
+  await expect(page.getByRole('navigation', { name: 'On this page' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Toggle navigation' }).click()
+  const menu = page.getByRole('navigation', { name: 'Mobile navigation' })
+  await expect(menu.getByRole('link')).toHaveText(['Home', 'Why Join', 'Events', 'FAQ', 'Login'])
+  await menu.getByRole('link', { name: 'FAQ', exact: true }).click()
+  await expect(menu).toHaveCount(0)
   await expect(page).toHaveURL(/#faq$/)
   await expect(page.getByRole('heading', { name: 'Before you join.' })).toBeInViewport()
   await page.getByText('Can I browse events before creating an account?', { exact: true }).click()
@@ -96,6 +102,49 @@ test('homepage sections, real recaps, FAQ, and anchors work on mobile', async ({
   await expect(page.locator('#member-stories')).toHaveCount(0)
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
   await page.screenshot({ path: 'test-results/homepage-mobile.png', fullPage: true })
+})
+
+test('landing navbar and hero target consolidated sections and preserve active indicators', async ({ page }) => {
+  await setup(page, { eventDelay: 300 })
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/')
+  const nav = page.getByRole('navigation', { name: 'Main navigation' })
+  await expect(nav.getByRole('link')).toHaveText(['Home', 'Why Join', 'Events', 'FAQ', 'Login'])
+  await expect(page.getByRole('link', { name: 'Join BuilderPass', exact: true })).toHaveCount(1)
+  await expect(page.getByRole('link', { name: 'Join BuilderPass', exact: true })).toHaveAttribute('href', '/register')
+  await page.locator('#home').getByRole('link', { name: 'Explore Events' }).click()
+  await expect(page).toHaveURL(/\/#events$/)
+  await expect(nav.getByRole('link', { name: 'Events', exact: true })).toHaveAttribute('aria-current', 'location')
+  await expect(page.locator('#events').getByRole('heading', { name: 'Upcoming Events', exact: true })).toBeAttached()
+  await expect(page.locator('#events').getByRole('heading', { name: 'Past Events', exact: true })).toBeAttached()
+  await nav.getByRole('link', { name: 'Why Join', exact: true }).click()
+  await expect(nav.getByRole('link', { name: 'Why Join', exact: true })).toHaveAttribute('aria-current', 'location')
+  await expect(page.locator('#why-join').getByRole('heading', { name: 'Membership benefits' })).toBeAttached()
+  await nav.getByRole('link', { name: 'Login', exact: true }).click()
+  await expect(page).toHaveURL(/\/login$/)
+  await nav.getByRole('link', { name: 'FAQ', exact: true }).click()
+  await expect(page).toHaveURL(/\/#faq$/)
+  await expect(page.getByRole('heading', { name: 'Before you join.' })).toBeInViewport()
+  await nav.getByRole('link', { name: 'Home', exact: true }).click()
+  await expect(nav.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'location')
+  await page.screenshot({ path: 'test-results/homepage-desktop.png' })
+})
+
+test('mobile menu fits short screens and closes with Escape', async ({ page }) => {
+  await setup(page)
+  await page.setViewportSize({ width: 375, height: 450 })
+  await page.goto('/')
+  const toggle = page.getByRole('button', { name: 'Toggle navigation' })
+  await toggle.click()
+  await expect(page.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('link', { name: 'Login' })).toBeInViewport()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+  await page.keyboard.press('Escape')
+  await expect(toggle).toBeFocused()
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+  await toggle.click()
+  await page.getByRole('navigation', { name: 'Mobile navigation' }).getByRole('link', { name: 'Why Join' }).click()
+  await expect(page.locator('#why-join')).toHaveClass(/bp-reveal-visible/)
+  await expect(page.locator('#why-join > h2')).toBeInViewport()
 })
 
 test('carousel pauses and stays stopped for reduced motion', async ({ page }) => {
