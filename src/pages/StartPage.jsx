@@ -109,7 +109,7 @@ export default function StartPage() {
                   style={{ transform: `translateX(-${activeSlide * 100}%)` }}
                 >
                   {heroSlides.map((slide, index) => (
-                    <picture className="block h-full w-full shrink-0" key={slide.src}>
+                    <picture className="block h-full min-w-0 flex-[0_0_100%]" key={slide.src}>
                       <source media="(max-width: 1023px)" srcSet={slide.mobileSrc} />
                       <img
                         alt={slide.caption}
@@ -142,8 +142,8 @@ export default function StartPage() {
                 </button>
               </div>
 
-              <div className="flex flex-col items-start justify-between gap-3 border-t border-[var(--bp-border)] bg-[var(--bp-surface)] px-4 py-4 sm:flex-row sm:items-center sm:gap-4 sm:px-5">
-                <p className="mono flex items-center gap-2 text-xs font-bold uppercase tracking-[.1em] text-[var(--bp-text-dim)]">
+              <div className="flex h-28 flex-col items-start justify-between gap-3 overflow-hidden border-t border-[var(--bp-border)] bg-[var(--bp-surface)] px-4 py-4 sm:h-20 sm:flex-row sm:items-center sm:gap-4 sm:px-5">
+                <p className="mono flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-[.1em] text-[var(--bp-text-dim)]">
                   <span className="h-2 w-2 bg-[var(--bp-amber)]" />
                   {currentHeroSlide.caption}
                 </p>
