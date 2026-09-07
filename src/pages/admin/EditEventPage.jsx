@@ -17,8 +17,10 @@ import {
 import { getEventScheduleError } from '../../utils/events.js'
 import {
   eventWithOptionalEndTime,
+  eventWithOptionalPublishing,
   getDatabaseFeatureMessage,
   queryWithOptionalEventEndTime,
+  queryWithOptionalEventPublishing,
 } from '../../utils/supabaseCompatibility.js'
 
 const initialForm = {
@@ -49,6 +51,7 @@ export default function EditEventPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isUnavailable, setIsUnavailable] = useState(false)
+  const [supportsEventPublishing, setSupportsEventPublishing] = useState(true)
   const posterPreviewUrl = useObjectUrl(posterFile)
   const displayedPosterUrl = posterPreviewUrl || (!shouldRemovePoster ? posterUrl : '')
   const hasUnsavedChanges = Boolean(loadedFormRef.current) && (
@@ -70,14 +73,18 @@ export default function EditEventPage() {
       setShouldRemovePoster(false)
       setPosterUrl(null)
 
-      const { data: rawData, error } = await queryWithOptionalEventEndTime((includeEndTime) => supabase
-        .from('events')
-        .select(includeEndTime
-          ? 'id, title, description, event_date, start_time, end_time, venue, capacity, registration_status, poster_path, publication_status, visibility, recap'
-          : 'id, title, description, event_date, start_time, venue, capacity, registration_status, poster_path, publication_status, visibility, recap')
-        .eq('id', id)
-        .maybeSingle())
-      const data = eventWithOptionalEndTime(rawData)
+      const { data: rawData, error, supportsEventPublishing: hasPublishingFields } = await queryWithOptionalEventPublishing((includePublishing) => (
+        queryWithOptionalEventEndTime((includeEndTime) => {
+          const fields = [
+            'id', 'title', 'description', 'event_date', 'start_time', 'venue', 'capacity', 'registration_status', 'poster_path',
+            ...(includeEndTime ? ['end_time'] : []),
+            ...(includePublishing ? ['publication_status', 'visibility', 'recap'] : []),
+          ]
+
+          return supabase.from('events').select(fields.join(', ')).eq('id', id).maybeSingle()
+        })
+      ))
+      const data = eventWithOptionalPublishing(eventWithOptionalEndTime(rawData))
 
       if (!isActive) return
 
@@ -85,6 +92,7 @@ export default function EditEventPage() {
         setErrorMessage(error?.message || 'This event is not available.')
         setIsUnavailable(true)
       } else {
+        setSupportsEventPublishing(hasPublishingFields)
         const loadedForm = {
           title: data.title,
           description: data.description,
@@ -193,9 +201,12 @@ export default function EditEventPage() {
         venue: form.venue.trim(),
         capacity,
         registration_status: form.registrationStatus,
-        publication_status: form.publicationStatus,
-        visibility: form.visibility,
-        recap: form.recap.trim(),
+      }
+
+      if (supportsEventPublishing) {
+        update.publication_status = form.publicationStatus
+        update.visibility = form.visibility
+        update.recap = form.recap.trim()
       }
 
       if (nextPosterPath !== posterPath) update.poster_path = nextPosterPath
@@ -347,7 +358,13 @@ export default function EditEventPage() {
             <p className="mt-1.5 text-xs text-slate-500">Set the maximum number of active reservations.</p>
           </FormField>
 
-          <EventPublicationFields form={form} onChange={handleChange} />
+          {supportsEventPublishing ? (
+            <EventPublicationFields form={form} onChange={handleChange} />
+          ) : (
+            <p className="border border-[var(--bp-amber-muted)] bg-[var(--bp-amber)]/5 px-4 py-3 text-sm text-[var(--bp-text-muted)]" role="status">
+              Publishing controls will be available after the Phase 10 database migration. You can still edit the event details below.
+            </p>
+          )}
 
           <FormField label="Registration status" htmlFor="registrationStatus">
             <SelectControl

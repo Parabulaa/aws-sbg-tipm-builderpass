@@ -2,15 +2,34 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import {
   eventWithOptionalEndTime,
+  eventWithOptionalPublishing,
   getDatabaseFeatureMessage,
   isMissingEventEndTime,
+  isMissingEventPublishing,
   isMissingProfileUpdateFunction,
   queryWithOptionalEventEndTime,
+  queryWithOptionalEventPublishing,
 } from '../src/utils/supabaseCompatibility.js'
 
 test('detects the missing end_time column returned by Postgres', () => {
   assert.equal(isMissingEventEndTime({ code: '42703', message: 'column events.end_time does not exist' }), true)
   assert.equal(isMissingEventEndTime({ code: '42501', message: 'permission denied' }), false)
+})
+
+test('retries event operations without Phase 10 publishing fields', async () => {
+  const calls = []
+  const result = await queryWithOptionalEventPublishing(async (includePublishing) => {
+    calls.push(includePublishing)
+    return includePublishing
+      ? { data: null, error: { code: '42703', message: 'column events.publication_status does not exist' } }
+      : { data: [{ id: 'event-1' }], error: null }
+  })
+
+  assert.deepEqual(calls, [true, false])
+  assert.equal(result.supportsEventPublishing, false)
+  assert.deepEqual(result.data, [{ id: 'event-1' }])
+  assert.equal(isMissingEventPublishing({ code: 'PGRST204', message: "Could not find the 'visibility' column in the schema cache" }), true)
+  assert.equal(isMissingEventPublishing({ code: '42501', message: 'permission denied' }), false)
 })
 
 test('retries event queries without end_time only for the legacy schema error', async () => {
@@ -28,6 +47,9 @@ test('retries event queries without end_time only for the legacy schema error', 
 
 test('normalizes legacy events and explains pending database features', () => {
   assert.deepEqual(eventWithOptionalEndTime({ id: 'event-1' }), { end_time: null, id: 'event-1' })
+  assert.deepEqual(eventWithOptionalPublishing({ id: 'event-1' }), {
+    publication_status: 'PUBLISHED', visibility: 'MEMBERS', recap: '', id: 'event-1',
+  })
 
   const error = { code: 'PGRST202', message: 'Could not find the function public.update_own_profile in the schema cache' }
   assert.equal(isMissingProfileUpdateFunction(error), true)

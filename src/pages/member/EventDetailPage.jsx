@@ -15,7 +15,12 @@ import {
   formatEventDate,
   formatEventTimeRange,
 } from '../../utils/events.js'
-import { eventWithOptionalEndTime, queryWithOptionalEventEndTime } from '../../utils/supabaseCompatibility.js'
+import {
+  eventWithOptionalEndTime,
+  eventWithOptionalPublishing,
+  queryWithOptionalEventEndTime,
+  queryWithOptionalEventPublishing,
+} from '../../utils/supabaseCompatibility.js'
 import { createActionLock } from '../../utils/actionLock.js'
 
 export default function EventDetailPage() {
@@ -46,13 +51,17 @@ export default function EventDetailPage() {
       setRsvpSummary(null)
 
       const [eventResult, summaryResult] = await Promise.all([
-        queryWithOptionalEventEndTime((includeEndTime) => supabase
-          .from('events')
-          .select(includeEndTime
-            ? 'id, title, description, event_date, start_time, end_time, venue, capacity, registration_status, poster_path, publication_status, visibility, recap'
-            : 'id, title, description, event_date, start_time, venue, capacity, registration_status, poster_path, publication_status, visibility, recap')
-          .eq('id', id)
-          .maybeSingle()),
+        queryWithOptionalEventPublishing((includePublishing) => (
+          queryWithOptionalEventEndTime((includeEndTime) => {
+            const fields = [
+              'id', 'title', 'description', 'event_date', 'start_time', 'venue', 'capacity', 'registration_status', 'poster_path',
+              ...(includeEndTime ? ['end_time'] : []),
+              ...(includePublishing ? ['publication_status', 'visibility', 'recap'] : []),
+            ]
+
+            return supabase.from('events').select(fields.join(', ')).eq('id', id).maybeSingle()
+          })
+        )),
         supabase.rpc('get_event_rsvp_summary', { p_event_id: id }),
       ])
 
@@ -64,7 +73,7 @@ export default function EventDetailPage() {
         return
       }
 
-      setEvent(eventWithOptionalEndTime(eventResult.data))
+      setEvent(eventWithOptionalPublishing(eventWithOptionalEndTime(eventResult.data)))
 
       if (eventResult.data.poster_path) {
         getEventPosterUrl(eventResult.data.poster_path)

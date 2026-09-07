@@ -5,7 +5,7 @@ const event = { id: eventId, title: 'Cloud workshop', description: 'Learn with t
 const pastEvent = { ...event, id: '20000000-0000-4000-8000-000000000002', title: 'Community recap', event_date: '2020-01-01', recap: 'Members built a demo together.' }
 const user = { id: '10000000-0000-4000-8000-000000000001', email: 'member@example.test', aud: 'authenticated', role: 'authenticated', user_metadata: {}, app_metadata: {}, identities: [{ id: 'test' }] }
 
-async function setup(page, { role, events = [event, pastEvent], failEvents = false, eventDelay = 0 } = {}) {
+async function setup(page, { role, events = [event, pastEvent], failEvents = false, eventDelay = 0, legacyPublishingSchema = false } = {}) {
   let eventReads = 0
   const writes = []
   await page.route('https://builderpass.test/**', async route => {
@@ -13,6 +13,14 @@ async function setup(page, { role, events = [event, pastEvent], failEvents = fal
     const url = new URL(request.url())
     let body = []
     if (url.pathname === '/rest/v1/events') {
+      const requestsPublishingFields = url.searchParams.get('select')?.includes('publication_status')
+        || request.postData()?.includes('publication_status')
+      if (legacyPublishingSchema && requestsPublishingFields) {
+        return route.fulfill({
+          status: 400,
+          json: { code: '42703', message: 'column events.publication_status does not exist' },
+        })
+      }
       if (request.method() !== 'GET') {
         writes.push(request.postDataJSON())
         body = [{ id: eventId }]
@@ -20,7 +28,10 @@ async function setup(page, { role, events = [event, pastEvent], failEvents = fal
         eventReads += 1
         if (eventDelay) await new Promise(resolve => setTimeout(resolve, eventDelay))
         if (failEvents) return route.fulfill({ status: 503, json: { message: 'Temporary failure' } })
-        body = url.searchParams.has('id') ? events.filter(e => `eq.${e.id}` === url.searchParams.get('id')) : events
+        const returnedEvents = legacyPublishingSchema
+          ? events.map(({ publication_status, visibility, recap, ...legacyEvent }) => legacyEvent)
+          : events
+        body = url.searchParams.has('id') ? returnedEvents.filter(e => `eq.${e.id}` === url.searchParams.get('id')) : returnedEvents
       }
     } else if (url.pathname === '/rest/v1/profiles') {
       body = [{ ...user, student_number: '1', first_name: 'Test', last_name: 'Member', course: 'BS Computer Science (BS CS)', year_level: 1, section: 'CS11', role }]
@@ -214,6 +225,17 @@ test('officer can edit publication, audience and recap independently of registra
   await page.getByRole('button', { name: /Save/ }).click()
   await expect(page).toHaveURL(/\/admin\/events$/)
   expect(mock.writes[0]).toMatchObject({ publication_status: 'DRAFT', visibility: 'MEMBERS', recap: 'A verified event recap.', registration_status: 'OPEN' })
+})
+
+test('manage events stays usable while the Phase 10 database migration is pending', async ({ page }) => {
+  await setup(page, { role: 'OFFICER', legacyPublishingSchema: true })
+  await page.goto('/admin/events')
+  await expect(page.getByRole('heading', { name: 'Cloud workshop', exact: true })).toBeVisible()
+  await expect(page.getByText(/Phase 10 database migration/)).toBeVisible()
+  await page.getByRole('link', { name: 'Edit', exact: true }).first().click()
+  await expect(page.getByRole('heading', { name: 'Edit event' })).toBeVisible()
+  await expect(page.getByText(/Publishing controls will be available after the Phase 10/)).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'Publication', exact: true })).toHaveCount(0)
 })
 
 test('public empty, error and unavailable event states are useful', async ({ page }) => {

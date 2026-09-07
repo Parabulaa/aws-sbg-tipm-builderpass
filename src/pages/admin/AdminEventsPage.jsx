@@ -10,7 +10,12 @@ import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterUrl, getEventPosterUrls } from '../../utils/eventPosters.js'
 import { createEventFilterParams, parseEventFilters } from '../../utils/eventFilters.js'
 import { eventIsCurrent, eventMatchesFilters, eventRegistrationLabel, formatEventDate, formatEventTimeRange } from '../../utils/events.js'
-import { eventWithOptionalEndTime, queryWithOptionalEventEndTime } from '../../utils/supabaseCompatibility.js'
+import {
+  eventWithOptionalEndTime,
+  eventWithOptionalPublishing,
+  queryWithOptionalEventEndTime,
+  queryWithOptionalEventPublishing,
+} from '../../utils/supabaseCompatibility.js'
 
 const filterConfig = {
   search: { defaultValue: '', param: 'q' },
@@ -37,21 +42,33 @@ export default function AdminEventsPage() {
       setIsLoading(true)
       setErrorMessage('')
       setWarningMessage('')
-      const { data, error } = await queryWithOptionalEventEndTime((includeEndTime) => supabase
-        .from('events')
-        .select(includeEndTime
-          ? 'id, title, event_date, start_time, end_time, venue, registration_status, poster_path, publication_status, visibility, recap'
-          : 'id, title, event_date, start_time, venue, registration_status, poster_path, publication_status, visibility, recap')
-        .order('event_date', { ascending: true })
-        .order('start_time', { ascending: true }))
+      const { data, error, supportsEventPublishing } = await queryWithOptionalEventPublishing((includePublishing) => (
+        queryWithOptionalEventEndTime((includeEndTime) => {
+          const fields = [
+            'id', 'title', 'event_date', 'start_time', 'venue', 'registration_status', 'poster_path',
+            ...(includeEndTime ? ['end_time'] : []),
+            ...(includePublishing ? ['publication_status', 'visibility', 'recap'] : []),
+          ]
+
+          return supabase
+            .from('events')
+            .select(fields.join(', '))
+            .order('event_date', { ascending: true })
+            .order('start_time', { ascending: true })
+        })
+      ))
 
       if (!isActive) return
 
       if (error) {
         setErrorMessage(error.message || 'We could not load events. Please try again.')
       } else {
-        const compatibleEvents = data.map(eventWithOptionalEndTime)
+        const warnings = []
+        const compatibleEvents = data.map((event) => eventWithOptionalPublishing(eventWithOptionalEndTime(event)))
         setEvents(compatibleEvents)
+        if (!supportsEventPublishing) {
+          warnings.push('public event publishing controls need the Phase 10 database migration')
+        }
 
         try {
           const posterUrls = await getEventPosterUrls(compatibleEvents.map((event) => event.poster_path))
@@ -59,9 +76,11 @@ export default function AdminEventsPage() {
         } catch {
           if (isActive) {
             setPosterUrlsByPath({})
-            setWarningMessage('Events loaded, but some posters are temporarily unavailable.')
+            warnings.push('some posters are temporarily unavailable')
           }
         }
+
+        if (isActive && warnings.length) setWarningMessage(`Events loaded, but ${warnings.join(' and ')}.`)
       }
 
       if (isActive) setIsLoading(false)

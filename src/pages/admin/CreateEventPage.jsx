@@ -11,7 +11,7 @@ import { useUnsavedChanges } from '../../hooks/useUnsavedChanges.js'
 import { supabase } from '../../services/supabase/client.js'
 import { getEventPosterValidationMessage, removeEventPoster, uploadEventPoster } from '../../utils/eventPosters.js'
 import { getEventScheduleError } from '../../utils/events.js'
-import { getDatabaseFeatureMessage } from '../../utils/supabaseCompatibility.js'
+import { getDatabaseFeatureMessage, queryWithOptionalEventPublishing } from '../../utils/supabaseCompatibility.js'
 
 const initialForm = {
   title: '',
@@ -87,9 +87,8 @@ export default function CreateEventPage() {
     setIsSubmitting(true)
 
     try {
-      const { data, error } = await supabase
-        .from('events')
-        .insert({
+      const { data, error } = await queryWithOptionalEventPublishing((includePublishing) => {
+        const newEvent = {
           title: form.title.trim(),
           description: form.description.trim(),
           event_date: form.eventDate,
@@ -98,13 +97,17 @@ export default function CreateEventPage() {
           venue: form.venue.trim(),
           capacity,
           registration_status: form.registrationStatus,
-          publication_status: form.publicationStatus,
-          visibility: form.visibility,
-          recap: form.recap.trim(),
           created_by: session.user.id,
-        })
-        .select('id')
-        .single()
+        }
+
+        if (includePublishing) {
+          newEvent.publication_status = form.publicationStatus
+          newEvent.visibility = form.visibility
+          newEvent.recap = form.recap.trim()
+        }
+
+        return supabase.from('events').insert(newEvent).select('id').single()
+      })
 
       if (error) throw error
 
