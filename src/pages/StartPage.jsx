@@ -142,28 +142,26 @@ export default function StartPage() {
                 </button>
               </div>
 
-              <div className="flex h-28 flex-col items-start justify-between gap-3 overflow-hidden border-t border-[var(--bp-border)] bg-[var(--bp-surface)] px-4 py-4 sm:h-20 sm:flex-row sm:items-center sm:gap-4 sm:px-5">
+              <div className="flex h-28 flex-col items-start justify-between gap-3 overflow-hidden border-t border-[var(--bp-border)] bg-[var(--bp-surface)] px-4 py-4 sm:grid sm:h-20 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:gap-3 sm:px-5">
                 <p className="mono flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-[.1em] text-[var(--bp-text-dim)]">
-                  <span className="h-2 w-2 bg-[var(--bp-amber)]" />
-                  {currentHeroSlide.caption}
+                  <span className="h-2 w-2 shrink-0 bg-[var(--bp-amber)]" />
+                  <span className="line-clamp-2">{currentHeroSlide.caption}</span>
                 </p>
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex gap-1.5">
-                    {heroSlides.map((slide, index) => (
-                      <button
-                        aria-current={index === activeSlide}
-                        aria-label={`Go to slide ${index + 1}`}
-                        className="grid min-h-11 min-w-11 place-items-center focus-visible:outline-2 focus-visible:outline-[var(--bp-amber)]"
-                        key={slide.src}
-                        onClick={() => goToHeroSlide(index)}
-                        type="button"
-                      >
-                        <span aria-hidden="true" className={`h-1.5 w-6 transition-colors ${index === activeSlide ? 'bg-[var(--bp-amber)]' : 'bg-[var(--bp-text-dim)]/60'}`} />
-                      </button>
-                    ))}
-                  </div>
-                  <p className="mono hidden text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-amber)] sm:block">TIP Manila</p>
+                <div className="flex shrink-0 gap-1.5">
+                  {heroSlides.map((slide, index) => (
+                    <button
+                      aria-current={index === activeSlide}
+                      aria-label={`Go to slide ${index + 1}`}
+                      className="grid min-h-11 min-w-11 place-items-center focus-visible:outline-2 focus-visible:outline-[var(--bp-amber)]"
+                      key={slide.src}
+                      onClick={() => goToHeroSlide(index)}
+                      type="button"
+                    >
+                      <span aria-hidden="true" className={`h-1.5 w-6 transition-colors ${index === activeSlide ? 'bg-[var(--bp-amber)]' : 'bg-[var(--bp-text-dim)]/60'}`} />
+                    </button>
+                  ))}
                 </div>
+                <p className="mono hidden whitespace-nowrap text-xs font-bold uppercase tracking-[.14em] text-[var(--bp-amber)] sm:block">TIP Manila</p>
               </div>
             </div>
           </div>

@@ -171,6 +171,11 @@ test('carousel stays manual without a pause button and supports reduced motion',
   await expect(page.getByRole('button', { name: /Pause community|Play community/ })).toHaveCount(0)
   const slider = page.locator('.bp-hero-in-slideshow > div')
   const initialSliderBox = await slider.boundingBox()
+  const indicatorsBox = await page.getByRole('button', { name: 'Go to slide 2' }).boundingBox()
+  const locationBox = await page.getByText('TIP Manila', { exact: true }).last().boundingBox()
+  expect(Math.abs(
+    (indicatorsBox.y + indicatorsBox.height / 2) - (locationBox.y + locationBox.height / 2),
+  )).toBeLessThan(2)
   const activeSlide = page.locator('button[aria-current="true"]')
   await expect(activeSlide).toHaveAttribute('aria-label', 'Go to slide 1')
   await page.clock.fastForward(20_000)
